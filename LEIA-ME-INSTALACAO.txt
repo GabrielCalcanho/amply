@@ -1,0 +1,49 @@
+AMPLY — Instalação da reformulação v2.0.0 (2026-09-15)
+=====================================================
+
+O visual NÃO muda sozinho. Você PRECISA substituir os arquivos em C:\Projetos\amply.
+
+1) Feche o Expo (Ctrl+C em todos os terminais).
+
+2) Extraia este ZIP. Deve aparecer a pasta:
+   amply\
+     package.json
+     app.json          (version 2.0.0)
+     VERSAO_REFORMULADA.txt
+     LEIA-ME-INSTALACAO.txt
+     src\components\layout\AppHeader.tsx
+     src\navigation\RootNavigator.tsx
+     ...
+
+3) SUBSTITUA o conteúdo de C:\Projetos\amply:
+   - Apague TUDO dentro de C:\Projetos\amply
+     (ou renomeie a pasta para amply-antigo)
+   - Copie TODO o conteúdo de amply\ para C:\Projetos\amply
+
+4) Confira que estes arquivos existem:
+   C:\Projetos\amply\app.json          → "version": "2.0.0"
+   C:\Projetos\amply\VERSAO_REFORMULADA.txt
+   C:\Projetos\amply\src\components\layout\AppHeader.tsx
+     → deve conter: backgroundColor: colors.primary
+     → e o texto AMPLY em branco
+
+5) Limpe caches e reinstale:
+   cd C:\Projetos\amply
+   rmdir /s /q node_modules
+   rmdir /s /q .expo
+   del /s /q %TEMP%\metro-*
+   pnpm install
+   pnpm exec expo start --web --clear
+
+6) Abra o navegador em aba ANÔNIMA (Ctrl+Shift+N).
+   Após login você DEVE ver:
+   - Barra superior VERDE/TEAL com "AMPLY" branco
+   - Nome da igreja abaixo
+   - Ícone ☰ à esquerda e sino à direita
+   - 5 abas: Início | Escalas | Repertório | Mensagens | Ministério
+
+7) No console do navegador (F12) deve aparecer:
+   [AMPLY] REFORM_2026_09_15 v2.0.0
+
+Se NÃO aparecer a barra teal, o Expo ainda está lendo OUTRA pasta.
+Confira o caminho no terminal onde o Expo iniciou.

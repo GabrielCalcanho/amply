@@ -1,0 +1,5 @@
+# Minimal Supabase config for Edge Functions
+# Full project config is managed by your linked Supabase project.
+
+[functions.spotify-search]
+verify_jwt = true

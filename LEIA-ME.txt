@@ -1,0 +1,18 @@
+Correção header AMPLY — logo oficial centralizada
+
+Arquivos:
+- src/components/layout/AppHeader.tsx
+- src/components/layout/AppDrawer.tsx
+- src/screens/HomeScreen.tsx
+
+A logo usa: assets/icon.png (já existente no projeto)
+
+Layout do header:
+[ MENU ]     [ LOGO AMPLY ]     [ AVATAR + Nome + Igreja ] [ SINO ]
+
+- Logo centralizada com position absolute (não desloca com nomes longos)
+- Removido o "A" em círculo abaixo do header na Home
+- Drawer também usa a logo oficial (sem "A" genérico)
+
+Copie sobre C:\projetos\amply e rode:
+pnpm exec expo start --clear

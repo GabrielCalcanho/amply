@@ -1,0 +1,22 @@
+AMPLY — Correções 16/09/2026
+============================
+
+1) Copie os arquivos desta pasta por cima de C:\projetos\amply
+   (mantenha a mesma estrutura de pastas)
+
+2) No Supabase → SQL Editor, execute:
+   supabase/migrations/006_fix_member_self_update_and_setlist_columns.sql
+
+3) Confirme bucket "avatars" (público) no Storage.
+
+4) Reinicie o Expo:
+   pnpm exec expo start --clear
+
+Arquivos incluídos:
+- src/screens/ProfileScreen.tsx
+- src/screens/TeamScreen.tsx
+- src/screens/SetlistFormScreen.tsx
+- src/screens/ministry/SimpleEntityListScreen.tsx
+- src/screens/menu/MetronomeScreen.tsx
+- src/utils/payload.ts
+- supabase/migrations/006_fix_member_self_update_and_setlist_columns.sql

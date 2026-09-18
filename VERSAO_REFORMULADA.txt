@@ -1,0 +1,9 @@
+AMPly - Reformulação + fix tela branca web
+Versão: 2.0.1 — 2026-09-15
+Fix: supabase createClient sem URL não derruba o app
+Fix: index.js entry padrão + gesture-handler primeiro
+Fix: AuthContext sempre sai de initializing
+Fix: ErrorBoundary no App.tsx
+Cabeçalho: barra teal AMPLY
+Tabs: Início, Escalas, Repertório, Mensagens, Ministério
+SDK: Expo 52
