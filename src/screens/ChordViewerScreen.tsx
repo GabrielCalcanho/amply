@@ -23,7 +23,7 @@ export function ChordViewerScreen() {
 
   const bg = dark ? '#1A1A1A' : colors.background;
   const fg = dark ? '#E8E8E8' : colors.text;
-  const chordColor = dark ? '#A8C090' : colors.primary;
+  const chordColor = colors.primary;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: bg }]}>

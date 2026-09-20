@@ -1,6 +1,6 @@
 /**
  * AMPLY Design System — tokens visuais
- * Identidade: carvão / off-white / verde oliva
+ * Identidade: preto / branco / cinzas neutros
  * Minimalista, premium, musical, acolhedor
  */
 
@@ -52,88 +52,76 @@ export type ColorTokens = {
   cardShadow: string;
 };
 
-/** Light — off-white base, charcoal text, olive accent */
+/** Light — white canvas, black type, neutral gray surfaces */
 export const lightColors: ColorTokens = {
-  primary: '#5C6B4A',
-  primaryDark: '#4A563C',
-  primaryLight: '#E8EDE3',
-  primaryMuted: '#8A9A76',
-
-  background: '#F7F6F3',
+  primary: '#111111',
+  primaryDark: '#000000',
+  primaryLight: '#F0F0F0',
+  primaryMuted: '#777777',
+  background: '#F4F4F4',
   surface: '#FFFFFF',
-  surfaceSecondary: '#F0EEE9',
+  surfaceSecondary: '#EEEEEE',
   surfaceElevated: '#FFFFFF',
-
-  border: '#E5E2DB',
-  borderStrong: '#D4D0C8',
-  divider: '#EBE8E2',
-
-  text: '#1A1C19',
-  textSecondary: '#5C5F58',
-  textMuted: '#8B8E86',
+  border: '#E2E2E2',
+  borderStrong: '#CFCFCF',
+  divider: '#EAEAEA',
+  text: '#111111',
+  textSecondary: '#555555',
+  textMuted: '#888888',
   textInverse: '#FFFFFF',
-
   white: '#FFFFFF',
-  black: '#0D0E0C',
-  charcoal: '#2C2F2A',
-
-  danger: '#B91C1C',
-  dangerLight: '#FEE2E2',
-  success: '#3F6B45',
-  successLight: '#E4EDE5',
-  warning: '#B45309',
-  warningLight: '#FEF3C7',
-  info: '#3B5B7A',
-  infoLight: '#E4EBF2',
-
-  overlay: 'rgba(26, 28, 25, 0.45)',
+  black: '#000000',
+  charcoal: '#222222',
+  danger: '#333333',
+  dangerLight: '#E8E8E8',
+  success: '#333333',
+  successLight: '#E8E8E8',
+  warning: '#333333',
+  warningLight: '#E8E8E8',
+  info: '#555555',
+  infoLight: '#E8E8E8',
+  overlay: 'rgba(0, 0, 0, 0.45)',
   tabBar: '#FFFFFF',
-  tabBarBorder: '#E5E2DB',
-  headerBg: '#F7F6F3',
-  headerText: '#1A1C19',
-  cardShadow: 'rgba(26, 28, 25, 0.06)',
+  tabBarBorder: '#E2E2E2',
+  headerBg: '#F4F4F4',
+  headerText: '#111111',
+  cardShadow: 'rgba(0, 0, 0, 0.08)',
 };
 
-/** Dark — deep charcoal base, soft olive accent */
+/** Dark — charcoal canvas, white type, neutral gray surfaces */
 export const darkColors: ColorTokens = {
-  primary: '#9BB084',
-  primaryDark: '#7A8F68',
-  primaryLight: '#2A3226',
-  primaryMuted: '#6B7C5A',
-
-  background: '#121411',
-  surface: '#1A1D18',
-  surfaceSecondary: '#222620',
-  surfaceElevated: '#242822',
-
-  border: '#2E332C',
-  borderStrong: '#3D433A',
-  divider: '#2A2E28',
-
-  text: '#F2F1ED',
-  textSecondary: '#A8ABA4',
-  textMuted: '#6F736C',
-  textInverse: '#121411',
-
+  primary: '#FFFFFF',
+  primaryDark: '#FFFFFF',
+  primaryLight: '#2A2A2A',
+  primaryMuted: '#AAAAAA',
+  background: '#111111',
+  surface: '#1B1B1B',
+  surfaceSecondary: '#242424',
+  surfaceElevated: '#2A2A2A',
+  border: '#333333',
+  borderStrong: '#444444',
+  divider: '#2B2B2B',
+  text: '#F5F5F5',
+  textSecondary: '#B5B5B5',
+  textMuted: '#808080',
+  textInverse: '#111111',
   white: '#FFFFFF',
-  black: '#0D0E0C',
-  charcoal: '#E8E7E3',
-
-  danger: '#F87171',
-  dangerLight: '#3F1D1D',
-  success: '#86B891',
-  successLight: '#1A2E1E',
-  warning: '#FBBF24',
-  warningLight: '#3B2F0E',
-  info: '#93B4D4',
-  infoLight: '#1A2838',
-
-  overlay: 'rgba(0, 0, 0, 0.55)',
-  tabBar: '#1A1D18',
-  tabBarBorder: '#2E332C',
-  headerBg: '#121411',
-  headerText: '#F2F1ED',
-  cardShadow: 'rgba(0, 0, 0, 0.35)',
+  black: '#000000',
+  charcoal: '#E5E5E5',
+  danger: '#FFFFFF',
+  dangerLight: '#333333',
+  success: '#FFFFFF',
+  successLight: '#333333',
+  warning: '#FFFFFF',
+  warningLight: '#333333',
+  info: '#B5B5B5',
+  infoLight: '#333333',
+  overlay: 'rgba(0, 0, 0, 0.6)',
+  tabBar: '#1B1B1B',
+  tabBarBorder: '#333333',
+  headerBg: '#111111',
+  headerText: '#F5F5F5',
+  cardShadow: 'rgba(0, 0, 0, 0.4)',
 };
 
 /** @deprecated Prefer useTheme().colors */

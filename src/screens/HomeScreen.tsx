@@ -568,7 +568,8 @@ function createStyles(colors: ColorTokens) {
     },
 
     greetingBlock: {
-      marginBottom: spacing.xl,
+      marginBottom: spacing.xxl,
+      paddingTop: spacing.sm,
     },
     greeting: {
       ...typography.caption,
@@ -658,11 +659,9 @@ function createStyles(colors: ColorTokens) {
     },
 
     nextCard: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.lg,
-      padding: spacing.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
+      backgroundColor: colors.black,
+      borderRadius: radius.xl,
+      padding: spacing.xl,
       marginBottom: spacing.sm,
     },
     nextTop: {
@@ -671,9 +670,10 @@ function createStyles(colors: ColorTokens) {
       alignItems: 'center',
     },
     nextEyebrow: {
-      ...typography.label,
-      color: colors.primary,
+      ...typography.small,
+      color: '#AAAAAA',
       textTransform: 'uppercase',
+      letterSpacing: 0.5,
     },
     statusPill: {
       paddingHorizontal: 10,
@@ -688,17 +688,17 @@ function createStyles(colors: ColorTokens) {
     },
     nextTitle: {
       ...typography.h3,
-      color: colors.text,
+      color: colors.white,
       marginTop: spacing.sm,
     },
     nextMeta: {
       ...typography.body,
-      color: colors.textSecondary,
+      color: '#D0D0D0',
       marginTop: 6,
     },
     nextLoc: {
       ...typography.caption,
-      color: colors.textMuted,
+      color: '#AAAAAA',
       marginTop: 4,
     },
     nextFooter: {
@@ -708,11 +708,11 @@ function createStyles(colors: ColorTokens) {
       marginTop: spacing.lg,
       paddingTop: spacing.md,
       borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
+      borderTopColor: '#333333',
     },
     nextStat: {
       ...typography.caption,
-      color: colors.textSecondary,
+      color: '#D0D0D0',
       flex: 1,
     },
     presence: {

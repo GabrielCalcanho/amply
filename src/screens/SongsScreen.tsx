@@ -141,7 +141,7 @@ export function SongsScreen() {
           />
           <TextInput
             style={styles.search}
-            placeholder="Buscar por título ou artista"
+            placeholder="Buscar música..."
             placeholderTextColor={colors.textMuted}
             value={search}
             onChangeText={setSearch}
@@ -300,12 +300,10 @@ function createStyles(colors: ColorTokens) {
       flexDirection: 'row',
       alignItems: 'center',
       marginHorizontal: spacing.lg,
-      marginBottom: spacing.sm,
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      paddingHorizontal: spacing.md,
+      marginBottom: spacing.md,
+      backgroundColor: colors.surfaceSecondary,
+      borderRadius: radius.full,
+      paddingHorizontal: spacing.lg,
     },
     searchIcon: {
       marginRight: spacing.sm,
