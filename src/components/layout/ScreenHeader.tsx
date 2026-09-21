@@ -33,8 +33,7 @@ export function ScreenHeader({
       <View style={styles.row}>
         {showBack ? (
           <TouchableOpacity onPress={handleBack} style={styles.backBtn} accessibilityLabel="Voltar">
-            <Ionicons name="chevron-back" size={24} color={colors.primary} />
-            <Text style={styles.backText}>Voltar</Text>
+            <Ionicons name="chevron-back" size={24} color={colors.text} />
           </TouchableOpacity>
         ) : (
           <View style={styles.backBtn} />
@@ -51,10 +50,8 @@ export function ScreenHeader({
 function createStyles(colors: ColorTokens) {
   return StyleSheet.create({
     wrap: {
-      backgroundColor: colors.surface,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
-      paddingBottom: spacing.xs,
+      backgroundColor: colors.background,
+      paddingBottom: spacing.sm,
     },
     row: { flexDirection: 'row', alignItems: 'center', minHeight: 44, paddingHorizontal: spacing.xs },
     backBtn: {

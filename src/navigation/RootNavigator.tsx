@@ -81,9 +81,11 @@ function MainTabs() {
           borderTopWidth: StyleSheet.hairlineWidth,
           height: barHeight,
           paddingBottom: bottomPad,
-          paddingTop: 6,
+          paddingTop: 8,
           elevation: 0,
           shadowOpacity: 0,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
         },
         tabBarLabelStyle: {
           fontSize: 11,
@@ -131,6 +133,20 @@ function MainTabs() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'list' : 'list-outline'}
+              size={22}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="TeamTab"
+        component={TeamScreen}
+        options={{
+          tabBarLabel: 'Equipe',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'people' : 'people-outline'}
               size={22}
               color={color}
             />

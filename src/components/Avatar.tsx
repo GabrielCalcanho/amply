@@ -29,7 +29,7 @@ export function Avatar({ uri, name, size = 40 }: AvatarProps) {
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: colors.primaryLight,
+          backgroundColor: colors.surfaceSecondary,
         },
       ]}
     >

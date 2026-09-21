@@ -80,7 +80,7 @@ function createStyles(colors: ColorTokens) {
   return StyleSheet.create({
     base: {
       minHeight: 48,
-      borderRadius: radius.md,
+      borderRadius: radius.full,
       paddingHorizontal: spacing.xl,
       alignItems: 'center',
       justifyContent: 'center',

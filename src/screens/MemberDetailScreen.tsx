@@ -58,7 +58,7 @@ export function MemberDetailScreen() {
         <View style={styles.hero}>
           <Avatar uri={p?.avatar_url} name={p?.name} size={88} />
           <Text style={styles.name}>{p?.name ?? 'Integrante'}</Text>
-          <Badge label={roleLabel} tone="primary" />
+          <Badge label={roleLabel} variant="primary" />
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>Instrumento / função</Text>

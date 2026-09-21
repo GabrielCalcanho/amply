@@ -44,8 +44,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
         if (!cancelled && stored) {
-          if (stored === 'light' || stored === 'dark' || stored === 'system') {
-            setModeState(stored);
+          if (stored === 'light') {
+            setModeState('light');
+          } else if (stored === 'dark' || stored === 'system') {
+            // The redesigned AMPLY uses the light reference as its default visual language.
+            setModeState('light');
           } else if (stored === 'true' || stored === 'dark-mode') {
             setModeState('dark');
           } else if (stored === 'false') {

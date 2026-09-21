@@ -25,9 +25,14 @@ function createStyles(colors: ColorTokens) {
   return StyleSheet.create({
     card: {
       backgroundColor: colors.surface,
-      borderRadius: radius.lg,
-      borderWidth: 1,
+      borderRadius: radius.xl,
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,
+      shadowColor: colors.black,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.04,
+      shadowRadius: 8,
+      elevation: 1,
     },
     padded: {
       padding: spacing.lg,
