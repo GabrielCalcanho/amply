@@ -563,7 +563,7 @@ function createStyles(colors: ColorTokens) {
   return StyleSheet.create({
     scroll: {
       paddingHorizontal: spacing.lg,
-      paddingTop: spacing.md,
+      paddingTop: spacing.lg,
       paddingBottom: spacing.xxxl,
     },
 
@@ -783,11 +783,12 @@ function createStyles(colors: ColorTokens) {
 
     quickRow: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
       gap: spacing.sm,
       marginBottom: spacing.sm,
     },
     quickCard: {
-      flex: 1,
+      width: '48%',
       backgroundColor: colors.surface,
       borderRadius: radius.lg,
       paddingVertical: spacing.lg,
