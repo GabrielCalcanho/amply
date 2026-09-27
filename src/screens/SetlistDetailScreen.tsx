@@ -95,6 +95,20 @@ export function SetlistDetailScreen() {
     });
   };
 
+  const openSetlistChat = async () => {
+    const { data, error } = await supabase.rpc('get_or_create_setlist_conversation', {
+      p_setlist_id: setlistId,
+    });
+    if (error || !data) {
+      Alert.alert('Erro', error ? formatSupabaseError(error) : 'Não foi possível abrir o chat da escala.');
+      return;
+    }
+    navigation.navigate('Chat', {
+      conversationId: data as string,
+      title: setlist?.title ? `Escala · ${setlist.title}` : 'Chat da escala',
+    });
+  };
+
   const removeSong = (row: SongRow) => {
     Alert.alert(
       'Remover da escala',
@@ -311,13 +325,20 @@ export function SetlistDetailScreen() {
       <ScreenHeader
         title="Escala"
         right={
-          canManage ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <IconButton
-              icon="ellipsis-horizontal"
-              onPress={() => setMenuOpen(true)}
-              accessibilityLabel="Mais opções"
+              icon="chatbubble-ellipses-outline"
+              onPress={openSetlistChat}
+              accessibilityLabel="Chat da escala"
             />
-          ) : null
+            {canManage ? (
+              <IconButton
+                icon="ellipsis-horizontal"
+                onPress={() => setMenuOpen(true)}
+                accessibilityLabel="Mais opções"
+              />
+            ) : null}
+          </View>
         }
       />
       <ActionMenu

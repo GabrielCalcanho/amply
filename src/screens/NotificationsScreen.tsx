@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
@@ -21,6 +21,7 @@ import { formatSupabaseError } from '../utils/payload';
 export function NotificationsScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const navigation = useNavigation<any>();
   const { user } = useAuth();
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,6 +72,16 @@ export function NotificationsScreen() {
     load();
   };
 
+  const openNotification = (n: NotificationItem) => {
+    markRead(n);
+    if (n.type === 'message' && n.data?.conversation_id) {
+      navigation.navigate('Chat', {
+        conversationId: n.data.conversation_id as string,
+        title: n.title,
+      });
+    }
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.safe} edges={['bottom']}>
@@ -105,7 +116,7 @@ export function NotificationsScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[styles.item, !item.read_at && styles.unread]}
-            onPress={() => markRead(item)}
+            onPress={() => openNotification(item)}
           >
             <Text style={styles.itemTitle}>{item.title}</Text>
             {item.body ? <Text style={styles.itemBody}>{item.body}</Text> : null}

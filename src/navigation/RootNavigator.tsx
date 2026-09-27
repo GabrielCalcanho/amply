@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useSyncExternalStore } from 'react';
 import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { DrawerProvider } from '../contexts/DrawerContext';
+import { getTotalUnread, subscribeUnread } from '../utils/unreadStore';
 
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { SignUpScreen } from '../screens/auth/SignUpScreen';
@@ -29,6 +30,7 @@ import { CalendarScreen } from '../screens/CalendarScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { MemberDetailScreen } from '../screens/MemberDetailScreen';
 import { MessagesScreen } from '../screens/MessagesScreen';
+import { ChatScreen } from '../screens/ChatScreen';
 import { MinistryHomeScreen } from '../screens/ministry/MinistryHomeScreen';
 import { TeamsScreen, RolesScreen, ClassificationsScreen } from '../screens/ministry/SimpleEntityListScreen';
 import { OverviewScreen } from '../screens/menu/OverviewScreen';
@@ -60,6 +62,7 @@ function AuthNavigator() {
 function MainTabs() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const unread = useSyncExternalStore(subscribeUnread, getTotalUnread, getTotalUnread);
   const bottomPad = Platform.OS === 'ios' ? Math.max(insets.bottom, 8) : Math.max(insets.bottom, 4);
   const barHeight = 52 + bottomPad;
 
@@ -119,6 +122,18 @@ function MainTabs() {
         }}
       />
       <Tab.Screen
+        name="Messages"
+        component={MessagesScreen}
+        options={{
+          tabBarLabel: 'Mensagens',
+          tabBarBadge: unread > 0 ? (unread > 99 ? '99+' : unread) : undefined,
+          tabBarBadgeStyle: { backgroundColor: colors.danger, fontSize: 10, minWidth: 16, height: 16 },
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={22} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
         name="Team"
         component={TeamScreen}
         options={{
@@ -157,7 +172,7 @@ function MainNavigator() {
         <MainStack.Screen name="Calendar" component={CalendarScreen} />
         <MainStack.Screen name="Notifications" component={NotificationsScreen} />
         <MainStack.Screen name="MemberDetail" component={MemberDetailScreen} />
-        <MainStack.Screen name="Messages" component={MessagesScreen} />
+        <MainStack.Screen name="Chat" component={ChatScreen} />
         <MainStack.Screen name="Ministry" component={MinistryHomeScreen} />
         <MainStack.Screen name="Overview" component={OverviewScreen} />
         <MainStack.Screen name="Announcements" component={AnnouncementsScreen} />

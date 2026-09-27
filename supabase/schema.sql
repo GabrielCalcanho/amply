@@ -1,5 +1,9 @@
 -- AMPLY Database Schema
 -- Multi-tenant architecture with Row Level Security
+--
+-- ATENÇÃO: snapshot consolidado até a migration 008 (notifications corrigido até 004).
+-- A fonte da verdade são os arquivos em supabase/migrations/ — tudo a partir da
+-- 009 (storage avatars, guard de setlist_members, chat core) existe apenas lá.
 
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

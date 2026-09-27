@@ -149,7 +149,8 @@ export type NotificationType =
   | 'presence_pending'
   | 'birthday'
   | 'admin_notice'
-  | 'announcement';
+  | 'announcement'
+  | 'message';
 
 export interface NotificationItem {
   id: string;
@@ -161,4 +162,32 @@ export interface NotificationItem {
   data: Record<string, unknown>;
   read_at: string | null;
   created_at: string;
+}
+
+export type ConversationType = 'ministry' | 'direct' | 'setlist';
+
+export interface ConversationSummary {
+  id: string;
+  type: ConversationType;
+  title: string | null;
+  setlist_id: string | null;
+  setlist_date: string | null;
+  other_user_id: string | null;
+  other_user_name: string | null;
+  other_user_avatar: string | null;
+  last_message_body: string | null;
+  last_message_at: string | null;
+  last_message_sender: string | null;
+  unread_count: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  body: string;
+  edited_at: string | null;
+  deleted_at: string | null;
+  created_at: string;
+  sender?: { name: string | null; avatar_url: string | null } | null;
 }

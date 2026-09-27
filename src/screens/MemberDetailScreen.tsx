@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Alert,
   Image,
   Pressable,
 } from 'react-native';
@@ -20,6 +21,7 @@ import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { spacing, radius, shadow } from '../constants/theme';
 import { isBirthdayToday } from '../utils/dates';
+import { formatSupabaseError } from '../utils/payload';
 
 type MemberRow = ChurchMember & { profile?: Profile | null };
 
@@ -147,6 +149,18 @@ export function MemberDetailScreen() {
   const birthdayToday = p?.birth_date ? isBirthdayToday(p.birth_date) : false;
   const instrument = member.instrument || '—';
   const coverUri: string | null = (p as any)?.cover_url ?? null;
+  const isSelf = member.user_id === user?.id;
+
+  const openChat = async () => {
+    const { data, error } = await supabase.rpc('get_or_create_direct_conversation', {
+      p_other_user: member.user_id,
+    });
+    if (error || !data) {
+      Alert.alert('Erro', error ? formatSupabaseError(error) : 'Não foi possível abrir a conversa.');
+      return;
+    }
+    navigation.navigate('Chat', { conversationId: data as string, title: name });
+  };
 
 
   return (
@@ -181,6 +195,18 @@ export function MemberDetailScreen() {
               <Ionicons name="chevron-back" size={22} color="#111" />
             </View>
           </Pressable>
+          {!isSelf ? (
+            <Pressable
+              onPress={openChat}
+              hitSlop={12}
+              style={[styles.chatFab, { top: insets.top + 8 }]}
+              accessibilityLabel="Conversar"
+            >
+              <View style={[styles.backCircle, { backgroundColor: 'rgba(255,255,255,0.92)' }]}>
+                <Ionicons name="chatbubble-ellipses-outline" size={20} color="#111" />
+              </View>
+            </Pressable>
+          ) : null}
         </View>
 
         {/* Avatar overlapping cover */}
@@ -292,6 +318,11 @@ const styles = StyleSheet.create({
   backFab: {
     position: 'absolute',
     left: 12,
+    zIndex: 10,
+  },
+  chatFab: {
+    position: 'absolute',
+    right: 12,
     zIndex: 10,
   },
   backCircle: {
