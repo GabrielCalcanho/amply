@@ -158,11 +158,11 @@ export function MemberDetailScreen() {
         {/* Cover */}
         <View style={[styles.cover, { backgroundColor: colors.surfaceSecondary }]}>
           {coverUri ? (
-            <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFillObject} />
+            <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFill} />
           ) : (
             <View
               style={[
-                StyleSheet.absoluteFillObject,
+                StyleSheet.absoluteFill,
                 { backgroundColor: colors.primary, opacity: 0.08 },
               ]}
             />

@@ -109,6 +109,8 @@ const darkColors = {
 };
 
 export type ThemeColors = typeof lightColors;
+/** Backwards-compatible name used by shared screen components. */
+export type ColorTokens = ThemeColors;
 
 export function getColors(scheme: ColorScheme): ThemeColors {
   return scheme === 'dark' ? darkColors : lightColors;
