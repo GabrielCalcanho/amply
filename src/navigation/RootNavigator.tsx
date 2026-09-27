@@ -42,7 +42,6 @@ import { MetronomeScreen } from '../screens/menu/MetronomeScreen';
 import { PlansScreen } from '../screens/menu/PlansScreen';
 import { SettingsScreen } from '../screens/menu/SettingsScreen';
 import { AccountProfileScreen } from '../screens/account/AccountProfileScreen';
-import { PersonalDataScreen } from '../screens/account/PersonalDataScreen';
 import { EditProfileScreen } from '../screens/account/EditProfileScreen';
 
 const AuthStack = createNativeStackNavigator();
@@ -180,7 +179,6 @@ function MainNavigator() {
         <MainStack.Screen name="Plans" component={PlansScreen} />
         <MainStack.Screen name="Settings" component={SettingsScreen} />
         <MainStack.Screen name="AccountProfile" component={AccountProfileScreen} />
-        <MainStack.Screen name="PersonalData" component={PersonalDataScreen} />
         <MainStack.Screen name="EditProfile" component={EditProfileScreen} />
         <MainStack.Screen name="Teams" component={TeamsScreen} />
         <MainStack.Screen name="Roles" component={RolesScreen} />

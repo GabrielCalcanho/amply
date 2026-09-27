@@ -36,12 +36,6 @@ export function SettingsScreen() {
       onPress: () => navigation.navigate('AccountProfile'),
     },
     {
-      key: 'personal',
-      label: 'Dados pessoais',
-      icon: 'document-text-outline',
-      onPress: () => navigation.navigate('PersonalData'),
-    },
-    {
       key: 'edit_profile',
       label: 'Editar perfil',
       icon: 'create-outline',

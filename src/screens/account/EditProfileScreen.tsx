@@ -41,6 +41,13 @@ export function EditProfileScreen() {
   const avatarUri = avatarPreview || profile?.avatar_url || null;
   const coverUri = coverPreview || profile?.cover_url || null;
 
+  const roleLabel =
+    membership?.role === 'owner'
+      ? 'Administrador'
+      : membership?.role === 'leader'
+        ? 'Líder'
+        : 'Músico';
+
   const uploadImage = async (kind: ImageKind) => {
     if (!user) return;
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -219,12 +226,37 @@ export function EditProfileScreen() {
         />
         <DateField label="Data de nascimento" value={birthDate} onChange={setBirthDate} />
 
+        <View
+          style={[
+            styles.readOnlyCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              borderRadius: radius.xl,
+            },
+          ]}
+        >
+          <View style={[styles.readOnlyRow, { borderBottomColor: colors.divider }]}>
+            <Text style={[styles.readLabel, { color: colors.textMuted }]}>Função</Text>
+            <Text style={[styles.readValue, { color: colors.text }]}>{roleLabel}</Text>
+          </View>
+          <View style={[styles.readOnlyRow, styles.readOnlyRowLast]}>
+            <Text style={[styles.readLabel, { color: colors.textMuted }]}>Email</Text>
+            <Text
+              style={[styles.readValue, { color: colors.text }]}
+              numberOfLines={1}
+            >
+              {user?.email ?? '—'}
+            </Text>
+          </View>
+        </View>
+
         <Button
           title="Salvar alterações"
           onPress={save}
           loading={saving}
           fullWidth
-          style={{ marginTop: spacing.sm }}
+          style={{ marginTop: spacing.lg }}
         />
       </ScrollView>
     </View>
@@ -257,4 +289,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  readOnlyCard: {
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.lg,
+  },
+  readOnlyRow: {
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  readOnlyRowLast: {
+    borderBottomWidth: 0,
+  },
+  readLabel: { fontSize: 12, fontWeight: '500', marginBottom: 4 },
+  readValue: { fontSize: 15, fontWeight: '500' },
 });
