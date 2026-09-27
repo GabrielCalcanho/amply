@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
@@ -61,6 +62,7 @@ export function SetlistDetailScreen() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [available, setAvailable] = useState<AvailableMember[]>([]);
   const [busy, setBusy] = useState(false);
+  const [changingPresence, setChangingPresence] = useState(false);
 
   const canManage = membership?.role === 'owner' || membership?.role === 'leader';
   const myMember = members.find((m) => m.user_id === user?.id);
@@ -336,6 +338,33 @@ export function SetlistDetailScreen() {
 
   const statusKey = (setlist.status as SetlistStatus) || 'scheduled';
 
+  const myStatus: MemberStatus = myMember?.status ?? 'pending';
+  const presenceUi =
+    myStatus === 'confirmed'
+      ? {
+          icon: 'checkmark-circle' as const,
+          tint: colors.successLight,
+          accent: colors.success,
+          title: 'Presença confirmada',
+          sub: 'Você está confirmado nesta escala.',
+        }
+      : myStatus === 'declined'
+        ? {
+            icon: 'close-circle' as const,
+            tint: colors.dangerLight,
+            accent: colors.danger,
+            title: 'Você não poderá ir',
+            sub: 'Marcamos sua ausência nesta escala.',
+          }
+        : {
+            icon: 'time' as const,
+            tint: colors.warningLight,
+            accent: colors.warning,
+            title: 'Resposta pendente',
+            sub: 'Confirme sua presença nesta escala.',
+          };
+  const showPresenceChoices = myStatus === 'pending' || changingPresence;
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
       <ScreenHeader
@@ -426,33 +455,78 @@ export function SetlistDetailScreen() {
         ) : null}
 
         {myMember ? (
-          <View style={[styles.presenceBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.section, { color: colors.textMuted, marginTop: 0 }]}>Sua presença</Text>
-            <Text style={[styles.presenceCurrent, { color: colors.text }]}>
-              Status: {MEMBER_STATUS_LABELS[myMember.status]}
-            </Text>
-            <View style={styles.presenceRow}>
-              <Button
-                title="Confirmar"
-                onPress={() => updateMyStatus('confirmed')}
-                loading={busy}
-                style={styles.presenceBtn}
+          <View
+            style={[
+              styles.presenceBox,
+              { backgroundColor: presenceUi.tint, borderColor: 'transparent' },
+            ]}
+          >
+            <View style={styles.presenceHead}>
+              <Ionicons
+                name={presenceUi.icon}
+                size={26}
+                color={presenceUi.accent}
+                style={styles.presenceIcon}
               />
-              <Button
-                title="Não poderei"
-                onPress={() => updateMyStatus('declined')}
-                variant="secondary"
-                loading={busy}
-                style={styles.presenceBtn}
-              />
-              <Button
-                title="Pendente"
-                onPress={() => updateMyStatus('pending')}
-                variant="ghost"
-                loading={busy}
-                style={styles.presenceBtn}
-              />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.presenceTitle, { color: colors.text }]}>
+                  {presenceUi.title}
+                </Text>
+                <Text style={[styles.presenceSub, { color: colors.textSecondary }]}>
+                  {presenceUi.sub}
+                </Text>
+              </View>
             </View>
+
+            {showPresenceChoices ? (
+              <View style={styles.presenceChoices}>
+                <Button
+                  title="Confirmar presença"
+                  onPress={() => {
+                    updateMyStatus('confirmed');
+                    setChangingPresence(false);
+                  }}
+                  loading={busy}
+                  fullWidth
+                />
+                <Button
+                  title="Não poderei"
+                  variant="ghost"
+                  onPress={() => {
+                    updateMyStatus('declined');
+                    setChangingPresence(false);
+                  }}
+                  loading={busy}
+                  fullWidth
+                />
+                {myStatus !== 'pending' ? (
+                  <Button
+                    title="Marcar como pendente"
+                    variant="ghost"
+                    onPress={() => {
+                      updateMyStatus('pending');
+                      setChangingPresence(false);
+                    }}
+                    loading={busy}
+                    fullWidth
+                  />
+                ) : null}
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => setChangingPresence(true)}
+                hitSlop={8}
+                style={({ pressed }) => [
+                  styles.changeLink,
+                  { opacity: pressed ? 0.6 : 1 },
+                ]}
+              >
+                <Text style={[styles.changeLinkText, { color: colors.text }]}>
+                  Alterar resposta
+                </Text>
+                <Ionicons name="chevron-forward" size={14} color={colors.textMuted} />
+              </Pressable>
+            )}
           </View>
         ) : null}
 
@@ -665,9 +739,36 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  presenceCurrent: { ...typography.body, marginBottom: spacing.sm },
-  presenceRow: { gap: spacing.xs },
-  presenceBtn: { marginTop: spacing.xs },
+  presenceHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  presenceIcon: {
+    marginTop: 1,
+  },
+  presenceTitle: {
+    ...typography.h3,
+  },
+  presenceSub: {
+    ...typography.caption,
+    marginTop: 2,
+  },
+  presenceChoices: {
+    gap: spacing.xs,
+    marginTop: spacing.md,
+  },
+  changeLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: spacing.md,
+    alignSelf: 'flex-start',
+  },
+  changeLinkText: {
+    ...typography.label,
+    fontWeight: '600',
+  },
   listSurface: {
     borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
