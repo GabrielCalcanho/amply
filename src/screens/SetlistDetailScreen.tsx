@@ -462,12 +462,11 @@ export function SetlistDetailScreen() {
             ]}
           >
             <View style={styles.presenceHead}>
-              <Ionicons
-                name={presenceUi.icon}
-                size={26}
-                color={presenceUi.accent}
-                style={styles.presenceIcon}
-              />
+              <View
+                style={[styles.presenceIconCircle, { backgroundColor: colors.surface }]}
+              >
+                <Ionicons name={presenceUi.icon} size={24} color={presenceUi.accent} />
+              </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.presenceTitle, { color: colors.text }]}>
                   {presenceUi.title}
@@ -518,7 +517,11 @@ export function SetlistDetailScreen() {
                 hitSlop={8}
                 style={({ pressed }) => [
                   styles.changeLink,
-                  { opacity: pressed ? 0.6 : 1 },
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    opacity: pressed ? 0.7 : 1,
+                  },
                 ]}
               >
                 <Text style={[styles.changeLinkText, { color: colors.text }]}>
@@ -735,35 +738,44 @@ const styles = StyleSheet.create({
   empty: { ...typography.body },
   presenceBox: {
     marginTop: spacing.lg,
-    padding: spacing.md,
+    padding: spacing.lg,
     borderRadius: radius.xl,
     borderWidth: StyleSheet.hairlineWidth,
   },
   presenceHead: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.md,
   },
-  presenceIcon: {
-    marginTop: 1,
+  presenceIconCircle: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   presenceTitle: {
     ...typography.h3,
   },
   presenceSub: {
     ...typography.caption,
-    marginTop: 2,
+    marginTop: 3,
   },
   presenceChoices: {
     gap: spacing.xs,
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
   },
   changeLink: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: spacing.md,
-    alignSelf: 'flex-start',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: spacing.lg,
+    paddingVertical: 10,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.full,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignSelf: 'stretch',
   },
   changeLinkText: {
     ...typography.label,
