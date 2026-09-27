@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../services/supabase';
 import { Button } from '../components/Button';
@@ -33,6 +34,7 @@ const STATUS_OPTIONS: SetlistStatus[] = [
 
 export function SetlistFormScreen() {
   const { church, user, membership } = useAuth();
+  const { colors: themeColors } = useTheme();
   const navigation = useNavigation<any>();
   const toast = useToast();
   const route = useRoute<any>();
@@ -195,10 +197,21 @@ export function SetlistFormScreen() {
           {STATUS_OPTIONS.map((s) => (
             <TouchableOpacity
               key={s}
-              style={[styles.chip, status === s && styles.chipOn]}
+              style={[
+                styles.chip,
+                {
+                  backgroundColor: status === s ? themeColors.surfaceInverse : themeColors.surface,
+                  borderColor: status === s ? themeColors.surfaceInverse : themeColors.border,
+                },
+              ]}
               onPress={() => setStatus(s)}
             >
-              <Text style={[styles.chipText, status === s && styles.chipTextOn]}>
+              <Text
+                style={[
+                  styles.chipText,
+                  { color: status === s ? themeColors.textInverse : themeColors.text },
+                ]}
+              >
                 {SETLIST_STATUS_LABELS[s]}
               </Text>
             </TouchableOpacity>
