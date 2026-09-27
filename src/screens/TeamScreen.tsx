@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,16 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
+  ScrollView,
   TextInput,
 } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
-import { ChurchMember, UserRole, INSTRUMENT_SUGGESTIONS } from '../types';
+import { ChurchMember, UserRole } from '../types';
+import { MINISTRY_DEFS, matchMinistryGroup } from '../constants/ministries';
 import { TabScreenShell } from '../components/layout/TabScreenShell';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Avatar } from '../components/Avatar';
@@ -29,15 +31,27 @@ type FilterKey = 'members' | 'roles' | 'instruments';
 
 export function TeamScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const { church, membership, user } = useAuth();
   const { colors } = useTheme();
   const [members, setMembers] = useState<ChurchMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterKey>('members');
+  const [activeRole, setActiveRole] = useState<UserRole | null>(null);
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editInstrument, setEditInstrument] = useState('');
   const [editRole, setEditRole] = useState<UserRole>('musician');
+
+  useEffect(() => {
+    const group = route.params?.filterInstrument;
+    if (group && MINISTRY_DEFS.some((d) => d.key === group)) {
+      setFilter('instruments');
+      setActiveGroup(group);
+      navigation.setParams({ filterInstrument: undefined });
+    }
+  }, [route.params?.filterInstrument]);
 
   const canManage = membership?.role === 'owner' || membership?.role === 'leader';
 
@@ -110,6 +124,12 @@ export function TeamScreen() {
 
   const filtered = useMemo(() => {
     let list = members;
+    if (filter === 'roles' && activeRole) {
+      list = list.filter((m) => m.role === activeRole);
+    }
+    if (filter === 'instruments' && activeGroup) {
+      list = list.filter((m) => matchMinistryGroup(m.instrument, activeGroup));
+    }
     const q = search.toLowerCase().trim();
     if (q) {
       list = list.filter(
@@ -120,7 +140,18 @@ export function TeamScreen() {
       );
     }
     return list;
-  }, [members, search]);
+  }, [members, search, filter, activeRole, activeGroup]);
+
+  const roleChips = useMemo(() => {
+    const present = new Set(members.map((m) => m.role));
+    return (['owner', 'leader', 'musician'] as UserRole[]).filter((r) => present.has(r));
+  }, [members]);
+
+  const selectFilter = (key: FilterKey) => {
+    setFilter(key);
+    setActiveRole(null);
+    setActiveGroup(null);
+  };
 
   const invite = () => {
     if (!church?.invite_code) return;
@@ -183,8 +214,70 @@ export function TeamScreen() {
             { key: 'instruments', label: 'Instrumentos' },
           ]}
           value={filter}
-          onChange={setFilter}
+          onChange={selectFilter}
         />
+        {filter === 'roles' ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
+            {roleChips.map((r) => {
+              const active = activeRole === r;
+              return (
+                <Pressable
+                  key={r}
+                  onPress={() => setActiveRole(active ? null : r)}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: active ? colors.primary : colors.surfaceSecondary,
+                      borderRadius: radius.full,
+                      borderColor: active ? colors.primary : colors.border,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color: active ? colors.textInverse : colors.text,
+                      fontSize: 13,
+                      fontWeight: '600',
+                    }}
+                  >
+                    {roleLabel(r)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        ) : null}
+        {filter === 'instruments' ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
+            {MINISTRY_DEFS.map((d) => {
+              const active = activeGroup === d.key;
+              return (
+                <Pressable
+                  key={d.key}
+                  onPress={() => setActiveGroup(active ? null : d.key)}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: active ? colors.primary : colors.surfaceSecondary,
+                      borderRadius: radius.full,
+                      borderColor: active ? colors.primary : colors.border,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color: active ? colors.textInverse : colors.text,
+                      fontSize: 13,
+                      fontWeight: '600',
+                    }}
+                  >
+                    {d.name}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        ) : null}
       </View>
 
       <FlatList
@@ -317,6 +410,16 @@ const styles = StyleSheet.create({
   toolbar: {
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.sm,
+  },
+  chips: {
+    flexGrow: 0,
+    marginTop: spacing.sm,
+  },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginRight: spacing.sm,
   },
   inviteBtn: {
     flexDirection: 'row',

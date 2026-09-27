@@ -16,6 +16,7 @@ import { ScreenHeader } from '../../components/layout/ScreenHeader';
 import { SearchField } from '../../components/SearchField';
 import { EmptyState } from '../../components/EmptyState';
 import { spacing, radius, shadow } from '../../constants/theme';
+import { MINISTRY_DEFS } from '../../constants/ministries';
 
 type MinistryItem = {
   key: string;
@@ -24,100 +25,15 @@ type MinistryItem = {
   count: number;
 };
 
-/** Default ministry groups mapped from instruments / roles */
-const MINISTRY_DEFS: {
-  key: string;
-  name: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  match: (instrument: string | null | undefined) => boolean;
-}[] = [
-  {
-    key: 'louvor',
-    name: 'Louvor',
-    icon: 'musical-notes',
-    match: (i) => {
-      const v = (i ?? '').toLowerCase();
-      return !v || v.includes('louvor') || v.includes('líder') || v.includes('lider') || v.includes('regência') || v.includes('regencia');
-    },
-  },
-  {
-    key: 'banda',
-    name: 'Banda',
-    icon: 'people',
-    match: (i) => {
-      const v = (i ?? '').toLowerCase();
-      return v.includes('banda') || v.includes('banda');
-    },
-  },
-  {
-    key: 'vocal',
-    name: 'Vocal',
-    icon: 'mic',
-    match: (i) => {
-      const v = (i ?? '').toLowerCase();
-      return v.includes('vocal') || v.includes('voz') || v.includes('canto');
-    },
-  },
-  {
-    key: 'violao',
-    name: 'Violão',
-    icon: 'musical-note',
-    match: (i) => {
-      const v = (i ?? '').toLowerCase();
-      return v.includes('violão') || v.includes('violao') || v.includes('guitarra acústica');
-    },
-  },
-  {
-    key: 'bateria',
-    name: 'Bateria',
-    icon: 'radio',
-    match: (i) => {
-      const v = (i ?? '').toLowerCase();
-      return v.includes('bateria') || v.includes('cajón') || v.includes('cajon') || v.includes('percuss');
-    },
-  },
-  {
-    key: 'teclado',
-    name: 'Teclado',
-    icon: 'grid',
-    match: (i) => {
-      const v = (i ?? '').toLowerCase();
-      return v.includes('teclado') || v.includes('piano') || v.includes('keys');
-    },
-  },
-  {
-    key: 'baixo',
-    name: 'Baixo',
-    icon: 'pulse',
-    match: (i) => {
-      const v = (i ?? '').toLowerCase();
-      return v.includes('baixo') || v.includes('bass');
-    },
-  },
-  {
-    key: 'guitarra',
-    name: 'Guitarra',
-    icon: 'flash',
-    match: (i) => {
-      const v = (i ?? '').toLowerCase();
-      return v.includes('guitarra') && !v.includes('acústica') && !v.includes('acustica');
-    },
-  },
-  {
-    key: 'outros',
-    name: 'Outros',
-    icon: 'ellipsis-horizontal',
-    match: () => false, // filled as remainder
-  },
-];
-
 export function MinistryHomeScreen() {
   const navigation = useNavigation<any>();
-  const { church } = useAuth();
+  const { church, membership } = useAuth();
   const { colors } = useTheme();
   const [members, setMembers] = useState<{ instrument: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+
+  const canManage = membership?.role === 'owner' || membership?.role === 'leader';
 
   const load = useCallback(async () => {
     if (!church) {
@@ -204,6 +120,46 @@ export function MinistryHomeScreen() {
           keyExtractor={(i) => i.key}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            canManage ? (
+              <View style={styles.manageSection}>
+                <Text style={[styles.manageTitle, { color: colors.textSecondary }]}>
+                  Gerenciar estrutura
+                </Text>
+                <View style={styles.manageRow}>
+                  {(
+                    [
+                      { route: 'Teams', label: 'Equipes', icon: 'people-outline' },
+                      { route: 'Roles', label: 'Funções', icon: 'briefcase-outline' },
+                      {
+                        route: 'Classifications',
+                        label: 'Classificações',
+                        icon: 'pricetags-outline',
+                      },
+                    ] as const
+                  ).map((m) => (
+                    <Pressable
+                      key={m.route}
+                      onPress={() => navigation.navigate(m.route)}
+                      style={({ pressed }) => [
+                        styles.manageCard,
+                        {
+                          backgroundColor: colors.surface,
+                          borderColor: colors.border,
+                          borderRadius: radius.lg,
+                          opacity: pressed ? 0.9 : 1,
+                          ...shadow.sm,
+                        },
+                      ]}
+                    >
+                      <Ionicons name={m.icon} size={20} color={colors.primary} />
+                      <Text style={[styles.manageLabel, { color: colors.text }]}>{m.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
             <EmptyState
               icon="business-outline"
@@ -277,6 +233,29 @@ const styles = StyleSheet.create({
   info: {
     flex: 1,
     marginLeft: spacing.md,
+  },
+  manageSection: {
+    marginBottom: spacing.md,
+  },
+  manageTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: spacing.sm,
+  },
+  manageRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  manageCard: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  manageLabel: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   name: {
     fontSize: 16,

@@ -1,5 +1,5 @@
 -- ============================================================
--- 008_avatars_church_logo_policies.sql
+-- 009_avatars_church_logo_policies.sql
 -- Policies for ministry/church logo upload inside bucket "avatars"
 -- Path convention used by the app: churches/{church_id}/logo.{ext}
 -- Safe to run multiple times (DROP IF EXISTS + CREATE).

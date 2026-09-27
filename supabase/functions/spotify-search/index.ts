@@ -9,6 +9,7 @@
  */
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -77,9 +78,23 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // Require Authorization header (Supabase JWT from logged-in user)
+    // Require and validate the Supabase JWT of a logged-in user
     const auth = req.headers.get("Authorization");
     if (!auth) {
+      return json({ error: "Não autenticado", code: "UNAUTHORIZED" }, 401);
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: auth } },
+      auth: { persistSession: false },
+    });
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
       return json({ error: "Não autenticado", code: "UNAUTHORIZED" }, 401);
     }
 

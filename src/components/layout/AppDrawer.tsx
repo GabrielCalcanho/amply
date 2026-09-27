@@ -20,6 +20,7 @@ type DrawerItem = { label: string; icon: keyof typeof Ionicons.glyphMap; route: 
 
 const ITEMS: DrawerItem[] = [
   { label: 'Visão geral', icon: 'grid-outline', route: 'Overview' },
+  { label: 'Calendário', icon: 'calendar-outline', route: 'Calendar' },
   { label: 'Avisos', icon: 'megaphone-outline', route: 'Announcements' },
   { label: 'Indisponibilidade', icon: 'calendar-clear-outline', route: 'Unavailability' },
   { label: 'Panorama de escala', icon: 'stats-chart-outline', route: 'ScaleOverview' },
