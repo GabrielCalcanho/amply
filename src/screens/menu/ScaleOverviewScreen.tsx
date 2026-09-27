@@ -193,39 +193,52 @@ export function ScaleOverviewScreen() {
                 style={({ pressed }) => [
                   styles.card,
                   {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
+                    backgroundColor: colors.surfaceInverse,
+                    borderColor: 'transparent',
                     borderRadius: radius.xl,
                     opacity: pressed ? 0.94 : 1,
-                    ...shadow.sm,
+                    ...shadow.none,
                   },
                 ]}
               >
                 {/* Data em destaque */}
-                <Text style={[styles.cardDay, { color: colors.textMuted }]}>
+                <Text
+                  style={[
+                    styles.cardDay,
+                    { color: colors.textInverse, opacity: 0.6 },
+                  ]}
+                >
                   {formatDayLong(item.date).toUpperCase()}
                 </Text>
 
                 <View style={styles.cardTopRow}>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text
-                      style={[styles.cardTitle, { color: colors.text }]}
+                      style={[styles.cardTitle, { color: colors.textInverse }]}
                       numberOfLines={2}
                     >
                       {item.title}
                     </Text>
                     {item.time ? (
-                      <Text style={[styles.cardTime, { color: colors.text }]}>
+                      <Text style={[styles.cardTime, { color: colors.textInverse }]}>
                         {formatTime(item.time)}
                       </Text>
                     ) : (
-                      <Text style={[styles.cardTime, { color: colors.textMuted }]}>
+                      <Text
+                        style={[
+                          styles.cardTime,
+                          { color: colors.textInverse, opacity: 0.6 },
+                        ]}
+                      >
                         Horário a definir
                       </Text>
                     )}
                     {item.location ? (
                       <Text
-                        style={[styles.cardLoc, { color: colors.textSecondary }]}
+                        style={[
+                          styles.cardLoc,
+                          { color: colors.textInverse, opacity: 0.75 },
+                        ]}
                         numberOfLines={2}
                       >
                         {item.location}
@@ -236,7 +249,7 @@ export function ScaleOverviewScreen() {
                     label={
                       SETLIST_STATUS_LABELS[(item.status as SetlistStatus) || 'scheduled']
                     }
-                    tone={statusTone((item.status as SetlistStatus) || 'scheduled')}
+                    tone="onInverse"
                   />
                 </View>
 
@@ -256,12 +269,12 @@ export function ScaleOverviewScreen() {
                       <View
                         style={[
                           styles.moreAvatar,
-                          { backgroundColor: colors.surfaceSecondary },
+                          { backgroundColor: colors.textInverse },
                         ]}
                       >
                         <Text
                           style={{
-                            color: colors.textSecondary,
+                            color: colors.surfaceInverse,
                             fontSize: 11,
                             fontWeight: '600',
                           }}
@@ -271,7 +284,10 @@ export function ScaleOverviewScreen() {
                       </View>
                     ) : null}
                     <Text
-                      style={[styles.avatarHint, { color: colors.textMuted }]}
+                      style={[
+                        styles.avatarHint,
+                        { color: colors.textInverse, opacity: 0.6 },
+                      ]}
                     >
                       {item.members!.length}{' '}
                       {item.members!.length === 1 ? 'integrante' : 'integrantes'}
@@ -281,7 +297,12 @@ export function ScaleOverviewScreen() {
                     </Text>
                   </View>
                 ) : (
-                  <Text style={[styles.avatarHint, { color: colors.textMuted, marginTop: 12 }]}>
+                  <Text
+                    style={[
+                      styles.avatarHint,
+                      { color: colors.textInverse, opacity: 0.6, marginTop: 12 },
+                    ]}
+                  >
                     {item.songs_count ?? 0}{' '}
                     {(item.songs_count ?? 0) === 1 ? 'música' : 'músicas'}
                     {' · '}
