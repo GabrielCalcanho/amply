@@ -11,19 +11,14 @@
     "noImplicitReturns": true,
     "noPropertyAccessFromIndexSignature": false,
     "noUncheckedIndexedAccess": false,
-    "exactOptionalPropertyTypes": false,
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "exactOptionalPropertyTypes": false
   },
   "include": [
+    "App.tsx",
     "src/**/*.ts",
     "src/**/*.tsx"
   ],
   "exclude": [
-    "node_modules",
-    "_lovable_backup",
-    "src/src/**",
-    "scripts/**"
+    "node_modules"
   ]
 }
