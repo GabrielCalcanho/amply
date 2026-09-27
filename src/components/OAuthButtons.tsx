@@ -7,6 +7,12 @@ import { Button } from './Button';
 import { spacing, typography } from '../constants/theme';
 import { OAuthProvider } from '../services/oauth';
 
+/**
+ * Login social (Google/Apple) está implementado, mas DESATIVADO até os
+ * provedores serem configurados no Supabase. Para reativar, troque para true.
+ */
+const OAUTH_ENABLED = false;
+
 const PROVIDERS: { key: OAuthProvider; label: string; icon: 'logo-google' | 'logo-apple' }[] = [
   { key: 'google', label: 'Continuar com Google', icon: 'logo-google' },
   { key: 'apple', label: 'Continuar com Apple', icon: 'logo-apple' },
@@ -30,6 +36,8 @@ export function OAuthButtons({ dividerLabel = 'ou' }: OAuthButtonsProps) {
     setPending(null);
     if (err) setError(err);
   };
+
+  if (!OAUTH_ENABLED) return null;
 
   return (
     <View style={styles.wrap}>
