@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useDrawer } from '../../contexts/DrawerContext';
 import { Avatar } from '../Avatar';
 import { useAuth } from '../../contexts/AuthContext';
 import { spacing, hitSlop } from '../../constants/theme';
@@ -14,6 +15,8 @@ interface AppHeaderProps {
   title?: string;
   showNotifications?: boolean;
   showAvatar?: boolean;
+  /** Show the leading menu button that opens the navigation drawer */
+  showMenu?: boolean;
   right?: React.ReactNode;
 }
 
@@ -22,11 +25,13 @@ export function AppHeader({
   title,
   showNotifications = true,
   showAvatar = true,
+  showMenu = true,
   right,
 }: AppHeaderProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const { openDrawer } = useDrawer();
   const { profile } = useAuth();
 
   return (
@@ -40,13 +45,26 @@ export function AppHeader({
       ]}
     >
       <View style={styles.row}>
-        {brand ? (
-          <Text style={[styles.brand, { color: colors.text }]}>AMPLY</Text>
-        ) : (
-          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
-            {title}
-          </Text>
-        )}
+        <View style={styles.leading}>
+          {showMenu ? (
+            <Pressable
+              onPress={openDrawer}
+              hitSlop={hitSlop}
+              accessibilityRole="button"
+              accessibilityLabel="Abrir menu"
+              style={({ pressed }) => [styles.menuBtn, { opacity: pressed ? 0.6 : 1 }]}
+            >
+              <Ionicons name="menu-outline" size={24} color={colors.text} />
+            </Pressable>
+          ) : null}
+          {brand ? (
+            <Text style={[styles.brand, { color: colors.text }]}>AMPLY</Text>
+          ) : (
+            <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+              {title}
+            </Text>
+          )}
+        </View>
 
         <View style={styles.actions}>
           {right}
@@ -88,6 +106,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     minHeight: 44,
   },
+  leading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: spacing.sm,
+  },
   brand: {
     fontSize: 22,
     fontWeight: '800',
@@ -97,7 +121,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     letterSpacing: -0.3,
-    flex: 1,
+    flexShrink: 1,
   },
   actions: {
     flexDirection: 'row',
@@ -107,6 +131,13 @@ const styles = StyleSheet.create({
   iconBtn: {
     width: 40,
     height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuBtn: {
+    width: 40,
+    height: 40,
+    marginLeft: -8,
     alignItems: 'center',
     justifyContent: 'center',
   },

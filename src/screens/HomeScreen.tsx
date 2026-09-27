@@ -20,7 +20,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
 import { Setlist, Profile, SETLIST_STATUS_LABELS, SetlistStatus } from '../types';
-import { spacing, radius, shadow, typography } from '../constants/theme';
+import { spacing, radius, typography } from '../constants/theme';
 import { formatSupabaseError } from '../utils/payload';
 import {
   formatDateLongBR,
@@ -235,7 +235,6 @@ export function HomeScreen() {
                 borderColor: colors.border,
                 borderRadius: radius.xl,
                 opacity: pressed ? 0.92 : 1,
-                ...shadow.sm,
               },
             ]}
           >
@@ -268,7 +267,6 @@ export function HomeScreen() {
                 backgroundColor: colors.surface,
                 borderColor: colors.border,
                 borderRadius: radius.xl,
-                ...shadow.sm,
               },
             ]}
           >
@@ -310,7 +308,6 @@ export function HomeScreen() {
                   borderColor: colors.border,
                   borderRadius: radius.lg,
                   opacity: pressed ? 0.85 : 1,
-                  ...shadow.sm,
                 },
               ]}
             >
