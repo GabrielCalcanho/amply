@@ -35,7 +35,7 @@ export function LoginScreen({ navigation }: Props) {
     }
     const { error: err } = await signIn(email.trim(), password);
     if (err) {
-      setError(err.includes('Invalid') ? 'Email ou senha incorretos' : err);
+      setError(err);
     }
   };
 

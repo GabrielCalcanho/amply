@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { Session, User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { Profile, Church, ChurchMember } from '../types';
+import { formatAuthError } from '../utils/payload';
 
 interface AuthState {
   session: Session | null;
@@ -14,7 +15,11 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    name: string
+  ) => Promise<{ error: string | null; needsConfirmation?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
@@ -171,20 +176,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, name: string) => {
     setState((prev) => ({ ...prev, loading: true }));
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { name } },
     });
     setState((prev) => ({ ...prev, loading: false }));
-    return { error: error?.message ?? null };
+    if (error) return { error: formatAuthError(error.message), needsConfirmation: false };
+    // When "Confirm email" is enabled, Supabase returns a user but no session;
+    // the app must tell the user to check their inbox instead of silently doing nothing.
+    const needsConfirmation = !data.session && !!data.user;
+    return { error: null, needsConfirmation };
   };
 
   const signIn = async (email: string, password: string) => {
     setState((prev) => ({ ...prev, loading: true }));
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setState((prev) => ({ ...prev, loading: false }));
-    return { error: error?.message ?? null };
+    return { error: error ? formatAuthError(error.message) : null };
   };
 
   const signOut = async () => {
@@ -203,7 +212,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email);
-    return { error: error?.message ?? null };
+    return { error: error ? formatAuthError(error.message) : null };
   };
 
   const createChurch = async (name: string) => {

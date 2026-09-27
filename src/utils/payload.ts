@@ -72,3 +72,46 @@ export function formatSupabaseError(
   if (details && details !== msg) return `${msg} (${details})`;
   return msg || 'Não foi possível concluir a operação.';
 }
+
+/** Human-readable pt-BR message for Supabase Auth (GoTrue) errors. */
+export function formatAuthError(message: string | null | undefined): string {
+  const raw = (message ?? '').toString();
+  const lower = raw.toLowerCase();
+  if (!raw.trim()) return 'Não foi possível concluir. Tente novamente.';
+
+  // Built-in Supabase email service is heavily rate-limited (~2 confirmation emails/hour).
+  if (
+    lower.includes('rate limit') ||
+    lower.includes('over_email_send_rate_limit') ||
+    lower.includes('security purposes') ||
+    lower.includes('too many requests')
+  ) {
+    return (
+      'Limite de e-mails do Supabase atingido (o envio embutido permite poucos e-mails por hora). ' +
+      'Para criar contas sem esse limite, desative "Confirm email" em Authentication → Providers → Email ' +
+      '(ou configure um SMTP próprio) e tente novamente.'
+    );
+  }
+  if (lower.includes('already') && (lower.includes('register') || lower.includes('exist') || lower.includes('sub'))) {
+    return 'Este e-mail já está cadastrado. Tente entrar.';
+  }
+  if (lower.includes('invalid login credentials') || lower.includes('invalid credentials')) {
+    return 'E-mail ou senha incorretos.';
+  }
+  if (lower.includes('email not confirmed')) {
+    return 'E-mail ainda não confirmado. Verifique sua caixa de entrada (e a pasta de spam).'
+  }
+  if (lower.includes('password') && lower.includes('least')) {
+    return 'A senha deve ter pelo menos 6 caracteres.';
+  }
+  if (lower.includes('weak password') || lower.includes('password is too weak')) {
+    return 'Senha muito fraca. Escolha uma senha mais forte.';
+  }
+  if (lower.includes('valid email') || lower.includes('invalid email')) {
+    return 'Informe um e-mail válido.';
+  }
+  if (lower.includes('signups not allowed') || lower.includes('signup is disabled') || lower.includes('sign up is disabled')) {
+    return 'A criação de contas está desativada neste projeto Supabase.';
+  }
+  return raw;
+}
