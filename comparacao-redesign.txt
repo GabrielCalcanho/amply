@@ -1,0 +1,3803 @@
+===== PACKAGE =====
+Comparando os arquivos package.json e AMPLY-REDESIGN-EXTRAIDO\PACKAGE.JSON
+FC: nenhuma diferen�a encontrada
+
+
+===== APP =====
+Comparando os arquivos App.tsx e AMPLY-REDESIGN-EXTRAIDO\APP.TSX
+FC: nenhuma diferen�a encontrada
+
+
+===== NAVIGATOR =====
+Comparando os arquivos SRC\NAVIGATION\RootNavigator.tsx e AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+***** SRC\NAVIGATION\RootNavigator.tsx
+    1:  import React, { useMemo } from 'react';
+    2:  import { NavigationContainer } from '@react-navigation/native';
+    3:  import { createNativeStackNavigator } from '@react-navigation/native-stack';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+    1:  import React from 'react';
+    2:  import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
+    3:  import { createNativeStackNavigator } from '@react-navigation/native-stack';
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+   10:  import { DrawerProvider } from '../contexts/DrawerContext';
+   11:  import { lightColors } from '../constants/theme';
+   12:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+   10:  import { DrawerProvider } from '../contexts/DrawerContext';
+   11:  
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+   33:  import { MinistryHomeScreen } from '../screens/ministry/MinistryHomeScreen';
+   34:  import {
+   35:    TeamsScreen,
+   36:    RolesScreen,
+   37:    ClassificationsScreen,
+   38:  } from '../screens/ministry/SimpleEntityListScreen';
+   39:  import { OverviewScreen } from '../screens/menu/OverviewScreen';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+   32:  import { MinistryHomeScreen } from '../screens/ministry/MinistryHomeScreen';
+   33:  import { TeamsScreen, RolesScreen, ClassificationsScreen } from '../screens/ministry/SimpleEntityListScreen';
+   34:  import { OverviewScreen } from '../screens/menu/OverviewScreen';
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+   61:  
+   62:  /** Navegação principal: Início · Músicas · Setlists · Perfil */
+   63:  function MainTabs() {
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+   56:  
+   57:  function MainTabs() {
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+   65:    const { colors } = useTheme();
+   66:    const bottomPad =
+   67:      Platform.OS === 'ios'
+   68:        ? Math.max(insets.bottom, 8)
+   69:        : Math.max(insets.bottom, 4);
+   70:    const barHeight = 52 + bottomPad;
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+   59:    const { colors } = useTheme();
+   60:    const bottomPad = Platform.OS === 'ios' ? Math.max(insets.bottom, 8) : Math.max(insets.bottom, 4);
+   61:    const barHeight = 52 + bottomPad;
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+   75:          headerShown: false,
+   76:          tabBarActiveTintColor: colors.primary,
+   77:          tabBarInactiveTintColor: colors.textMuted,
+   78:          tabBarStyle: {
+   79:            backgroundColor: colors.tabBar,
+   80:            borderTopColor: colors.tabBarBorder,
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+   66:          headerShown: false,
+   67:          tabBarActiveTintColor: colors.tabActive,
+   68:          tabBarInactiveTintColor: colors.tabInactive,
+   69:          tabBarStyle: {
+   70:            backgroundColor: colors.tabBarBg,
+   71:            borderTopColor: colors.tabBarBorder,
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+   85:            elevation: 0,
+   86:            shadowOpacity: 0,
+   87:          },
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+   76:            elevation: 0,
+   77:          },
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+  103:            tabBarIcon: ({ color, focused }) => (
+  104:              <Ionicons
+  105:                name={focused ? 'home' : 'home-outline'}
+  106:                size={22}
+  107:                color={color}
+  108:              />
+  109:            ),
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+   93:            tabBarIcon: ({ color, focused }) => (
+   94:              <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
+   95:            ),
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+  117:            tabBarIcon: ({ color, focused }) => (
+  118:              <Ionicons
+  119:                name={focused ? 'musical-notes' : 'musical-notes-outline'}
+  120:                size={22}
+  121:                color={color}
+  122:              />
+  123:            ),
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+  103:            tabBarIcon: ({ color, focused }) => (
+  104:              <Ionicons name={focused ? 'musical-notes' : 'musical-notes-outline'} size={22} color={color} />
+  105:            ),
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+  131:            tabBarIcon: ({ color, focused }) => (
+  132:              <Ionicons
+  133:                name={focused ? 'list' : 'list-outline'}
+  134:                size={22}
+  135:                color={color}
+  136:              />
+  137:            ),
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+  113:            tabBarIcon: ({ color, focused }) => (
+  114:              <Ionicons name={focused ? 'list' : 'list-outline'} size={22} color={color} />
+  115:            ),
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+  145:            tabBarIcon: ({ color, focused }) => (
+  146:              <Ionicons
+  147:                name={focused ? 'people' : 'people-outline'}
+  148:                size={22}
+  149:                color={color}
+  150:              />
+  151:            ),
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+  123:            tabBarIcon: ({ color, focused }) => (
+  124:              <Ionicons name={focused ? 'people' : 'people-outline'} size={22} color={color} />
+  125:            ),
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+  159:            tabBarIcon: ({ color, focused }) => (
+  160:              <Ionicons
+  161:                name={focused ? 'person' : 'person-outline'}
+  162:                size={22}
+  163:                color={color}
+  164:              />
+  165:            ),
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+  133:            tabBarIcon: ({ color, focused }) => (
+  134:              <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
+  135:            ),
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+  174:      <DrawerProvider>
+  175:        <MainStack.Navigator screenOptions={{ headerShown: false }}>
+  176:          <MainStack.Screen name="Tabs" component={MainTabs} />
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+  144:      <DrawerProvider>
+  145:        <MainStack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+  146:          <MainStack.Screen name="Tabs" component={MainTabs} />
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+  186:          <MainStack.Screen name="MemberDetail" component={MemberDetailScreen} />
+  187:          <MainStack.Screen name="Team" component={TeamScreen} />
+  188:          <MainStack.Screen name="Messages" component={MessagesScreen} />
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+  156:          <MainStack.Screen name="MemberDetail" component={MemberDetailScreen} />
+  157:          <MainStack.Screen name="Messages" component={MessagesScreen} />
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+  207:    const { session, church, initializing } = useAuth();
+  208:    const { colors } = useTheme();
+  209:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+  176:    const { session, church, initializing } = useAuth();
+  177:    const { colors, isDark } = useTheme();
+  178:  
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+  211:      return (
+  212:        <View
+  213:          style={[
+  214:            styles.loading,
+  215:            { backgroundColor: colors?.background ?? lightColors.background },
+  216:          ]}
+  217:        >
+  218:          <ActivityIndicator
+  219:            size="large"
+  220:            color={colors?.primary ?? lightColors.primary}
+  221:          />
+  222:        </View>
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+  180:      return (
+  181:        <View style={[styles.loading, { backgroundColor: colors.background }]}>
+  182:          <ActivityIndicator size="large" color={colors.primary} />
+  183:        </View>
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+  225:  
+  226:    return (
+  227:      <NavigationContainer>
+  228:        {!session ? (
+  229:          <AuthNavigator />
+  230:        ) : !church ? (
+  231:          <ChurchSetupScreen />
+  232:        ) : (
+  233:          <MainNavigator />
+  234:        )}
+  235:      </NavigationContainer>
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+  186:  
+  187:    const navTheme = {
+  188:      ...(isDark ? DarkTheme : DefaultTheme),
+  189:      colors: {
+  190:        ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
+  191:        background: colors.background,
+  192:        card: colors.surface,
+  193:        text: colors.text,
+  194:        border: colors.border,
+  195:        primary: colors.primary,
+  196:      },
+  197:    };
+  198:  
+  199:    return (
+  200:      <NavigationContainer theme={navTheme}>
+  201:        {!session ? <AuthNavigator /> : !church ? <ChurchSetupScreen /> : <MainNavigator />}
+  202:      </NavigationContainer>
+*****
+
+***** SRC\NAVIGATION\RootNavigator.tsx
+  239:  const styles = StyleSheet.create({
+  240:    loading: {
+  241:      flex: 1,
+  242:      alignItems: 'center',
+  243:      justifyContent: 'center',
+  244:    },
+  245:  });
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\NAVIGATION\ROOTNAVIGATOR.TSX
+  206:  const styles = StyleSheet.create({
+  207:    loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  208:  });
+*****
+
+
+===== THEME =====
+Comparando os arquivos SRC\CONTEXTS\ThemeContext.tsx e AMPLY-REDESIGN-EXTRAIDO\SRC\CONTEXTS\THEMECONTEXT.TSX
+***** SRC\CONTEXTS\ThemeContext.tsx
+    2:    createContext,
+    3:    useCallback,
+    4:    useContext,
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\CONTEXTS\THEMECONTEXT.TSX
+    2:    createContext,
+    3:    useContext,
+*****
+
+***** SRC\CONTEXTS\ThemeContext.tsx
+    7:    useState,
+    8:  } from 'react';
+    9:  import { useColorScheme } from 'react-native';
+   10:  import AsyncStorage from '@react-native-async-storage/async-storage';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\CONTEXTS\THEMECONTEXT.TSX
+    6:    useState,
+    7:    useCallback,
+    8:  } from 'react';
+    9:  import { useColorScheme as useSystemColorScheme } from 'react-native';
+   10:  import AsyncStorage from '@react-native-async-storage/async-storage';
+*****
+
+***** SRC\CONTEXTS\ThemeContext.tsx
+   11:  import {
+   12:    lightColors,
+   13:    darkColors,
+   14:    ColorTokens,
+   15:    ThemeMode,
+   16:  } from '../constants/theme';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\CONTEXTS\THEMECONTEXT.TSX
+   11:  import {
+   12:    ColorScheme,
+   13:    ThemeColors,
+   14:    getColors,
+   15:    spacing,
+   16:    radius,
+   17:    typography,
+   18:    shadow,
+   19:    hitSlop,
+   20:    pagePadding,
+   21:    cardPadding,
+   22:  } from '../constants/theme';
+*****
+
+***** SRC\CONTEXTS\ThemeContext.tsx
+   17:  
+   18:  const STORAGE_KEY = '@amply/theme-preference';
+   19:  
+   20:  export type ThemeColors = ColorTokens;
+   21:  
+   22:  type ThemeContextValue = {
+   23:    colors: ThemeColors;
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\CONTEXTS\THEMECONTEXT.TSX
+   23:  
+   24:  export type ThemePreference = 'light' | 'dark' | 'system';
+   25:  
+   26:  interface ThemeContextValue {
+   27:    preference: ThemePreference;
+   28:    scheme: ColorScheme;
+   29:    colors: ThemeColors;
+*****
+
+***** SRC\CONTEXTS\ThemeContext.tsx
+   24:    isDark: boolean;
+   25:    scheme: 'light' | 'dark';
+   26:    mode: ThemeMode;
+   27:    theme: 'light' | 'dark';
+   28:    setMode: (mode: ThemeMode) => void;
+   29:    setTheme: (theme: 'light' | 'dark') => void;
+   30:    toggleTheme: () => void;
+   31:    toggle: () => void;
+   32:  };
+   33:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\CONTEXTS\THEMECONTEXT.TSX
+   30:    isDark: boolean;
+   31:    setPreference: (p: ThemePreference) => void;
+   32:    spacing: typeof spacing;
+   33:    radius: typeof radius;
+   34:    typography: typeof typography;
+   35:    shadow: typeof shadow;
+   36:    hitSlop: typeof hitSlop;
+   37:    pagePadding: number;
+   38:    cardPadding: number;
+   39:  }
+   40:  
+*****
+
+***** SRC\CONTEXTS\ThemeContext.tsx
+   35:  
+   36:  export function ThemeProvider({ children }: { children: React.ReactNode }) {
+   37:    const system = useColorScheme();
+   38:    const [mode, setModeState] = useState<ThemeMode>('system');
+   39:    const [ready, setReady] = useState(false);
+   40:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\CONTEXTS\THEMECONTEXT.TSX
+   42:  
+   43:  const STORAGE_KEY = '@amply/theme_preference';
+   44:  
+   45:  export function ThemeProvider({ children }: { children: React.ReactNode }) {
+   46:    const system = useSystemColorScheme();
+   47:    const [preference, setPreferenceState] = useState<ThemePreference>('system');
+   48:    const [loaded, setLoaded] = useState(false);
+   49:  
+*****
+
+***** SRC\CONTEXTS\ThemeContext.tsx
+   41:    useEffect(() => {
+   42:      let cancelled = false;
+   43:      (async () => {
+   44:        try {
+   45:          const stored = await AsyncStorage.getItem(STORAGE_KEY);
+   46:          if (!cancelled && stored) {
+   47:            if (stored === 'light' || stored === 'dark' || stored === 'system') {
+   48:              setModeState(stored);
+   49:            } else if (stored === 'true' || stored === 'dark-mode') {
+   50:              setModeState('dark');
+   51:            } else if (stored === 'false') {
+   52:              setModeState('light');
+   53:            }
+   54:          }
+   55:        } catch {
+   56:          /* ignore */
+   57:        } finally {
+   58:          if (!cancelled) setReady(true);
+   59:        }
+   60:      })();
+   61:      return () => {
+   62:        cancelled = true;
+   63:      };
+   64:    }, []);
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\CONTEXTS\THEMECONTEXT.TSX
+   50:    useEffect(() => {
+   51:      AsyncStorage.getItem(STORAGE_KEY)
+   52:        .then((v) => {
+   53:          if (v === 'light' || v === 'dark' || v === 'system') {
+   54:            setPreferenceState(v);
+   55:          }
+   56:        })
+   57:        .catch(() => {})
+   58:        .finally(() => setLoaded(true));
+   59:    }, []);
+*****
+
+***** SRC\CONTEXTS\ThemeContext.tsx
+   65:  
+   66:    const setMode = useCallback((next: ThemeMode) => {
+   67:      setModeState(next);
+   68:      AsyncStorage.setItem(STORAGE_KEY, next).catch(() => {});
+   69:    }, []);
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\CONTEXTS\THEMECONTEXT.TSX
+   60:  
+   61:    const setPreference = useCallback((p: ThemePreference) => {
+   62:      setPreferenceState(p);
+   63:      AsyncStorage.setItem(STORAGE_KEY, p).catch(() => {});
+   64:    }, []);
+*****
+
+***** SRC\CONTEXTS\ThemeContext.tsx
+   70:  
+   71:    const setTheme = useCallback(
+   72:      (theme: 'light' | 'dark') => {
+   73:        setMode(theme);
+   74:      },
+   75:      [setMode]
+   76:    );
+   77:  
+   78:    const isDark = useMemo(() => {
+   79:      if (mode === 'system') return system === 'dark';
+   80:      return mode === 'dark';
+   81:    }, [mode, system]);
+   82:  
+   83:    const toggleTheme = useCallback(() => {
+   84:      setMode(isDark ? 'light' : 'dark');
+   85:    }, [isDark, setMode]);
+   86:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\CONTEXTS\THEMECONTEXT.TSX
+   65:  
+   66:    const scheme: ColorScheme =
+   67:      preference === 'system' ? (system === 'dark' ? 'dark' : 'light') : preference;
+   68:  
+   69:    const colors = useMemo(() => getColors(scheme), [scheme]);
+   70:  
+*****
+
+***** SRC\CONTEXTS\ThemeContext.tsx
+   88:      () => ({
+   89:        colors: isDark ? darkColors : lightColors,
+   90:        isDark,
+   91:        scheme: isDark ? 'dark' : 'light',
+   92:        mode,
+   93:        theme: isDark ? 'dark' : 'light',
+   94:        setMode,
+   95:        setTheme,
+   96:        toggleTheme,
+   97:        toggle: toggleTheme,
+   98:      }),
+   99:      [isDark, mode, setMode, setTheme, toggleTheme]
+  100:    );
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\CONTEXTS\THEMECONTEXT.TSX
+   72:      () => ({
+   73:        preference,
+   74:        scheme,
+   75:        colors,
+   76:        isDark: scheme === 'dark',
+   77:        setPreference,
+   78:        spacing,
+   79:        radius,
+   80:        typography,
+   81:        shadow,
+   82:        hitSlop,
+   83:        pagePadding,
+   84:        cardPadding,
+   85:      }),
+   86:      [preference, scheme, colors, setPreference]
+   87:    );
+*****
+
+***** SRC\CONTEXTS\ThemeContext.tsx
+  101:  
+  102:    if (!ready) {
+  103:      return null;
+  104:    }
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\CONTEXTS\THEMECONTEXT.TSX
+   88:  
+   89:    // Avoid flash: still render children (default light) while loading preference
+   90:    if (!loaded) {
+   91:      // still provide context with defaults
+   92:    }
+*****
+
+***** SRC\CONTEXTS\ThemeContext.tsx
+  108:  
+  109:  export function useTheme(): ThemeContextValue {
+  110:    const ctx = useContext(ThemeContext);
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\CONTEXTS\THEMECONTEXT.TSX
+   96:  
+   97:  export function useTheme() {
+   98:    const ctx = useContext(ThemeContext);
+*****
+
+***** SRC\CONTEXTS\ThemeContext.tsx
+  111:    if (!ctx) {
+  112:      throw new Error('useTheme must be used within ThemeProvider');
+  113:    }
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\CONTEXTS\THEMECONTEXT.TSX
+   99:    if (!ctx) {
+  100:      // Fallback for components outside provider (should not happen)
+  101:      const colors = getColors('light');
+  102:      return {
+  103:        preference: 'system' as ThemePreference,
+  104:        scheme: 'light' as ColorScheme,
+  105:        colors,
+  106:        isDark: false,
+  107:        setPreference: () => {},
+  108:        spacing,
+  109:        radius,
+  110:        typography,
+  111:        shadow,
+  112:        hitSlop,
+  113:        pagePadding,
+  114:        cardPadding,
+  115:      };
+  116:    }
+*****
+
+
+===== HOME =====
+Comparando os arquivos SRC\SCREENS\HomeScreen.tsx e AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+***** SRC\SCREENS\HomeScreen.tsx
+    1:  import React, { useCallback, useMemo, useState } from 'react';
+    2:  import {
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+    1:  import React, { useCallback, useState } from 'react';
+    2:  import {
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+    6:    ScrollView,
+    7:    TouchableOpacity,
+    8:    RefreshControl,
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+    6:    ScrollView,
+    7:    Pressable,
+    8:    RefreshControl,
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+   10:    Image,
+   11:    Alert,
+   12:  } from 'react-native';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+   10:    Image,
+   11:  } from 'react-native';
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+   14:  import { Ionicons } from '@expo/vector-icons';
+   15:  import * as ImagePicker from 'expo-image-picker';
+   16:  import { TabScreenShell } from '../components/layout/TabScreenShell';
+   17:  import { useAuth } from '../contexts/AuthContext';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+   13:  import { Ionicons } from '@expo/vector-icons';
+   14:  import { TabScreenShell } from '../components/layout/TabScreenShell';
+   15:  import { AppHeader } from '../components/layout/AppHeader';
+   16:  import { Avatar } from '../components/Avatar';
+   17:  import { Card } from '../components/Card';
+   18:  import { useAuth } from '../contexts/AuthContext';
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+   19:  import { supabase } from '../services/supabase';
+   20:  import { Setlist, SETLIST_STATUS_LABELS, SetlistStatus } from '../types';
+   21:  import { spacing, typography, radius, ColorTokens } from '../constants/theme';
+   22:  import {
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+   20:  import { supabase } from '../services/supabase';
+   21:  import { Setlist, Profile, SETLIST_STATUS_LABELS, SetlistStatus } from '../types';
+   22:  import { spacing, radius, shadow } from '../constants/theme';
+   23:  import {
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+   29:  } from '../utils/dates';
+   30:  import { formatSupabaseError } from '../utils/payload';
+   31:  import { Avatar } from '../components/Avatar';
+   32:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+   30:  } from '../utils/dates';
+   31:  
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+   38:    next: string;
+   39:  };
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+   37:    next: string;
+   38:    instrument?: string | null;
+   39:  };
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+   40:  
+   41:  function greetingForHour(h: number): string {
+   42:    if (h < 12) return 'Bom dia';
+   43:    if (h < 18) return 'Boa tarde';
+   44:    return 'Boa noite';
+   45:  }
+   46:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+   40:  
+   41:  const SHORTCUTS = [
+   42:    { key: 'ministry', label: 'Ministérios', icon: 'business-outline' as const, route: 'Ministry' },
+   43:    { key: 'announcements', label: 'Avisos', icon: 'megaphone-outline' as const, route: 'Announcements' },
+   44:    { key: 'scales', label: 'Minhas escalas', icon: 'calendar-outline' as const, route: 'ScaleOverview' },
+   45:    { key: 'birthdays', label: 'Aniversariantes', icon: 'gift-outline' as const, route: 'Birthdays' },
+   46:  ];
+   47:  
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+   47:  export function HomeScreen() {
+   48:    const { profile, church, membership, user, refreshMembership } = useAuth();
+   49:    const { colors } = useTheme();
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+   48:  export function HomeScreen() {
+   49:    const { profile, church, membership } = useAuth();
+   50:    const { colors } = useTheme();
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+   50:    const navigation = useNavigation<any>();
+   51:    const styles = useMemo(() => createStyles(colors), [colors]);
+   52:  
+   53:    const [nextSetlist, setNextSetlist] = useState<Setlist | null>(null);
+   54:    const [weekSetlists, setWeekSetlists] = useState<Setlist[]>([]);
+   55:    const [myPresence, setMyPresence] = useState<
+   56:      'pending' | 'confirmed' | 'declined' | null
+   57:    >(null);
+   58:    const [songsCount, setSongsCount] = useState(0);
+   59:    const [membersCount, setMembersCount] = useState(0);
+   60:    const [pendingConfirm, setPendingConfirm] = useState(0);
+   61:    const [birthdays, setBirthdays] = useState<Bday[]>([]);
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+   51:    const navigation = useNavigation<any>();
+   52:    const [nextSetlist, setNextSetlist] = useState<Setlist | null>(null);
+   53:    const [birthdays, setBirthdays] = useState<Bday[]>([]);
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+   63:    const [refreshing, setRefreshing] = useState(false);
+   64:    const [logoUploading, setLogoUploading] = useState(false);
+   65:  
+   66:    const canManage = membership?.role === 'owner' || membership?.role === 'leader';
+   67:    const firstName = (profile?.name || 'Músico').split(' ')[0];
+   68:    const greet = greetingForHour(new Date().getHours());
+   69:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+   55:    const [refreshing, setRefreshing] = useState(false);
+   56:  
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+   73:        const today = todayISO();
+   74:        const weekEnd = new Date();
+   75:        weekEnd.setDate(weekEnd.getDate() + 7);
+   76:        const weekEndISO = weekEnd.toISOString().slice(0, 10);
+   77:  
+   78:        const { data: upcoming } = await supabase
+   79:          .from('setlists')
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+   60:        const today = todayISO();
+   61:  
+   62:        const { data: setlists } = await supabase
+   63:          .from('setlists')
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+   84:          .order('date', { ascending: true })
+   85:          .limit(5);
+   86:  
+   87:        const mapped = (upcoming ?? []).map((s: any) => ({
+   88:          ...s,
+   89:          songs_count: s.setlist_songs?.[0]?.count ?? 0,
+   90:        })) as Setlist[];
+   91:  
+   92:        const next = mapped[0] ?? null;
+   93:        setNextSetlist(next);
+   94:        setWeekSetlists(
+   95:          mapped.filter((s) => s.date <= weekEndISO).slice(0, 4)
+   96:        );
+   97:  
+   98:        if (user?.id && next?.id) {
+   99:          const { data: presence } = await supabase
+  100:            .from('setlist_members')
+  101:            .select('status')
+  102:            .eq('setlist_id', next.id)
+  103:            .eq('user_id', user.id)
+  104:            .maybeSingle();
+  105:          setMyPresence((presence?.status as any) ?? null);
+  106:        } else {
+  107:          setMyPresence(null);
+  108:        }
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+   68:          .order('date', { ascending: true })
+   69:          .limit(1);
+   70:  
+   71:        if (setlists && setlists.length > 0) {
+   72:          const s = setlists[0] as any;
+   73:          setNextSetlist({
+   74:            ...s,
+   75:            songs_count: s.setlist_songs?.[0]?.count ?? 0,
+   76:          });
+   77:        } else {
+   78:          setNextSetlist(null);
+   79:        }
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+  109:  
+  110:        const [{ count: sc }, { count: mc }] = await Promise.all([
+  111:          supabase
+  112:            .from('songs')
+  113:            .select('*', { count: 'exact', head: true })
+  114:            .eq('church_id', church.id),
+  115:          supabase
+  116:            .from('church_members')
+  117:            .select('*', { count: 'exact', head: true })
+  118:            .eq('church_id', church.id),
+  119:        ]);
+  120:        setSongsCount(sc ?? 0);
+  121:        setMembersCount(mc ?? 0);
+  122:  
+  123:        if (user?.id) {
+  124:          const { count: pc } = await supabase
+  125:            .from('setlist_members')
+  126:            .select('*, setlist:setlists!inner(church_id, date, status)', {
+  127:              count: 'exact',
+  128:              head: true,
+  129:            })
+  130:            .eq('user_id', user.id)
+  131:            .eq('status', 'pending')
+  132:            .eq('setlist.church_id', church.id)
+  133:            .gte('setlist.date', today)
+  134:            .neq('setlist.status', 'cancelled');
+  135:          setPendingConfirm(pc ?? 0);
+  136:        }
+  137:  
+  138:        const { data: members } = await supabase
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+   80:  
+   81:        const { data: members } = await supabase
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+  139:          .from('church_members')
+  140:          .select('user_id, profile:profiles(id, name, avatar_url, birth_date)')
+  141:          .eq('church_id', church.id);
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+   82:          .from('church_members')
+   83:          .select('user_id, instrument, profile:profiles(id, name, avatar_url, birth_date)')
+   84:          .eq('church_id', church.id);
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+  142:  
+  143:        const bdays: Bday[] = [];
+  144:        (members ?? []).forEach((m: any) => {
+  145:          const p = m.profile;
+  146:          if (p?.birth_date) {
+  147:            bdays.push({
+  148:              id: p.id,
+  149:              name: p.name,
+  150:              avatar_url: p.avatar_url,
+  151:              birth_date: p.birth_date,
+  152:              next: nextBirthdayISO(p.birth_date) ?? p.birth_date,
+  153:            });
+  154:          }
+  155:        });
+  156:        bdays.sort((a, b) => a.next.localeCompare(b.next));
+  157:        setBirthdays(bdays.slice(0, 5));
+  158:      } finally {
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+   85:  
+   86:        const list: Bday[] = [];
+   87:        for (const m of members ?? []) {
+   88:          const p = (m as any).profile as Profile | null;
+   89:          if (!p?.birth_date) continue;
+   90:          const next = nextBirthdayISO(p.birth_date);
+   91:          if (!next) continue;
+   92:          list.push({
+   93:            id: p.id,
+   94:            name: p.name,
+   95:            avatar_url: p.avatar_url,
+   96:            birth_date: p.birth_date,
+   97:            next,
+   98:            instrument: (m as any).instrument,
+   99:          });
+  100:        }
+  101:        list.sort((a, b) => a.next.localeCompare(b.next));
+  102:        setBirthdays(list.slice(0, 8));
+  103:      } catch (e) {
+  104:        console.warn('Home load', e);
+  105:      } finally {
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+  161:      }
+  162:    }, [church, user?.id]);
+  163:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+  108:      }
+  109:    }, [church]);
+  110:  
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+  165:      useCallback(() => {
+  166:        loadData();
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+  112:      useCallback(() => {
+  113:        setLoading(true);
+  114:        loadData();
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+  169:  
+  170:    const onRefresh = () => {
+  171:      setRefreshing(true);
+  172:      loadData();
+  173:    };
+  174:  
+  175:    const roleLabel =
+  176:      membership?.role === 'owner'
+  177:        ? 'Administrador'
+  178:        : membership?.role === 'leader'
+  179:        ? 'Líder'
+  180:        : 'Músico';
+  181:  
+  182:    const pickChurchLogo = async () => {
+  183:      if (!church?.id || !canManage) return;
+  184:      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  185:      if (!perm.granted) {
+  186:        Alert.alert(
+  187:          'Permissão',
+  188:          'Permita acesso à galeria para definir a imagem do ministério.'
+  189:        );
+  190:        return;
+  191:      }
+  192:      const result = await ImagePicker.launchImageLibraryAsync({
+  193:        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  194:        allowsEditing: true,
+  195:        aspect: [1, 1],
+  196:        quality: 0.75,
+  197:      });
+  198:      if (result.canceled || !result.assets?.[0]) return;
+  199:  
+  200:      const asset = result.assets[0];
+  201:      setLogoUploading(true);
+  202:      try {
+  203:        const rawExt =
+  204:          asset.uri.split('.').pop()?.toLowerCase()?.split('?')[0] || 'jpg';
+  205:        const ext = rawExt === 'png' || rawExt === 'webp' ? rawExt : 'jpg';
+  206:        const contentType =
+  207:          ext === 'png'
+  208:            ? 'image/png'
+  209:            : ext === 'webp'
+  210:            ? 'image/webp'
+  211:            : 'image/jpeg';
+  212:        const path = `churches/${church.id}/logo.${ext}`;
+  213:  
+  214:        const response = await fetch(asset.uri);
+  215:        const arrayBuffer = await response.arrayBuffer();
+  216:        if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+  217:          Alert.alert('Erro', 'Não foi possível ler a imagem.');
+  218:          return;
+  219:        }
+  220:  
+  221:        const { error: upErr } = await supabase.storage
+  222:          .from('avatars')
+  223:          .upload(path, arrayBuffer, { upsert: true, contentType });
+  224:  
+  225:        if (upErr) {
+  226:          Alert.alert(
+  227:            'Erro no upload',
+  228:            formatSupabaseError(upErr) +
+  229:              '\n\nConfirme o bucket "avatars" e policies que permitam upload em churches/.'
+  230:          );
+  231:          return;
+  232:        }
+  233:  
+  234:        const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
+  235:        const url = `${pub.publicUrl}?t=${Date.now()}`;
+  236:  
+  237:        const { error: dbErr } = await supabase
+  238:          .from('churches')
+  239:          .update({ logo_url: url })
+  240:          .eq('id', church.id);
+  241:  
+  242:        if (dbErr) {
+  243:          Alert.alert('Erro', formatSupabaseError(dbErr));
+  244:          return;
+  245:        }
+  246:  
+  247:        await refreshMembership();
+  248:      } catch (e) {
+  249:        Alert.alert('Erro', (e as Error).message || 'Falha ao enviar a imagem.');
+  250:      } finally {
+  251:        setLogoUploading(false);
+  252:      }
+  253:    };
+  254:  
+  255:    const statusKey = (nextSetlist?.status as SetlistStatus) || 'scheduled';
+  256:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+  117:  
+  118:    const firstName = profile?.name?.split(' ')[0] ?? 'Músico';
+  119:    const todayBdays = birthdays.filter((b) => isBirthdayToday(b.birth_date));
+  120:    const upcomingBdays = birthdays.filter((b) => !isBirthdayToday(b.birth_date)).slice(0, 4);
+  121:  
+  122:    if (loading) {
+  123:      return (
+  124:        <TabScreenShell>
+  125:          <AppHeader brand showNotifications showAvatar />
+  126:          <View style={styles.center}>
+  127:            <ActivityIndicator color={colors.primary} size="large" />
+  128:          </View>
+  129:        </TabScreenShell>
+  130:      );
+  131:    }
+  132:  
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+  258:      <TabScreenShell>
+  259:        <ScrollView
+  260:          contentContainerStyle={styles.scroll}
+  261:          refreshControl={
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+  134:      <TabScreenShell>
+  135:        <AppHeader brand showNotifications showAvatar />
+  136:        <ScrollView
+  137:          contentContainerStyle={styles.container}
+  138:          showsVerticalScrollIndicator={false}
+  139:          refreshControl={
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+  263:              refreshing={refreshing}
+  264:              onRefresh={onRefresh}
+  265:              tintColor={colors.primary}
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+  141:              refreshing={refreshing}
+  142:              onRefresh={() => {
+  143:                setRefreshing(true);
+  144:                loadData();
+  145:              }}
+  146:              tintColor={colors.primary}
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+  267:          }
+  268:          showsVerticalScrollIndicator={false}
+  269:        >
+  270:          {loading ? (
+  271:            <ActivityIndicator color={colors.primary} style={{ marginTop: 32 }} />
+  272:          ) : (
+  273:            <>
+  274:              {/* Saudação */}
+  275:              <View style={styles.greetingBlock}>
+  276:                <Text style={styles.greeting}>{greet},</Text>
+  277:                <Text style={styles.greetingName}>{firstName}</Text>
+  278:                <Text style={styles.greetingMeta}>
+  279:                  {roleLabel}
+  280:                  {membership?.instrument ? ` · ${membership.instrument}` : ''}
+  281:                </Text>
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+  148:          }
+  149:        >
+  150:          {/* Greeting */}
+  151:          <View style={styles.greeting}>
+  152:            <Text style={[styles.hello, { color: colors.text }]}>Olá, {firstName}!</Text>
+  153:            <Text style={[styles.subHello, { color: colors.textSecondary }]}>
+  154:              Que bom te ver por aqui!
+  155:            </Text>
+  156:          </View>
+  157:  
+  158:          {/* Ministry / Church card */}
+  159:          <Pressable
+  160:            onPress={() => navigation.navigate('Ministry')}
+  161:            style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+  162:          >
+  163:            <View
+  164:              style={[
+  165:                styles.ministryCard,
+  166:                {
+  167:                  backgroundColor: colors.surface,
+  168:                  borderColor: colors.border,
+  169:                  borderRadius: radius.xl,
+  170:                  ...shadow.sm,
+  171:                },
+  172:              ]}
+  173:            >
+  174:              {church?.logo_url ? (
+  175:                <Image source={{ uri: church.logo_url }} style={styles.ministryLogo} />
+  176:              ) : (
+  177:                <View
+  178:                  style={[
+  179:                    styles.ministryLogo,
+  180:                    styles.ministryLogoPh,
+  181:                    { backgroundColor: colors.surfaceSecondary },
+  182:                  ]}
+  183:                >
+  184:                  <Ionicons name="business" size={22} color={colors.textMuted} />
+  185:                </View>
+  186:              )}
+  187:              <View style={styles.ministryInfo}>
+  188:                <Text style={[styles.ministryChurch, { color: colors.text }]} numberOfLines={1}>
+  189:                  {church?.name ?? 'Igreja'}
+  190:                </Text>
+  191:                <Text style={[styles.ministryLabel, { color: colors.textSecondary }]}>
+  192:                  Ministério de Louvor
+  193:                </Text>
+*****
+
+***** SRC\SCREENS\HomeScreen.tsx
+  282:              </View>
+  283:  
+  284:              {/* Ministério compacto */}
+  285:              <TouchableOpacity
+  286:                style={styles.ministryRow}
+  287:                onPress={() => navigation.navigate('Overview')}
+  288:                activeOpacity={0.85}
+  289:              >
+  290:                <TouchableOpacity
+  291:                  onPress={canManage ? pickChurchLogo : undefined}
+  292:                  activeOpacity={0.85}
+  293:                  disabled={logoUploading || !canManage}
+  294:                >
+  295:                  {logoUploading ? (
+  296:                    <View style={[styles.ministryLogo, styles.ministryLogoPh]}>
+  297:                      <ActivityIndicator color={colors.primary} size="small" />
+  298:                    </View>
+  299:                  ) : church?.logo_url ? (
+  300:                    <Image
+  301:                      source={{ uri: church.logo_url }}
+  302:                      style={styles.ministryLogo}
+  303:                    />
+  304:                  ) : (
+  305:                    <View style={[styles.ministryLogo, styles.ministryLogoPh]}>
+  306:                      <Ionicons
+  307:                        name="business-outline"
+  308:                        size={18}
+  309:                        color={colors.primary}
+  310:                      />
+  311:                    </View>
+  312:                  )}
+  313:                </TouchableOpacity>
+  314:                <View style={styles.ministryInfo}>
+  315:                  <Text style={styles.ministryLabel}>Ministério</Text>
+  316:                  <Text style={styles.ministryName} numberOfLines={1}>
+  317:                    {church?.name ?? 'Ministério'}
+  318:                  </Text>
+  319:                </View>
+  320:                <Ionicons
+  321:                  name="chevron-forward"
+  322:                  size={16}
+  323:                  color={colors.textMuted}
+  324:                />
+  325:              </TouchableOpacity>
+  326:  
+  327:              {/* Alerta pendências */}
+  328:              {pendingConfirm > 0 ? (
+  329:                <TouchableOpacity
+  330:                  style={styles.alertCard}
+  331:                  onPress={() => navigation.navigate('Setlists')}
+  332:                  activeOpacity={0.85}
+  333:                >
+  334:                  <View style={styles.alertIcon}>
+  335:                    <Ionicons name="alert-circle" size={20} color={colors.warning} />
+  336:                  </View>
+  337:                  <View style={{ flex: 1 }}>
+  338:                    <Text style={styles.alertTitle}>
+  339:                      {pendingConfirm === 1
+  340:                        ? '1 confirmação pendente'
+  341:                        : `${pendingConfirm} confirmações pendentes`}
+  342:                    </Text>
+  343:                    <Text style={styles.alertDesc}>
+  344:                      Confirme sua participação nas setlists
+  345:                    </Text>
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+  194:              </View>
+  195:              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+  196:            </View>
+  197:          </Pressable>
+  198:  
+  199:          {/* Shortcuts */}
+  200:          <View style={styles.shortcuts}>
+  201:            {SHORTCUTS.map((s) => (
+  202:              <Pressable
+  203:                key={s.key}
+  204:                onPress={() => navigation.navigate(s.route)}
+  205:                style={({ pressed }) => [
+  206:                  styles.shortcut,
+  207:                  {
+  208:                    backgroundColor: colors.surface,
+  209:                    borderColor: colors.border,
+  210:                    borderRadius: radius.lg,
+  211:                    opacity: pressed ? 0.85 : 1,
+  212:                    ...shadow.sm,
+  213:                  },
+  214:                ]}
+  215:              >
+  216:                <View
+  217:                  style={[
+  218:                    styles.shortcutIcon,
+  219:                    { backgroundColor: colors.surfaceSecondary, borderRadius: radius.md },
+  220:                  ]}
+  221:                >
+  222:                  <Ionicons name={s.icon} size={20} color={colors.text} />
+  223:                </View>
+  224:                <Text style={[styles.shortcutLabel, { color: colors.text }]} numberOfLines={2}>
+  225:                  {s.label}
+  226:                </Text>
+  227:              </Pressable>
+  228:            ))}
+  229:          </View>
+  230:  
+  231:          {/* Next setlist highlight */}
+  232:          {nextSetlist ? (
+  233:            <View style={{ marginBottom: spacing.xl }}>
+  234:              <Text style={[styles.sectionTitle, { color: colors.text }]}>Próxima escala</Text>
+  235:              <Card
+  236:                onPress={() =>
+  237:                  navigation.navigate('SetlistDetail', { setlistId: nextSetlist.id })
+  238:                }
+  239:              >
+  240:                <Text style={[styles.cardTitle, { color: colors.text }]}>{nextSetlist.title}</Text>
+  241:                <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
+  242:                  {formatDateLongBR(nextSetlist.date)}
+  243:                  {nextSetlist.time ? ` · ${formatTime(nextSetlist.time)}` : ''}
+  244:                  {nextSetlist.location ? ` · ${nextSetlist.location}` : ''}
+  245:                </Text>
+  246:                <View style={styles.cardFooter}>
+  247:                  <Text style={[styles.cardStatus, { color: colors.textMuted }]}>
+  248:                    {SETLIST_STATUS_LABELS[(nextSetlist.status as SetlistStatus) || 'scheduled']}
+  249:                    {' · '}
+  250:                    {nextSetlist.songs_count ?? 0}{' '}
+  251:                    {(nextSetlist.songs_count ?? 0) === 1 ? 'música' : 'músicas'}
+  252:                  </Text>
+  253:                  <View
+  254:                    style={[
+  255:                      styles.detailBtn,
+  256:                      { backgroundColor: colors.primary, borderRadius: radius.md },
+  257:                    ]}
+  258:                  >
+  259:                    <Text style={[styles.detailBtnText, { color: colors.textInverse }]}>
+  260:                      Ver detalhes
+  261:                    </Text>
+*****
+
+Erro ao tentar sincronizar novamente. Os arquivos s�o muito diferentes
+***** SRC\SCREENS\HomeScreen.tsx
+  346:                  </View>
+  347:                  <Ionicons
+  348:                    name="chevron-forward"
+  349:                    size={16}
+  350:                    color={colors.textMuted}
+  351:                  />
+  352:                </TouchableOpacity>
+  353:              ) : null}
+  354:  
+  355:              {/* Próximo compromisso */}
+  356:              <Text style={styles.sectionTitle}>Próximo compromisso</Text>
+  357:              {nextSetlist ? (
+  358:                <TouchableOpacity
+  359:                  style={styles.nextCard}
+  360:                  onPress={() =>
+  361:                    navigation.navigate('SetlistDetail', {
+  362:                      setlistId: nextSetlist.id,
+  363:                    })
+  364:                  }
+  365:                  activeOpacity={0.9}
+  366:                >
+  367:                  <View style={styles.nextTop}>
+  368:                    <Text style={styles.nextEyebrow}>Setlist</Text>
+  369:                    <View style={styles.statusPill}>
+  370:                      <Text style={styles.statusPillText}>
+  371:                        {SETLIST_STATUS_LABELS[statusKey] ?? statusKey}
+  372:                      </Text>
+  373:                    </View>
+  374:                  </View>
+  375:                  <Text style={styles.nextTitle} numberOfLines={2}>
+  376:                    {nextSetlist.title}
+  377:                  </Text>
+  378:                  <Text style={styles.nextMeta}>
+  379:                    {formatDateLongBR(nextSetlist.date)}
+  380:                    {nextSetlist.time ? ` · ${formatTime(nextSetlist.time)}` : ''}
+  381:                  </Text>
+  382:                  {nextSetlist.location ? (
+  383:                    <Text style={styles.nextLoc} numberOfLines={1}>
+  384:                      {nextSetlist.location}
+  385:                    </Text>
+  386:                  ) : null}
+  387:                  <View style={styles.nextFooter}>
+  388:                    <Text style={styles.nextStat}>
+  389:                      {nextSetlist.songs_count ?? 0}{' '}
+  390:                      {(nextSetlist.songs_count ?? 0) === 1
+  391:                        ? 'música'
+  392:                        : 'músicas'}
+  393:                    </Text>
+  394:                    {myPresence ? (
+  395:                      <Text
+  396:                        style={[
+  397:                          styles.presence,
+  398:                          myPresence === 'confirmed' && {
+  399:                            color: colors.success,
+  400:                          },
+  401:                          myPresence === 'declined' && {
+  402:                            color: colors.danger,
+  403:                          },
+  404:                          myPresence === 'pending' && {
+  405:                            color: colors.warning,
+  406:                          },
+  407:                        ]}
+  408:                      >
+  409:                        {myPresence === 'confirmed'
+  410:                          ? 'Confirmado'
+  411:                          : myPresence === 'declined'
+  412:                          ? 'Recusado'
+  413:                          : 'Pendente'}
+  414:                      </Text>
+  415:                    ) : null}
+  416:                    <Ionicons
+  417:                      name="arrow-forward"
+  418:                      size={16}
+  419:                      color={colors.primary}
+  420:                    />
+  421:                  </View>
+  422:                </TouchableOpacity>
+  423:              ) : (
+  424:                <View style={styles.emptyCard}>
+  425:                  <Text style={styles.emptyTitle}>Nenhum compromisso próximo</Text>
+  426:                  <Text style={styles.emptyDesc}>
+  427:                    Quando houver uma setlist agendada, ela aparece aqui.
+  428:                  </Text>
+  429:                </View>
+  430:              )}
+  431:  
+  432:              {/* Agenda da semana */}
+  433:              {weekSetlists.length > 1 ? (
+  434:                <>
+  435:                  <Text style={styles.sectionTitle}>Esta semana</Text>
+  436:                  <View style={styles.listCard}>
+  437:                    {weekSetlists.slice(1).map((s, i, arr) => (
+  438:                      <TouchableOpacity
+  439:                        key={s.id}
+  440:                        style={[
+  441:                          styles.listRow,
+  442:                          i < arr.length - 1 && styles.listRowBorder,
+  443:                        ]}
+  444:                        onPress={() =>
+  445:                          navigation.navigate('SetlistDetail', {
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\HOMESCREEN.TSX
+  262:                  </View>
+  263:                </View>
+  264:              </Card>
+  265:            </View>
+  266:          ) : null}
+  267:  
+  268:          {/* Birthdays */}
+  269:          <View style={styles.sectionHeader}>
+  270:            <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 0 }]}>
+  271:              Aniversariantes
+  272:            </Text>
+  273:            <Pressable onPress={() => navigation.navigate('Birthdays')} hitSlop={8}>
+  274:              <Text style={[styles.seeAll, { color: colors.textSecondary }]}>Ver todos</Text>
+  275:            </Pressable>
+  276:          </View>
+  277:  
+  278:          {todayBdays.length === 0 && upcomingBdays.length === 0 ? (
+  279:            <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+  280:              Nenhum aniversário próximo cadastrado.
+  281:            </Text>
+  282:          ) : (
+  283:            <View style={{ gap: 10 }}>
+  284:              {[...todayBdays, ...upcomingBdays].slice(0, 5).map((b) => (
+  285:                <Pressable
+  286:                  key={b.id}
+  287:                  onPress={() => navigation.navigate('MemberDetail', { userId: b.id })}
+  288:                  style={({ pressed }) => [
+  289:                    styles.bdayRow,
+  290:                    {
+  291:                      backgroundColor: colors.surface,
+  292:                      borderColor: colors.border,
+  293:                      borderRadius: radius.lg,
+  294:                      opacity: pressed ? 0.9 : 1,
+  295:                      ...shadow.sm,
+  296:                    },
+  297:                  ]}
+  298:                >
+  299:                  <Avatar uri={b.avatar_url} name={b.name} size={44} />
+  300:                  <View style={styles.bdayInfo}>
+  301:                    <Text style={[styles.bdayName, { color: colors.text }]} numberOfLines={1}>
+  302:                      {b.name}
+  303:                    </Text>
+  304:                    <Text
+  305:                      style={[
+  306:                        styles.bdayMeta,
+  307:                        {
+  308:                          color: isBirthdayToday(b.birth_date)
+  309:                            ? colors.text
+  310:                            : colors.textSecondary,
+  311:                          fontWeight: isBirthdayToday(b.birth_date) ? '600' : '400',
+  312:                        },
+  313:                      ]}
+  314:                    >
+  315:                      {isBirthdayToday(b.birth_date) ? 'Hoje' : formatDayMonth(b.birth_date)}
+  316:                    </Text>
+  317:                  </View>
+  318:                  <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+  319:                </Pressable>
+  320:              ))}
+  321:            </View>
+  322:          )}
+  323:  
+  324:          <View style={{ height: spacing.xxl }} />
+  325:        </ScrollView>
+  326:      </TabScreenShell>
+  327:    );
+  328:  }
+  329:  
+  330:  const styles = StyleSheet.create({
+  331:    center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  332:    container: {
+  333:      paddingHorizontal: spacing.md,
+  334:      paddingBottom: spacing.xxxl + 16,
+  335:    },
+  336:    greeting: {
+  337:      marginTop: spacing.sm,
+  338:      marginBottom: spacing.xl,
+  339:    },
+  340:    hello: {
+  341:      fontSize: 26,
+  342:      fontWeight: '700',
+  343:      letterSpacing: -0.5,
+  344:    },
+  345:    subHello: {
+  346:      fontSize: 15,
+  347:      marginTop: 4,
+  348:    },
+  349:    ministryCard: {
+  350:      flexDirection: 'row',
+  351:      alignItems: 'center',
+  352:      padding: spacing.md,
+  353:      borderWidth: StyleSheet.hairlineWidth,
+  354:      marginBottom: spacing.xl,
+  355:    },
+  356:    ministryLogo: {
+  357:      width: 48,
+  358:      height: 48,
+  359:      borderRadius: 12,
+  360:    },
+  361:    ministryLogoPh: {
+*****
+
+
+===== TEAM =====
+Comparando os arquivos SRC\SCREENS\TeamScreen.tsx e AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+***** SRC\SCREENS\TeamScreen.tsx
+    1:  import React, { useCallback, useState, useMemo } from 'react';
+    2:  import {
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+    1:  import React, { useCallback, useMemo, useState } from 'react';
+    2:  import {
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+    8:    Alert,
+    9:    TouchableOpacity,
+   10:    TextInput,
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+    8:    Alert,
+    9:    Pressable,
+   10:    TextInput,
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+   11:  } from 'react-native';
+   12:  import { SafeAreaView } from 'react-native-safe-area-context';
+   13:  import { useFocusEffect, useNavigation } from '@react-navigation/native';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+   11:  } from 'react-native';
+   12:  import { useFocusEffect, useNavigation } from '@react-navigation/native';
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+   15:  import { useAuth } from '../contexts/AuthContext';
+   16:  import { supabase } from '../services/supabase';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+   14:  import { useAuth } from '../contexts/AuthContext';
+   15:  import { useTheme } from '../contexts/ThemeContext';
+   16:  import { supabase } from '../services/supabase';
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+   17:  import { ChurchMember, UserRole, INSTRUMENT_SUGGESTIONS } from '../types';
+   18:  import { ScreenHeader } from '../components/layout/ScreenHeader';
+   19:  import { Avatar } from '../components/Avatar';
+   20:  import { useTheme } from '../contexts/ThemeContext';
+   21:  import { spacing, typography, radius, ColorTokens } from '../constants/theme';
+   22:  import { formatSupabaseError } from '../utils/payload';
+   23:  import { EmptyState } from '../components/EmptyState';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+   17:  import { ChurchMember, UserRole, INSTRUMENT_SUGGESTIONS } from '../types';
+   18:  import { TabScreenShell } from '../components/layout/TabScreenShell';
+   19:  import { AppHeader } from '../components/layout/AppHeader';
+   20:  import { Avatar } from '../components/Avatar';
+   21:  import { SearchField } from '../components/SearchField';
+   22:  import { SegmentedControl } from '../components/SegmentedControl';
+   23:  import { EmptyState } from '../components/EmptyState';
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+   24:  import { Button } from '../components/Button';
+   25:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+   24:  import { Button } from '../components/Button';
+   25:  import { spacing, radius, shadow } from '../constants/theme';
+   26:  import { formatSupabaseError } from '../utils/payload';
+   27:  
+   28:  type FilterKey = 'members' | 'roles' | 'instruments';
+   29:  
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+   26:  export function TeamScreen() {
+   27:    const { colors } = useTheme();
+   28:    const styles = useMemo(() => createStyles(colors), [colors]);
+   29:    const navigation = useNavigation<any>();
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+   30:  export function TeamScreen() {
+   31:    const navigation = useNavigation<any>();
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+   30:    const { church, membership, user } = useAuth();
+   31:    const [members, setMembers] = useState<ChurchMember[]>([]);
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+   32:    const { church, membership, user } = useAuth();
+   33:    const { colors } = useTheme();
+   34:    const [members, setMembers] = useState<ChurchMember[]>([]);
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+   32:    const [loading, setLoading] = useState(true);
+   33:    const [editingId, setEditingId] = useState<string | null>(null);
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+   35:    const [loading, setLoading] = useState(true);
+   36:    const [search, setSearch] = useState('');
+   37:    const [filter, setFilter] = useState<FilterKey>('members');
+   38:    const [editingId, setEditingId] = useState<string | null>(null);
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+   37:    const canManage = membership?.role === 'owner' || membership?.role === 'leader';
+   38:    const isOwner = membership?.role === 'owner';
+   39:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+   42:    const canManage = membership?.role === 'owner' || membership?.role === 'leader';
+   43:  
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+   42:      setLoading(true);
+   43:      const { data, error } = await supabase
+   44:        .from('church_members')
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+   46:      setLoading(true);
+   47:      const { data } = await supabase
+   48:        .from('church_members')
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+   47:        .order('created_at');
+   48:      if (error) {
+   49:        setMembers([]);
+   50:        Alert.alert('Erro ao carregar equipe', formatSupabaseError(error));
+   51:      } else {
+   52:        setMembers((data as ChurchMember[]) ?? []);
+   53:      }
+   54:      setLoading(false);
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+   51:        .order('created_at');
+   52:      setMembers((data as ChurchMember[]) ?? []);
+   53:      setLoading(false);
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+   79:        .from('church_members')
+   80:        .update({
+   81:          instrument: editInstrument.trim() || null,
+   82:          role: editRole,
+   83:        })
+   84:        .eq('id', editingId);
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+   78:        .from('church_members')
+   79:        .update({ instrument: editInstrument.trim() || null, role: editRole })
+   80:        .eq('id', editingId);
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  106:          onPress: async () => {
+  107:            const { error } = await supabase
+  108:              .from('church_members')
+  109:              .delete()
+  110:              .eq('id', m.id);
+  111:            if (error) Alert.alert('Erro', formatSupabaseError(error));
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  102:          onPress: async () => {
+  103:            const { error } = await supabase.from('church_members').delete().eq('id', m.id);
+  104:            if (error) Alert.alert('Erro', formatSupabaseError(error));
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  117:  
+  118:    if (loading) {
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  110:  
+  111:    const filtered = useMemo(() => {
+  112:      let list = members;
+  113:      const q = search.toLowerCase().trim();
+  114:      if (q) {
+  115:        list = list.filter(
+  116:          (m) =>
+  117:            (m.profile?.name ?? '').toLowerCase().includes(q) ||
+  118:            (m.instrument ?? '').toLowerCase().includes(q) ||
+  119:            roleLabel(m.role).toLowerCase().includes(q)
+  120:        );
+  121:      }
+  122:      return list;
+  123:    }, [members, search]);
+  124:  
+  125:    const invite = () => {
+  126:      if (!church?.invite_code) return;
+  127:      Alert.alert(
+  128:        'Convidar membro',
+  129:        `Compartilhe o código de convite:\n\n${church.invite_code}\n\nO novo membro usa este código ao criar a conta ou em Conf
+  130:  igurações.`,
+  131:        [{ text: 'OK' }]
+  132:      );
+  133:    };
+  134:  
+  135:    if (loading) {
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  119:      return (
+  120:        <SafeAreaView style={styles.safe} edges={['bottom']}>
+  121:          <ScreenHeader
+  122:            title="Equipe"
+  123:            right={canManage ? (
+  124:              <TouchableOpacity
+  125:                style={styles.inviteButton}
+  126:                onPress={() => Alert.alert('Convide alguém', church?.invite_code ? `Compartilhe este código: ${church.invite_co
+  127:  de}` : 'Código de convite indisponível.')}
+  128:              >
+  129:                <Ionicons name="add" size={14} color={colors.textInverse} />
+  130:                <Text style={styles.inviteButtonText}>Convidar</Text>
+  131:              </TouchableOpacity>
+  132:            ) : null}
+  133:          />
+  134:          <View style={styles.center}>
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  136:      return (
+  137:        <TabScreenShell>
+  138:          <AppHeader title="Equipe" showNotifications={false} showAvatar={false} />
+  139:          <View style={styles.center}>
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  136:          </View>
+  137:        </SafeAreaView>
+  138:      );
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  141:          </View>
+  142:        </TabScreenShell>
+  143:      );
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  141:    return (
+  142:      <SafeAreaView style={styles.safe} edges={['bottom']}>
+  143:        <ScreenHeader title="Equipe" />
+  144:  
+  145:        {church?.invite_code ? (
+  146:          <View style={styles.inviteBanner}>
+  147:            <Ionicons name="key-outline" size={16} color={colors.primary} />
+  148:            <Text style={styles.code}>
+  149:              Código de convite:{' '}
+  150:              <Text style={styles.codeValue}>{church.invite_code}</Text>
+  151:            </Text>
+  152:          </View>
+  153:        ) : null}
+  154:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  146:    return (
+  147:      <TabScreenShell>
+  148:        <AppHeader
+  149:          title="Equipe"
+  150:          showNotifications={false}
+  151:          showAvatar={false}
+  152:          right={
+  153:            canManage ? (
+  154:              <Pressable
+  155:                onPress={invite}
+  156:                hitSlop={10}
+  157:                style={({ pressed }) => [
+  158:                  styles.inviteBtn,
+  159:                  {
+  160:                    backgroundColor: colors.primary,
+  161:                    borderRadius: radius.full,
+  162:                    opacity: pressed ? 0.85 : 1,
+  163:                  },
+  164:                ]}
+  165:              >
+  166:                <Ionicons name="add" size={18} color={colors.textInverse} />
+  167:                <Text style={[styles.inviteText, { color: colors.textInverse }]}>Convidar</Text>
+  168:              </Pressable>
+  169:            ) : null
+  170:          }
+  171:        />
+  172:  
+  173:        <View style={styles.toolbar}>
+  174:          <SearchField
+  175:            value={search}
+  176:            onChangeText={setSearch}
+  177:            placeholder="Buscar membro..."
+  178:          />
+  179:          <View style={{ height: spacing.sm }} />
+  180:          <SegmentedControl
+  181:            options={[
+  182:              { key: 'members', label: 'Membros' },
+  183:              { key: 'roles', label: 'Funções' },
+  184:              { key: 'instruments', label: 'Instrumentos' },
+  185:            ]}
+  186:            value={filter}
+  187:            onChange={setFilter}
+  188:          />
+  189:        </View>
+  190:  
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  155:        <FlatList
+  156:          data={members}
+  157:          keyExtractor={(item) => item.id}
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  191:        <FlatList
+  192:          data={filtered}
+  193:          keyExtractor={(item) => item.id}
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  161:            <EmptyState
+  162:              title="Equipe vazia"
+  163:              description="Compartilhe o código de convite para adicionar integrantes."
+  164:            />
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  197:            <EmptyState
+  198:              icon="people-outline"
+  199:              title="Sua equipe ainda está vazia"
+  200:              description="Convide integrantes pelo código de convite da igreja."
+  201:              actionLabel={canManage ? 'Ver código' : undefined}
+  202:              onAction={canManage ? invite : undefined}
+  203:            />
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  168:            return (
+  169:              <View style={styles.item}>
+  170:                {isEditing ? (
+  171:                  <View>
+  172:                    <Text style={styles.name}>
+  173:                      {item.profile?.name ?? 'Usuário'}
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  207:            return (
+  208:              <Pressable
+  209:                onPress={() => {
+  210:                  if (isEditing) return;
+  211:                  navigation.navigate('MemberDetail', {
+  212:                    memberId: item.id,
+  213:                    userId: item.user_id,
+  214:                  });
+  215:                }}
+  216:                onLongPress={canManage ? () => startEdit(item) : undefined}
+  217:                style={({ pressed }) => [
+  218:                  styles.row,
+  219:                  {
+  220:                    backgroundColor: colors.surface,
+  221:                    borderColor: colors.border,
+  222:                    borderRadius: radius.xl,
+  223:                    opacity: pressed && !isEditing ? 0.92 : 1,
+  224:                    ...shadow.sm,
+  225:                  },
+  226:                ]}
+  227:              >
+  228:                {isEditing ? (
+  229:                  <View style={{ flex: 1 }}>
+  230:                    <Text style={[styles.name, { color: colors.text }]}>
+  231:                      {item.profile?.name ?? 'Usuário'}
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  175:                    <TextInput
+  176:                      style={styles.input}
+  177:                      value={editInstrument}
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  233:                    <TextInput
+  234:                      style={[
+  235:                        styles.input,
+  236:                        {
+  237:                          color: colors.text,
+  238:                          borderColor: colors.border,
+  239:                          backgroundColor: colors.surfaceSecondary,
+  240:                          borderRadius: radius.md,
+  241:                        },
+  242:                      ]}
+  243:                      value={editInstrument}
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  182:                    <View style={styles.roleRow}>
+  183:                      {INSTRUMENT_SUGGESTIONS.slice(0, 8).map((inst) => (
+  184:                        <TouchableOpacity
+  185:                          key={inst}
+  186:                          style={[
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  248:                    <View style={styles.roleRow}>
+  249:                      {(['musician', 'leader'] as UserRole[]).map((r) => (
+  250:                        <Pressable
+  251:                          key={r}
+  252:                          onPress={() => setEditRole(r)}
+  253:                          style={[
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  187:                            styles.roleChip,
+  188:                            editInstrument === inst && styles.roleChipOn,
+  189:                          ]}
+  190:                          onPress={() => setEditInstrument(inst)}
+  191:                        >
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  254:                            styles.roleChip,
+  255:                            {
+  256:                              backgroundColor:
+  257:                                editRole === r ? colors.primary : colors.surfaceSecondary,
+  258:                              borderRadius: radius.full,
+  259:                            },
+  260:                          ]}
+  261:                        >
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  192:                          <Text
+  193:                            style={[
+  194:                              styles.roleChipText,
+  195:                              editInstrument === inst && styles.roleChipTextOn,
+  196:                            ]}
+  197:                          >
+  198:                            {inst}
+  199:                          </Text>
+  200:                        </TouchableOpacity>
+  201:                      ))}
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  262:                          <Text
+  263:                            style={{
+  264:                              color: editRole === r ? colors.textInverse : colors.text,
+  265:                              fontSize: 13,
+  266:                              fontWeight: '600',
+  267:                            }}
+  268:                          >
+  269:                            {roleLabel(r)}
+  270:                          </Text>
+  271:                        </Pressable>
+  272:                      ))}
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  202:                    </View>
+  203:                    {isOwner && (
+  204:                      <View style={styles.roleRow}>
+  205:                        <TouchableOpacity
+  206:                          style={[
+  207:                            styles.roleChip,
+  208:                            editRole === 'musician' && styles.roleChipOn,
+  209:                          ]}
+  210:                          onPress={() => setEditRole('musician')}
+  211:                        >
+  212:                          <Text
+  213:                            style={[
+  214:                              styles.roleChipText,
+  215:                              editRole === 'musician' && styles.roleChipTextOn,
+  216:                            ]}
+  217:                          >
+  218:                            Músico
+  219:                          </Text>
+  220:                        </TouchableOpacity>
+  221:                        <TouchableOpacity
+  222:                          style={[
+  223:                            styles.roleChip,
+  224:                            editRole === 'leader' && styles.roleChipOn,
+  225:                          ]}
+  226:                          onPress={() => setEditRole('leader')}
+  227:                        >
+  228:                          <Text
+  229:                            style={[
+  230:                              styles.roleChipText,
+  231:                              editRole === 'leader' && styles.roleChipTextOn,
+  232:                            ]}
+  233:                          >
+  234:                            Líder
+  235:                          </Text>
+  236:                        </TouchableOpacity>
+  237:                      </View>
+  238:                    )}
+  239:                    <View style={styles.editActions}>
+  240:                      <Button
+  241:                        title="Salvar"
+  242:                        onPress={saveEdit}
+  243:                        style={{ flex: 1 }}
+  244:                      />
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  273:                    </View>
+  274:                    <View style={styles.editActions}>
+  275:                      <Button title="Salvar" onPress={saveEdit} size="sm" />
+  276:                      <Button
+  277:                        title="Cancelar"
+  278:                        onPress={() => setEditingId(null)}
+  279:                        variant="ghost"
+  280:                        size="sm"
+  281:                      />
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  245:                      <Button
+  246:                        title="Cancelar"
+  247:                        onPress={() => setEditingId(null)}
+  248:                        variant="ghost"
+  249:                        style={{ flex: 1 }}
+  250:                      />
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  282:                      <Button
+  283:                        title="Remover"
+  284:                        onPress={() => removeMember(item)}
+  285:                        variant="danger"
+  286:                        size="sm"
+  287:                      />
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  251:                    </View>
+  252:                    {canManage && item.role !== 'owner' ? (
+  253:                      <TouchableOpacity
+  254:                        onPress={() => removeMember(item)}
+  255:                        style={styles.removeBtn}
+  256:                      >
+  257:                        <Text style={styles.removeText}>Remover da equipe</Text>
+  258:                      </TouchableOpacity>
+  259:                    ) : null}
+  260:                  </View>
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  288:                    </View>
+  289:                  </View>
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  261:                ) : (
+  262:                  <TouchableOpacity
+  263:                    style={styles.row}
+  264:                    onPress={() =>
+  265:                      navigation.navigate('MemberDetail', { memberId: item.id })
+  266:                    }
+  267:                    onLongPress={
+  268:                      canManage ? () => startEdit(item) : undefined
+  269:                    }
+  270:                    activeOpacity={0.7}
+  271:                  >
+  272:                    <Avatar
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  290:                ) : (
+  291:                  <>
+  292:                    <Avatar
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  274:                      name={item.profile?.name}
+  275:                      size={44}
+  276:                    />
+  277:                    <View style={styles.rowInfo}>
+  278:                      <Text style={styles.name} numberOfLines={1}>
+  279:                        {item.profile?.name ?? 'Usuário'}
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  294:                      name={item.profile?.name}
+  295:                      size={48}
+  296:                    />
+  297:                    <View style={styles.info}>
+  298:                      <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>
+  299:                        {item.profile?.name ?? 'Usuário'}
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  280:                      </Text>
+  281:                      <Text style={styles.meta} numberOfLines={1}>
+  282:                        {[item.instrument || 'Sem instrumento', roleLabel(item.role)].join(
+  283:                          ' · '
+  284:                        )}
+  285:                      </Text>
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  300:                      </Text>
+  301:                      <Text style={[styles.meta, { color: colors.textSecondary }]}>
+  302:                        {[item.instrument || '—', roleLabel(item.role)].join(' · ')}
+  303:                      </Text>
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  286:                    </View>
+  287:                    <View style={styles.roleBadge}>
+  288:                      <Text style={styles.roleBadgeText}>
+  289:                        {roleLabel(item.role)}
+  290:                      </Text>
+  291:                    </View>
+  292:                  </TouchableOpacity>
+  293:                )}
+  294:              </View>
+  295:            );
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  304:                    </View>
+  305:                    <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+  306:                  </>
+  307:                )}
+  308:              </Pressable>
+  309:            );
+*****
+
+***** SRC\SCREENS\TeamScreen.tsx
+  297:        />
+  298:      </SafeAreaView>
+  299:    );
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  311:        />
+  312:      </TabScreenShell>
+  313:    );
+*****
+
+Erro ao tentar sincronizar novamente. Os arquivos s�o muito diferentes
+***** SRC\SCREENS\TeamScreen.tsx
+  301:  
+  302:  function createStyles(colors: ColorTokens) {
+  303:    return StyleSheet.create({
+  304:      safe: { flex: 1, backgroundColor: colors.background },
+  305:      center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  306:      inviteBanner: {
+  307:        flexDirection: 'row',
+  308:        alignItems: 'center',
+  309:        gap: spacing.sm,
+  310:        marginHorizontal: spacing.lg,
+  311:        marginTop: spacing.md,
+  312:        marginBottom: spacing.sm,
+  313:        padding: spacing.md,
+  314:        backgroundColor: colors.primaryLight,
+  315:        borderRadius: radius.md,
+  316:      },
+  317:      inviteButton: {
+  318:        flexDirection: 'row',
+  319:        alignItems: 'center',
+  320:        gap: 2,
+  321:        paddingHorizontal: spacing.sm,
+  322:        paddingVertical: 7,
+  323:        borderRadius: radius.full,
+  324:        backgroundColor: colors.primary,
+  325:      },
+  326:      inviteButtonText: { ...typography.small, color: colors.textInverse, fontWeight: '700' },
+  327:      code: {
+  328:        ...typography.caption,
+  329:        color: colors.textSecondary,
+  330:        flex: 1,
+  331:      },
+  332:      codeValue: {
+  333:        fontWeight: '700',
+  334:        color: colors.primaryDark,
+  335:        letterSpacing: 0.5,
+  336:      },
+  337:      list: {
+  338:        paddingHorizontal: spacing.lg,
+  339:        paddingBottom: spacing.xxl,
+  340:        paddingTop: spacing.sm,
+  341:      },
+  342:      item: {
+  343:        backgroundColor: colors.surface,
+  344:        borderRadius: radius.lg,
+  345:        padding: spacing.md,
+  346:        marginBottom: spacing.sm,
+  347:        borderWidth: 1,
+  348:        borderColor: colors.border,
+  349:      },
+  350:      row: {
+  351:        flexDirection: 'row',
+  352:        alignItems: 'center',
+  353:        gap: spacing.md,
+  354:      },
+  355:      rowInfo: { flex: 1, minWidth: 0 },
+  356:      name: {
+  357:        ...typography.bodyMedium,
+  358:        color: colors.text,
+  359:      },
+  360:      meta: {
+  361:        ...typography.caption,
+  362:        color: colors.textSecondary,
+  363:        marginTop: 2,
+  364:      },
+  365:      roleBadge: {
+  366:        paddingHorizontal: 8,
+  367:        paddingVertical: 3,
+  368:        borderRadius: radius.full,
+  369:        backgroundColor: colors.surfaceSecondary,
+  370:      },
+  371:      roleBadgeText: {
+  372:        ...typography.small,
+  373:        color: colors.textSecondary,
+  374:        fontWeight: '600',
+  375:      },
+  376:      input: {
+  377:        height: 44,
+  378:        borderWidth: 1,
+  379:        borderColor: colors.border,
+  380:        borderRadius: radius.sm,
+  381:        paddingHorizontal: spacing.sm,
+  382:        marginTop: spacing.sm,
+  383:        ...typography.body,
+  384:        color: colors.text,
+  385:        backgroundColor: colors.background,
+  386:      },
+  387:      roleRow: {
+  388:        flexDirection: 'row',
+  389:        flexWrap: 'wrap',
+  390:        gap: spacing.sm,
+  391:        marginTop: spacing.sm,
+  392:      },
+  393:      roleChip: {
+  394:        paddingHorizontal: spacing.md,
+  395:        paddingVertical: spacing.xs,
+  396:        borderRadius: radius.full,
+  397:        borderWidth: 1,
+  398:        borderColor: colors.border,
+  399:        backgroundColor: colors.background,
+  400:      },
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\TEAMSCREEN.TSX
+  315:  
+  316:  const styles = StyleSheet.create({
+  317:    center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  318:    toolbar: {
+  319:      paddingHorizontal: spacing.md,
+  320:      paddingBottom: spacing.sm,
+  321:    },
+  322:    inviteBtn: {
+  323:      flexDirection: 'row',
+  324:      alignItems: 'center',
+  325:      paddingHorizontal: 12,
+  326:      paddingVertical: 8,
+  327:      gap: 4,
+  328:    },
+  329:    inviteText: {
+  330:      fontSize: 13,
+  331:      fontWeight: '600',
+  332:    },
+  333:    list: {
+  334:      paddingHorizontal: spacing.md,
+  335:      paddingBottom: spacing.xxxl,
+  336:      gap: 10,
+  337:    },
+  338:    row: {
+  339:      flexDirection: 'row',
+  340:      alignItems: 'center',
+  341:      padding: spacing.md,
+  342:      borderWidth: StyleSheet.hairlineWidth,
+  343:      marginBottom: 2,
+  344:    },
+  345:    info: {
+  346:      flex: 1,
+  347:      marginLeft: spacing.md,
+  348:    },
+  349:    name: {
+  350:      fontSize: 15,
+  351:      fontWeight: '600',
+  352:    },
+  353:    meta: {
+  354:      fontSize: 13,
+  355:      marginTop: 2,
+  356:    },
+  357:    input: {
+  358:      height: 44,
+  359:      borderWidth: 1,
+  360:      paddingHorizontal: spacing.sm,
+  361:      marginTop: spacing.sm,
+  362:      fontSize: 15,
+  363:    },
+  364:    roleRow: {
+  365:      flexDirection: 'row',
+  366:      gap: spacing.sm,
+  367:      marginTop: spacing.sm,
+  368:    },
+  369:    roleChip: {
+  370:      paddingHorizontal: 14,
+  371:      paddingVertical: 8,
+  372:    },
+  373:    editActions: {
+  374:      flexDirection: 'row',
+  375:      gap: spacing.sm,
+  376:      marginTop: spacing.md,
+  377:      flexWrap: 'wrap',
+  378:    },
+  379:  });
+*****
+
+
+===== SETLISTS =====
+Comparando os arquivos SRC\SCREENS\SetlistsScreen.tsx e AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SETLISTSSCREEN.TSX
+***** SRC\SCREENS\SetlistsScreen.tsx
+    1:  import React, { useCallback, useState, useMemo } from 'react';
+    2:  import {
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SETLISTSSCREEN.TSX
+    1:  import React, { useCallback, useMemo, useState } from 'react';
+    2:  import {
+*****
+
+***** SRC\SCREENS\SetlistsScreen.tsx
+    6:    FlatList,
+    7:    TouchableOpacity,
+    8:    ActivityIndicator,
+    9:    TextInput,
+   10:  } from 'react-native';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SETLISTSSCREEN.TSX
+    6:    FlatList,
+    7:    Pressable,
+    8:    ActivityIndicator,
+    9:  } from 'react-native';
+*****
+
+***** SRC\SCREENS\SetlistsScreen.tsx
+   13:  import { TabScreenShell } from '../components/layout/TabScreenShell';
+   14:  import { useAuth } from '../contexts/AuthContext';
+   15:  import { supabase } from '../services/supabase';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SETLISTSSCREEN.TSX
+   12:  import { TabScreenShell } from '../components/layout/TabScreenShell';
+   13:  import { AppHeader } from '../components/layout/AppHeader';
+   14:  import { SegmentedControl } from '../components/SegmentedControl';
+   15:  import { EmptyState } from '../components/EmptyState';
+   16:  import { Badge } from '../components/Badge';
+   17:  import { useAuth } from '../contexts/AuthContext';
+   18:  import { useTheme } from '../contexts/ThemeContext';
+   19:  import { supabase } from '../services/supabase';
+*****
+
+***** SRC\SCREENS\SetlistsScreen.tsx
+   16:  import { Setlist, SETLIST_STATUS_LABELS, SetlistStatus } from '../types';
+   17:  import { useTheme } from '../contexts/ThemeContext';
+   18:  import { spacing, typography, radius, ColorTokens } from '../constants/theme';
+   19:  import { EmptyState } from '../components/EmptyState';
+   20:  import { formatDateLongBR, formatTime } from '../utils/dates';
+   21:  import { PillTabs } from '../components/PillTabs';
+   22:  
+   23:  type SetlistFilter = 'upcoming' | 'past' | 'all';
+   24:  export function SetlistsScreen() {
+   25:    const { colors } = useTheme();
+   26:    const styles = useMemo(() => createStyles(colors), [colors]);
+   27:    const { church, membership } = useAuth();
+   28:    const navigation = useNavigation<any>();
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SETLISTSSCREEN.TSX
+   20:  import { Setlist, SETLIST_STATUS_LABELS, SetlistStatus } from '../types';
+   21:  import { spacing, radius, shadow } from '../constants/theme';
+   22:  import { formatDateLongBR, formatTime, todayISO } from '../utils/dates';
+   23:  
+   24:  type FilterKey = 'upcoming' | 'past' | 'all';
+   25:  
+   26:  export function SetlistsScreen() {
+   27:    const { church, membership } = useAuth();
+   28:    const { colors } = useTheme();
+   29:    const navigation = useNavigation<any>();
+*****
+
+***** SRC\SCREENS\SetlistsScreen.tsx
+   29:    const [setlists, setSetlists] = useState<Setlist[]>([]);
+   30:    const [search, setSearch] = useState('');
+   31:    const [loading, setLoading] = useState(true);
+   32:    const [filter, setFilter] = useState<SetlistFilter>('upcoming');
+   33:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SETLISTSSCREEN.TSX
+   30:    const [setlists, setSetlists] = useState<Setlist[]>([]);
+   31:    const [filter, setFilter] = useState<FilterKey>('upcoming');
+   32:    const [loading, setLoading] = useState(true);
+   33:  
+*****
+
+***** SRC\SCREENS\SetlistsScreen.tsx
+   34:    const canManage = membership?.role === 'owner' || membership?.role === 'leader';
+   35:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SETLISTSSCREEN.TSX
+   34:    const canManage = membership?.role === 'owner' || membership?.role === 'leader';
+   35:    const today = todayISO();
+   36:  
+*****
+
+***** SRC\SCREENS\SetlistsScreen.tsx
+   40:        .from('setlists')
+   41:        .select('*, setlist_songs(count)')
+   42:        .eq('church_id', church.id)
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SETLISTSSCREEN.TSX
+   41:        .from('setlists')
+   42:        .select('*, setlist_songs(count), setlist_members(count)')
+   43:        .eq('church_id', church.id)
+*****
+
+***** SRC\SCREENS\SetlistsScreen.tsx
+   47:        songs_count: s.setlist_songs?.[0]?.count ?? 0,
+   48:      }));
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SETLISTSSCREEN.TSX
+   48:        songs_count: s.setlist_songs?.[0]?.count ?? 0,
+   49:        members_count: s.setlist_members?.[0]?.count ?? 0,
+   50:      }));
+*****
+
+***** SRC\SCREENS\SetlistsScreen.tsx
+   59:    const filtered = useMemo(() => {
+   60:      const q = search.toLowerCase().trim();
+   61:      if (!q) return setlists;
+   62:      return setlists.filter(
+   63:        (s) =>
+   64:          s.title.toLowerCase().includes(q) ||
+   65:          (s.location && s.location.toLowerCase().includes(q))
+   66:      );
+   67:    }, [setlists, search]);
+   68:  
+   69:    const visible = useMemo(() => {
+   70:      const today = new Date().toISOString().slice(0, 10);
+   71:      if (filter === 'upcoming') return filtered.filter((item) => item.date >= today);
+   72:      if (filter === 'past') return filtered.filter((item) => item.date < today);
+   73:      return filtered;
+   74:    }, [filter, filtered]);
+   75:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SETLISTSSCREEN.TSX
+   61:    const filtered = useMemo(() => {
+   62:      if (filter === 'upcoming') {
+   63:        return setlists
+   64:          .filter((s) => s.date >= today && s.status !== 'cancelled')
+   65:          .sort((a, b) => a.date.localeCompare(b.date));
+   66:      }
+   67:      if (filter === 'past') {
+   68:        return setlists
+   69:          .filter((s) => s.date < today || s.status === 'completed')
+   70:          .sort((a, b) => b.date.localeCompare(a.date));
+   71:      }
+   72:      return setlists;
+   73:    }, [setlists, filter, today]);
+   74:  
+   75:    const statusTone = (status: SetlistStatus) => {
+   76:      if (status === 'confirmed') return 'success' as const;
+   77:      if (status === 'cancelled') return 'danger' as const;
+   78:      if (status === 'completed') return 'neutral' as const;
+   79:      return 'info' as const;
+   80:    };
+   81:  
+*****
+
+***** SRC\SCREENS\SetlistsScreen.tsx
+   78:        <TabScreenShell>
+   79:          <View style={styles.center}>
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SETLISTSSCREEN.TSX
+   84:        <TabScreenShell>
+   85:          <AppHeader title="Setlists" showNotifications={false} showAvatar={false} />
+   86:          <View style={styles.center}>
+*****
+
+***** SRC\SCREENS\SetlistsScreen.tsx
+   81:          </View>
+   82:  
+   83:          <View style={styles.tabs}>
+   84:            <PillTabs value={filter} onChange={setFilter} options={[{ label: 'Próximos', value: 'upcoming' }, { label: 'Passadas
+   85:  ', value: 'past' }, { label: 'Todas', value: 'all' }]} />
+   86:          </View>
+   87:        </TabScreenShell>
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SETLISTSSCREEN.TSX
+   88:          </View>
+   89:        </TabScreenShell>
+*****
+
+Erro ao tentar sincronizar novamente. Os arquivos s�o muito diferentes
+***** SRC\SCREENS\SetlistsScreen.tsx
+   92:      <TabScreenShell>
+   93:        <View style={styles.root}>
+   94:          <View style={styles.header}>
+   95:            <Text style={styles.title}>Setlists</Text>
+   96:            <View style={styles.headerRight}>
+   97:              <TouchableOpacity
+   98:                onPress={() => navigation.navigate('Calendar')}
+   99:                hitSlop={8}
+  100:                style={styles.iconBtn}
+  101:              >
+  102:                <Ionicons
+  103:                  name="calendar-outline"
+  104:                  size={22}
+  105:                  color={colors.textSecondary}
+  106:                />
+  107:              </TouchableOpacity>
+  108:              {canManage ? (
+  109:                <TouchableOpacity
+  110:                  onPress={() => navigation.navigate('SetlistForm')}
+  111:                  style={styles.addBtn}
+  112:                  hitSlop={8}
+  113:                >
+  114:                  <Ionicons name="add" size={22} color={colors.primary} />
+  115:                </TouchableOpacity>
+  116:              ) : null}
+  117:            </View>
+  118:          </View>
+  119:  
+  120:          <View style={styles.searchWrap}>
+  121:            <Ionicons
+  122:              name="search-outline"
+  123:              size={18}
+  124:              color={colors.textMuted}
+  125:              style={styles.searchIcon}
+  126:            />
+  127:            <TextInput
+  128:              style={styles.search}
+  129:              value={search}
+  130:              onChangeText={setSearch}
+  131:              placeholder="Buscar setlist ou local"
+  132:              placeholderTextColor={colors.textMuted}
+  133:              returnKeyType="search"
+  134:            />
+  135:          </View>
+  136:  
+  137:          <FlatList
+  138:            data={visible}
+  139:            keyExtractor={(item) => item.id}
+  140:            contentContainerStyle={styles.list}
+  141:            showsVerticalScrollIndicator={false}
+  142:            ListEmptyComponent={
+  143:              <EmptyState
+  144:                title="Nenhuma setlist"
+  145:                description="Crie a primeira setlist para organizar o culto."
+  146:                actionLabel={canManage ? 'Criar setlist' : undefined}
+  147:                onAction={
+  148:                  canManage
+  149:                    ? () => navigation.navigate('SetlistForm')
+  150:                    : undefined
+  151:                }
+  152:              />
+  153:            }
+  154:            renderItem={({ item }) => {
+  155:              const statusKey = (item.status as SetlistStatus) || 'scheduled';
+  156:              return (
+  157:                <TouchableOpacity
+  158:                  style={styles.item}
+  159:                  activeOpacity={0.7}
+  160:                  onPress={() =>
+  161:                    navigation.navigate('SetlistDetail', {
+  162:                      setlistId: item.id,
+  163:                    })
+  164:                  }
+  165:                >
+  166:                  <View style={styles.itemTop}>
+  167:                    <Text style={styles.itemTitle} numberOfLines={2}>
+  168:                      {item.title}
+  169:                    </Text>
+  170:                    <View style={styles.statusPill}>
+  171:                      <Text style={styles.statusText}>
+  172:                        {SETLIST_STATUS_LABELS[statusKey] ?? statusKey}
+  173:                      </Text>
+  174:                    </View>
+  175:                  </View>
+  176:                  <Text style={styles.itemMeta}>
+  177:                    {formatDateLongBR(item.date)}
+  178:                    {item.time ? ` · ${formatTime(item.time)}` : ''}
+  179:                  </Text>
+  180:                  {item.location ? (
+  181:                    <Text style={styles.itemLoc} numberOfLines={1}>
+  182:                      {item.location}
+  183:                    </Text>
+  184:                  ) : null}
+  185:                  <View style={styles.itemFooter}>
+  186:                    <Text style={styles.itemSongs}>
+  187:                      {item.songs_count ?? 0}{' '}
+  188:                      {(item.songs_count ?? 0) === 1 ? 'música' : 'músicas'}
+  189:                    </Text>
+  190:                    <Ionicons
+  191:                      name="chevron-forward"
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SETLISTSSCREEN.TSX
+   94:      <TabScreenShell>
+   95:        <AppHeader
+   96:          title="Setlists"
+   97:          showNotifications={false}
+   98:          showAvatar={false}
+   99:          right={
+  100:            canManage ? (
+  101:              <Pressable
+  102:                onPress={() => navigation.navigate('SetlistForm')}
+  103:                hitSlop={10}
+  104:                style={({ pressed }) => [
+  105:                  styles.addBtn,
+  106:                  {
+  107:                    backgroundColor: colors.primary,
+  108:                    borderRadius: radius.full,
+  109:                    opacity: pressed ? 0.85 : 1,
+  110:                  },
+  111:                ]}
+  112:              >
+  113:                <Ionicons name="add" size={20} color={colors.textInverse} />
+  114:              </Pressable>
+  115:            ) : null
+  116:          }
+  117:        />
+  118:  
+  119:        <View style={styles.toolbar}>
+  120:          <SegmentedControl
+  121:            options={[
+  122:              { key: 'upcoming', label: 'Próximos' },
+  123:              { key: 'past', label: 'Passadas' },
+  124:              { key: 'all', label: 'Todas' },
+  125:            ]}
+  126:            value={filter}
+  127:            onChange={setFilter}
+  128:          />
+  129:        </View>
+  130:  
+  131:        <FlatList
+  132:          data={filtered}
+  133:          keyExtractor={(item) => item.id}
+  134:          contentContainerStyle={styles.list}
+  135:          showsVerticalScrollIndicator={false}
+  136:          ListEmptyComponent={
+  137:            <EmptyState
+  138:              icon="calendar-outline"
+  139:              title={
+  140:                filter === 'upcoming'
+  141:                  ? 'Nenhuma escala próxima'
+  142:                  : filter === 'past'
+  143:                    ? 'Nenhuma escala passada'
+  144:                    : 'Nenhuma escala cadastrada'
+  145:              }
+  146:              description={
+  147:                canManage
+  148:                  ? 'Crie sua primeira escala para começar a organizar o ministério.'
+  149:                  : 'Aguarde o líder criar uma escala.'
+  150:              }
+  151:              actionLabel={canManage ? 'Criar escala' : undefined}
+  152:              onAction={canManage ? () => navigation.navigate('SetlistForm') : undefined}
+  153:            />
+  154:          }
+  155:          renderItem={({ item }) => (
+  156:            <Pressable
+  157:              onPress={() => navigation.navigate('SetlistDetail', { setlistId: item.id })}
+  158:              style={({ pressed }) => [
+  159:                styles.card,
+  160:                {
+  161:                  backgroundColor: colors.surface,
+  162:                  borderColor: colors.border,
+  163:                  borderRadius: radius.xl,
+  164:                  opacity: pressed ? 0.92 : 1,
+  165:                  ...shadow.sm,
+  166:                },
+  167:              ]}
+  168:            >
+  169:              <View style={styles.cardTop}>
+  170:                <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>
+  171:                  {item.title}
+  172:                </Text>
+  173:                <Badge
+  174:                  label={SETLIST_STATUS_LABELS[(item.status as SetlistStatus) || 'scheduled']}
+  175:                  tone={statusTone((item.status as SetlistStatus) || 'scheduled')}
+  176:                />
+  177:              </View>
+  178:              <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
+  179:                {formatDateLongBR(item.date)}
+  180:                {item.time ? ` · ${formatTime(item.time)}` : ''}
+  181:              </Text>
+  182:              {item.location ? (
+  183:                <Text style={[styles.cardLoc, { color: colors.textMuted }]} numberOfLines={1}>
+  184:                  {item.location}
+  185:                </Text>
+  186:              ) : null}
+  187:              <View style={styles.cardFooter}>
+  188:                <Text style={[styles.cardStats, { color: colors.textMuted }]}>
+  189:                  {item.members_count ?? 0} membros · {item.songs_count ?? 0} músicas
+  190:                </Text>
+  191:                <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+  192:              </View>
+  193:            </Pressable>
+*****
+
+
+===== SONGS =====
+Comparando os arquivos SRC\SCREENS\SongsScreen.tsx e AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+***** SRC\SCREENS\SongsScreen.tsx
+    1:  import React, { useCallback, useState, useMemo } from 'react';
+    2:  import {
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+    1:  import React, { useCallback, useState } from 'react';
+    2:  import {
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+    6:    FlatList,
+    7:    TouchableOpacity,
+    8:    TextInput,
+    9:    ActivityIndicator,
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+    6:    FlatList,
+    7:    Pressable,
+    8:    ActivityIndicator,
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+   10:    Alert,
+   11:  } from 'react-native';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+    9:    Alert,
+   10:    Image,
+   11:  } from 'react-native';
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+   14:  import { TabScreenShell } from '../components/layout/TabScreenShell';
+   15:  import { useAuth } from '../contexts/AuthContext';
+   16:  import { supabase } from '../services/supabase';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+   14:  import { TabScreenShell } from '../components/layout/TabScreenShell';
+   15:  import { AppHeader } from '../components/layout/AppHeader';
+   16:  import { SearchField } from '../components/SearchField';
+   17:  import { EmptyState } from '../components/EmptyState';
+   18:  import { useAuth } from '../contexts/AuthContext';
+   19:  import { useTheme } from '../contexts/ThemeContext';
+   20:  import { supabase } from '../services/supabase';
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+   17:  import { Song } from '../types';
+   18:  import { useTheme } from '../contexts/ThemeContext';
+   19:  import { spacing, typography, radius, ColorTokens } from '../constants/theme';
+   20:  import { EmptyState } from '../components/EmptyState';
+   21:  import { formatSupabaseError } from '../utils/payload';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+   21:  import { Song } from '../types';
+   22:  import { spacing, radius, shadow } from '../constants/theme';
+   23:  import { formatSupabaseError } from '../utils/payload';
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+   22:  
+   23:  type Filter = 'all' | 'favorites';
+   24:  
+   25:  export function SongsScreen() {
+   26:    const { colors } = useTheme();
+   27:    const styles = useMemo(() => createStyles(colors), [colors]);
+   28:    const { church, membership } = useAuth();
+   29:    const navigation = useNavigation<any>();
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+   24:  
+   25:  export function SongsScreen() {
+   26:    const { church, membership } = useAuth();
+   27:    const { colors } = useTheme();
+   28:    const navigation = useNavigation<any>();
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+   30:    const [songs, setSongs] = useState<Song[]>([]);
+   31:    const [search, setSearch] = useState('');
+   32:    const [filter, setFilter] = useState<Filter>('all');
+   33:    const [loading, setLoading] = useState(true);
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+   29:    const [songs, setSongs] = useState<Song[]>([]);
+   30:    const [filtered, setFiltered] = useState<Song[]>([]);
+   31:    const [search, setSearch] = useState('');
+   32:    const [loading, setLoading] = useState(true);
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+   48:        setSongs(data);
+   49:      }
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+   47:        setSongs(data);
+   48:        setFiltered(data);
+   49:      }
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+   58:  
+   59:    const filtered = useMemo(() => {
+   60:      let list = songs;
+   61:      if (filter === 'favorites') {
+   62:        list = list.filter((s) => s.is_favorite);
+   63:      }
+   64:      const q = search.toLowerCase().trim();
+   65:      if (q) {
+   66:        list = list.filter(
+   67:          (s) =>
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+   58:  
+   59:    const handleSearch = (text: string) => {
+   60:      setSearch(text);
+   61:      const q = text.toLowerCase().trim();
+   62:      if (!q) {
+   63:        setFiltered(songs);
+   64:        return;
+   65:      }
+   66:      setFiltered(
+   67:        songs.filter(
+   68:          (s) =>
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+   68:            s.title.toLowerCase().includes(q) ||
+   69:            (s.artist && s.artist.toLowerCase().includes(q))
+   70:        );
+   71:      }
+   72:      return list;
+   73:    }, [songs, search, filter]);
+   74:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+   69:            s.title.toLowerCase().includes(q) ||
+   70:            (s.artist && s.artist.toLowerCase().includes(q)) ||
+   71:            (s.key && s.key.toLowerCase().includes(q))
+   72:        )
+   73:      );
+   74:    };
+   75:  
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+   76:      const next = !song.is_favorite;
+   77:      const { error } = await supabase
+   78:        .from('songs')
+   79:        .update({ is_favorite: next })
+   80:        .eq('id', song.id);
+   81:      if (!error) {
+   82:        setSongs((prev) =>
+   83:          prev.map((s) => (s.id === song.id ? { ...s, is_favorite: next } : s))
+   84:        );
+   85:      }
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+   77:      const next = !song.is_favorite;
+   78:      const { error } = await supabase.from('songs').update({ is_favorite: next }).eq('id', song.id);
+   79:      if (!error) {
+   80:        setSongs((prev) => prev.map((s) => (s.id === song.id ? { ...s, is_favorite: next } : s)));
+   81:        setFiltered((prev) => prev.map((s) => (s.id === song.id ? { ...s, is_favorite: next } : s)));
+   82:      }
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+   94:          onPress: async () => {
+   95:            const { error } = await supabase
+   96:              .from('songs')
+   97:              .delete()
+   98:              .eq('id', song.id);
+   99:            if (error) {
+  100:              Alert.alert('Erro', formatSupabaseError(error));
+  101:            } else {
+  102:              loadSongs();
+  103:            }
+  104:          },
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+   91:          onPress: async () => {
+   92:            const { error } = await supabase.from('songs').delete().eq('id', song.id);
+   93:            if (error) Alert.alert('Erro', formatSupabaseError(error));
+   94:            else loadSongs();
+   95:          },
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+  111:        <TabScreenShell>
+  112:          <View style={styles.center}>
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+  102:        <TabScreenShell>
+  103:          <AppHeader title="Músicas" showNotifications={false} showAvatar={false} />
+  104:          <View style={styles.center}>
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+  120:      <TabScreenShell>
+  121:        <View style={styles.root}>
+  122:          <View style={styles.header}>
+  123:            <Text style={styles.title}>Músicas</Text>
+  124:            {canCreate ? (
+  125:              <TouchableOpacity
+  126:                onPress={() => navigation.navigate('SongForm')}
+  127:                style={styles.addBtn}
+  128:                hitSlop={8}
+  129:              >
+  130:                <Ionicons name="add" size={22} color={colors.textInverse} />
+  131:              </TouchableOpacity>
+  132:            ) : null}
+  133:          </View>
+  134:  
+  135:          <View style={styles.searchWrap}>
+  136:            <Ionicons
+  137:              name="search-outline"
+  138:              size={18}
+  139:              color={colors.textMuted}
+  140:              style={styles.searchIcon}
+  141:            />
+  142:            <TextInput
+  143:              style={styles.search}
+  144:              placeholder="Buscar por título ou artista"
+  145:              placeholderTextColor={colors.textMuted}
+  146:              value={search}
+  147:              onChangeText={setSearch}
+  148:              returnKeyType="search"
+  149:              clearButtonMode="while-editing"
+  150:            />
+  151:          </View>
+  152:  
+  153:          <View style={styles.filters}>
+  154:            <TouchableOpacity
+  155:              style={[styles.chip, filter === 'all' && styles.chipActive]}
+  156:              onPress={() => setFilter('all')}
+  157:              activeOpacity={0.8}
+  158:            >
+  159:              <Text
+  160:                style={[
+  161:                  styles.chipText,
+  162:                  filter === 'all' && styles.chipTextActive,
+  163:                ]}
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+  112:      <TabScreenShell>
+  113:        <AppHeader
+  114:          title="Músicas"
+  115:          showNotifications={false}
+  116:          showAvatar={false}
+  117:          right={
+  118:            canCreate ? (
+  119:              <Pressable
+  120:                onPress={() => navigation.navigate('SongForm')}
+  121:                hitSlop={10}
+  122:                style={({ pressed }) => [
+  123:                  styles.addBtn,
+  124:                  {
+  125:                    backgroundColor: colors.primary,
+  126:                    borderRadius: radius.full,
+  127:                    opacity: pressed ? 0.85 : 1,
+  128:                  },
+  129:                ]}
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+  164:              >
+  165:                Todas
+  166:              </Text>
+  167:            </TouchableOpacity>
+  168:            <TouchableOpacity
+  169:              style={[styles.chip, filter === 'favorites' && styles.chipActive]}
+  170:              onPress={() => setFilter('favorites')}
+  171:              activeOpacity={0.8}
+  172:            >
+  173:              <Ionicons
+  174:                name={filter === 'favorites' ? 'heart' : 'heart-outline'}
+  175:                size={14}
+  176:                  color={filter === 'favorites' ? colors.textInverse : colors.textSecondary}
+  177:                style={{ marginRight: 4 }}
+  178:              />
+  179:              <Text
+  180:                style={[
+  181:                  styles.chipText,
+  182:                  filter === 'favorites' && styles.chipTextActive,
+  183:                ]}
+  184:              >
+  185:                Favoritas
+  186:              </Text>
+  187:            </TouchableOpacity>
+  188:          </View>
+  189:  
+  190:          <FlatList
+  191:            data={filtered}
+  192:            keyExtractor={(item) => item.id}
+  193:            contentContainerStyle={styles.list}
+  194:            showsVerticalScrollIndicator={false}
+  195:            ListEmptyComponent={
+  196:              <EmptyState
+  197:                title={
+  198:                  filter === 'favorites'
+  199:                    ? 'Nenhuma favorita'
+  200:                    : 'Repertório vazio'
+  201:                }
+  202:                description={
+  203:                  filter === 'favorites'
+  204:                    ? 'Marque músicas com o coração para vê-las aqui.'
+  205:                    : 'Adicione a primeira música do ministério.'
+  206:                }
+  207:                actionLabel={
+  208:                  filter === 'all' && (canManage || canCreate)
+  209:                    ? 'Adicionar música'
+  210:                    : undefined
+  211:                }
+  212:                onAction={
+  213:                  filter === 'all' && (canManage || canCreate)
+  214:                    ? () => navigation.navigate('SongForm')
+  215:                    : undefined
+  216:                }
+  217:              />
+  218:            }
+  219:            renderItem={({ item }) => (
+  220:              <TouchableOpacity
+  221:                style={styles.item}
+  222:                activeOpacity={0.7}
+  223:                onPress={() =>
+  224:                  navigation.navigate('SongDetail', { songId: item.id })
+  225:                }
+  226:                onLongPress={canManage ? () => handleDelete(item) : undefined}
+  227:              >
+  228:                <TouchableOpacity
+  229:                  onPress={() => toggleFavorite(item)}
+  230:                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+  231:                  style={styles.favBtn}
+  232:                >
+  233:                  <Ionicons
+  234:                    name={item.is_favorite ? 'heart' : 'heart-outline'}
+  235:                    size={20}
+  236:                    color={
+  237:                      item.is_favorite ? colors.primary : colors.textMuted
+  238:                    }
+  239:                  />
+  240:                </TouchableOpacity>
+  241:                <View style={styles.itemContent}>
+  242:                  <Text style={styles.itemTitle} numberOfLines={1}>
+  243:                    {item.title}
+  244:                  </Text>
+  245:                  <Text style={styles.itemMeta} numberOfLines={1}>
+  246:                    {[item.artist, item.key].filter(Boolean).join(' · ') ||
+  247:                      'Sem artista'}
+  248:                  </Text>
+  249:                </View>
+  250:                {item.bpm ? (
+  251:                  <Text style={styles.bpm}>{item.bpm} bpm</Text>
+  252:                ) : null}
+  253:                <Ionicons
+  254:                  name="chevron-forward"
+  255:                  size={16}
+  256:                  color={colors.textMuted}
+  257:                />
+  258:              </TouchableOpacity>
+  259:            )}
+  260:          />
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+  130:              >
+  131:                <Ionicons name="add" size={20} color={colors.textInverse} />
+  132:              </Pressable>
+  133:            ) : null
+  134:          }
+  135:        />
+  136:  
+  137:        <View style={styles.toolbar}>
+  138:          <SearchField
+  139:            value={search}
+  140:            onChangeText={handleSearch}
+  141:            placeholder="Buscar música, artista, tom..."
+  142:          />
+*****
+
+***** SRC\SCREENS\SongsScreen.tsx
+  261:        </View>
+  262:      </TabScreenShell>
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+  143:        </View>
+  144:  
+  145:        <FlatList
+  146:          data={filtered}
+  147:          keyExtractor={(item) => item.id}
+  148:          contentContainerStyle={styles.list}
+  149:          showsVerticalScrollIndicator={false}
+  150:          ListEmptyComponent={
+  151:            <EmptyState
+  152:              icon="musical-notes-outline"
+  153:              title="Nenhuma música no repertório"
+  154:              description={
+  155:                canCreate
+  156:                  ? 'Cadastre a primeira música do ministério.'
+  157:                  : 'Aguarde o líder cadastrar músicas.'
+  158:              }
+  159:              actionLabel={canCreate ? 'Adicionar música' : undefined}
+  160:              onAction={canCreate ? () => navigation.navigate('SongForm') : undefined}
+  161:            />
+  162:          }
+  163:          renderItem={({ item }) => (
+  164:            <Pressable
+  165:              onPress={() => navigation.navigate('SongDetail', { songId: item.id })}
+  166:              onLongPress={canManage ? () => handleDelete(item) : undefined}
+  167:              style={({ pressed }) => [
+  168:                styles.row,
+  169:                {
+  170:                  backgroundColor: colors.surface,
+  171:                  borderColor: colors.border,
+  172:                  borderRadius: radius.xl,
+  173:                  opacity: pressed ? 0.92 : 1,
+  174:                  ...shadow.sm,
+  175:                },
+  176:              ]}
+  177:            >
+  178:              {item.artwork_url ? (
+  179:                <Image source={{ uri: item.artwork_url }} style={styles.cover} />
+  180:              ) : (
+  181:                <View
+  182:                  style={[
+  183:                    styles.cover,
+  184:                    styles.coverPh,
+  185:                    { backgroundColor: colors.surfaceSecondary },
+  186:                  ]}
+  187:                >
+  188:                  <Ionicons name="musical-note" size={20} color={colors.textMuted} />
+  189:                </View>
+  190:              )}
+  191:              <View style={styles.info}>
+  192:                <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+  193:                  {item.title}
+  194:                </Text>
+  195:                <Text style={[styles.meta, { color: colors.textSecondary }]} numberOfLines={1}>
+  196:                  {[item.artist, item.key].filter(Boolean).join(' · ') || '—'}
+  197:                </Text>
+  198:              </View>
+  199:              <Pressable
+  200:                onPress={() => toggleFavorite(item)}
+  201:                hitSlop={12}
+  202:                style={styles.fav}
+  203:              >
+  204:                <Ionicons
+  205:                  name={item.is_favorite ? 'heart' : 'heart-outline'}
+  206:                  size={20}
+  207:                  color={item.is_favorite ? colors.danger : colors.textMuted}
+  208:                />
+  209:              </Pressable>
+  210:              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+  211:            </Pressable>
+  212:          )}
+  213:        />
+  214:      </TabScreenShell>
+*****
+
+Erro ao tentar sincronizar novamente. Os arquivos s�o muito diferentes
+***** SRC\SCREENS\SongsScreen.tsx
+  265:  
+  266:  function createStyles(colors: ColorTokens) {
+  267:    return StyleSheet.create({
+  268:      root: {
+  269:        flex: 1,
+  270:        backgroundColor: colors.background,
+  271:      },
+  272:      center: {
+  273:        flex: 1,
+  274:        alignItems: 'center',
+  275:        justifyContent: 'center',
+  276:      },
+  277:      header: {
+  278:        flexDirection: 'row',
+  279:        justifyContent: 'space-between',
+  280:        alignItems: 'center',
+  281:        paddingHorizontal: spacing.lg,
+  282:        paddingTop: spacing.md,
+  283:        paddingBottom: spacing.sm,
+  284:      },
+  285:      title: {
+  286:        ...typography.h2,
+  287:        color: colors.text,
+  288:      },
+  289:      addBtn: {
+  290:        width: 38,
+  291:        height: 38,
+  292:        borderRadius: 19,
+  293:        backgroundColor: colors.primary,
+  294:        alignItems: 'center',
+  295:        justifyContent: 'center',
+  296:      },
+  297:      searchWrap: {
+  298:        flexDirection: 'row',
+  299:        alignItems: 'center',
+  300:        marginHorizontal: spacing.lg,
+  301:        marginBottom: spacing.sm,
+  302:        backgroundColor: colors.surfaceSecondary,
+  303:        borderRadius: radius.full,
+  304:        borderWidth: 0,
+  305:        paddingHorizontal: spacing.md,
+  306:      },
+  307:      searchIcon: {
+  308:        marginRight: spacing.sm,
+  309:      },
+  310:      search: {
+  311:        flex: 1,
+  312:        height: 44,
+  313:        ...typography.body,
+  314:        color: colors.text,
+  315:      },
+  316:      filters: {
+  317:        flexDirection: 'row',
+  318:        gap: spacing.sm,
+  319:        paddingHorizontal: spacing.lg,
+  320:        marginBottom: spacing.md,
+  321:      },
+  322:      chip: {
+  323:        flexDirection: 'row',
+  324:        alignItems: 'center',
+  325:        paddingHorizontal: 14,
+  326:        paddingVertical: 7,
+  327:        borderRadius: radius.full,
+  328:        backgroundColor: colors.surfaceSecondary,
+  329:        borderWidth: 1,
+  330:        borderColor: colors.border,
+  331:      },
+  332:      chipActive: {
+  333:        backgroundColor: colors.primary,
+  334:        borderColor: colors.primary,
+  335:      },
+  336:      chipText: {
+  337:        ...typography.caption,
+  338:        color: colors.textSecondary,
+  339:        fontWeight: '500',
+  340:      },
+  341:      chipTextActive: {
+  342:        color: colors.textInverse,
+  343:        fontWeight: '600',
+  344:      },
+  345:      list: {
+  346:        paddingHorizontal: spacing.lg,
+  347:        paddingBottom: spacing.xxl,
+  348:        flexGrow: 1,
+  349:      },
+  350:      item: {
+  351:        flexDirection: 'row',
+  352:        alignItems: 'center',
+  353:        backgroundColor: 'transparent',
+  354:        borderRadius: 0,
+  355:        paddingVertical: 12,
+  356:        paddingHorizontal: spacing.xs,
+  357:        marginBottom: 0,
+  358:        borderBottomWidth: StyleSheet.hairlineWidth,
+  359:        borderBottomColor: colors.border,
+  360:        gap: spacing.sm,
+  361:      },
+  362:      favBtn: {
+  363:        padding: 2,
+  364:      },
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\SONGSSCREEN.TSX
+  217:  
+  218:  const styles = StyleSheet.create({
+  219:    center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  220:    toolbar: {
+  221:      paddingHorizontal: spacing.md,
+  222:      paddingBottom: spacing.sm,
+  223:    },
+  224:    addBtn: {
+  225:      width: 36,
+  226:      height: 36,
+  227:      alignItems: 'center',
+  228:      justifyContent: 'center',
+  229:    },
+  230:    list: {
+  231:      paddingHorizontal: spacing.md,
+  232:      paddingBottom: spacing.xxxl,
+  233:      gap: 10,
+  234:    },
+  235:    row: {
+  236:      flexDirection: 'row',
+  237:      alignItems: 'center',
+  238:      padding: spacing.md,
+  239:      borderWidth: StyleSheet.hairlineWidth,
+  240:      marginBottom: 2,
+  241:    },
+  242:    cover: {
+  243:      width: 48,
+  244:      height: 48,
+  245:      borderRadius: 10,
+  246:    },
+  247:    coverPh: {
+  248:      alignItems: 'center',
+  249:      justifyContent: 'center',
+  250:    },
+  251:    info: {
+  252:      flex: 1,
+  253:      marginLeft: spacing.md,
+  254:    },
+  255:    title: {
+  256:      fontSize: 15,
+  257:      fontWeight: '600',
+  258:    },
+  259:    meta: {
+  260:      fontSize: 13,
+  261:      marginTop: 2,
+  262:    },
+  263:    fav: {
+  264:      padding: 6,
+  265:      marginRight: 4,
+  266:    },
+  267:  });
+*****
+
+
+===== PROFILE =====
+Comparando os arquivos SRC\SCREENS\ProfileScreen.tsx e AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+***** SRC\SCREENS\ProfileScreen.tsx
+    1:  import React, { useEffect, useMemo, useState } from 'react';
+    2:  import {
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+    1:  import React, { useState } from 'react';
+    2:  import {
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+   11:  } from 'react-native';
+   12:  import * as ImagePicker from 'expo-image-picker';
+   13:  import { Ionicons } from '@expo/vector-icons';
+   14:  import { useAuth } from '../contexts/AuthContext';
+   15:  import { useTheme } from '../contexts/ThemeContext';
+   16:  import { supabase } from '../services/supabase';
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+   11:  } from 'react-native';
+   12:  import { SafeAreaView } from 'react-native-safe-area-context';
+   13:  import * as ImagePicker from 'expo-image-picker';
+   14:  import { useAuth } from '../contexts/AuthContext';
+   15:  import { supabase } from '../services/supabase';
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+   19:  import { DateField } from '../components/DateField';
+   20:  import { InstrumentPicker } from '../components/InstrumentPicker';
+   21:  import { TabScreenShell } from '../components/layout/TabScreenShell';
+   22:  import {
+   23:    parseInstruments,
+   24:    serializeInstruments,
+   25:  } from '../constants/instruments';
+   26:  import { spacing, typography, radius, ColorTokens } from '../constants/theme';
+   27:  import { formatSupabaseError } from '../utils/payload';
+   28:  
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+   18:  import { DateField } from '../components/DateField';
+   19:  import { ScreenHeader } from '../components/layout/ScreenHeader';
+   20:  import { colors, spacing, radius } from '../constants/theme';
+   21:  import { useTheme } from '../contexts/ThemeContext';
+   22:  import { formatSupabaseError } from '../utils/payload';
+   23:  import { formatDateBR } from '../utils/dates';
+   24:  
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+   29:  export function ProfileScreen() {
+   30:    const {
+   31:      profile,
+   32:      church,
+   33:      membership,
+   34:      user,
+   35:      signOut,
+   36:      updateProfile,
+   37:      refreshMembership,
+   38:    } = useAuth();
+   39:    const { colors, mode, setMode } = useTheme();
+   40:    const styles = useMemo(() => createStyles(colors), [colors]);
+   41:  
+   42:    const [name, setName] = useState(profile?.name ?? '');
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+   25:  export function ProfileScreen() {
+   26:    const { profile, church, membership, user, signOut, updateProfile, refreshMembership } = useAuth();
+   27:    const { colors, preference, setPreference } = useTheme();
+   28:    const [name, setName] = useState(profile?.name ?? '');
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+   43:    const [birthDate, setBirthDate] = useState(profile?.birth_date ?? '');
+   44:    const [instruments, setInstruments] = useState<string[]>(() =>
+   45:      parseInstruments(membership?.instrument)
+   46:    );
+   47:    const [saving, setSaving] = useState(false);
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+   29:    const [birthDate, setBirthDate] = useState(profile?.birth_date ?? '');
+   30:    const [instrument, setInstrument] = useState(membership?.instrument ?? '');
+   31:    const [saving, setSaving] = useState(false);
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+   49:  
+   50:    const [pwdCurrent, setPwdCurrent] = useState('');
+   51:    const [pwdNew, setPwdNew] = useState('');
+   52:    const [pwdConfirm, setPwdConfirm] = useState('');
+   53:    const [pwdLoading, setPwdLoading] = useState(false);
+   54:    const [showPwd, setShowPwd] = useState(false);
+   55:  
+   56:    useEffect(() => {
+   57:      if (profile?.name != null) setName(profile.name);
+   58:      if (profile?.birth_date != null) setBirthDate(profile.birth_date);
+   59:      else if (profile && profile.birth_date === null) setBirthDate('');
+   60:    }, [profile?.id, profile?.name, profile?.birth_date]);
+   61:  
+   62:    useEffect(() => {
+   63:      if (membership) setInstruments(parseInstruments(membership.instrument));
+   64:    }, [membership?.id, membership?.instrument]);
+   65:  
+   66:    const roleLabel =
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+   33:  
+   34:    const roleLabel =
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+   90:      try {
+   91:        const rawExt =
+   92:          asset.uri.split('.').pop()?.toLowerCase()?.split('?')[0] || 'jpg';
+   93:        const ext = rawExt === 'png' || rawExt === 'webp' ? rawExt : 'jpg';
+   94:        const contentType =
+   95:          ext === 'png'
+   96:            ? 'image/png'
+   97:            : ext === 'webp'
+   98:            ? 'image/webp'
+   99:            : 'image/jpeg';
+  100:        const path = `${user.id}/avatar.${ext}`;
+  101:  
+  102:        const response = await fetch(asset.uri);
+  103:        const arrayBuffer = await response.arrayBuffer();
+  104:        if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+  105:          Alert.alert('Erro', 'Não foi possível ler a imagem selecionada.');
+  106:          return;
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+   58:      try {
+   59:        const ext = asset.uri.split('.').pop()?.toLowerCase() || 'jpg';
+   60:        const path = `${user.id}/avatar.${ext === 'png' ? 'png' : 'jpg'}`;
+   61:        const response = await fetch(asset.uri);
+   62:        const blob = await response.blob();
+   63:  
+   64:        const { error: upErr } = await supabase.storage
+   65:          .from('avatars')
+   66:          .upload(path, blob, { upsert: true, contentType: blob.type || 'image/jpeg' });
+   67:  
+   68:        if (upErr) {
+   69:          Alert.alert(
+   70:            'Erro no upload',
+   71:            formatSupabaseError(upErr) +
+   72:              '\n\nCrie o bucket "avatars" (público) no Supabase Storage se ainda não existir.'
+   73:          );
+   74:          return;
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+  108:  
+  109:        const { error: upErr } = await supabase.storage
+  110:          .from('avatars')
+  111:          .upload(path, arrayBuffer, { upsert: true, contentType });
+  112:  
+  113:        if (upErr) {
+  114:          Alert.alert(
+  115:            'Erro no upload',
+  116:            formatSupabaseError(upErr) +
+  117:              '\n\nConfirme o bucket "avatars" (público) e policies no Supabase.'
+  118:          );
+  119:          return;
+  120:        }
+  121:  
+  122:        const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
+  123:        const url = `${pub.publicUrl}?t=${Date.now()}`;
+  124:        const { error } = await updateProfile({ avatar_url: url });
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+   76:  
+   77:        const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
+   78:        const url = pub.publicUrl + `?t=${Date.now()}`;
+   79:        const { error } = await updateProfile({ avatar_url: url });
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+  126:      } catch (e) {
+  127:        Alert.alert('Erro', (e as Error).message || 'Falha ao enviar a foto.');
+  128:      } finally {
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+   81:      } catch (e) {
+   82:        Alert.alert('Erro', (e as Error).message);
+   83:      } finally {
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+  132:  
+  133:    const handleSave = async () => {
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+   87:  
+   88:    const removeAvatar = async () => {
+   89:      if (!user || !profile?.avatar_url) return;
+   90:      Alert.alert('Remover foto', 'Deseja remover a foto de perfil?', [
+   91:        { text: 'Cancelar', style: 'cancel' },
+   92:        {
+   93:          text: 'Remover',
+   94:          style: 'destructive',
+   95:          onPress: async () => {
+   96:            await updateProfile({ avatar_url: null });
+   97:          },
+   98:        },
+   99:      ]);
+  100:    };
+  101:  
+  102:    const handleSave = async () => {
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+  137:      }
+  138:      if (!user) {
+  139:        Alert.alert('Erro', 'Sessão não carregada.');
+  140:        return;
+  141:      }
+  142:  
+  143:      setSaving(true);
+  144:      const { error: profileError } = await updateProfile({
+  145:        name: name.trim(),
+  146:        birth_date: birthDate && birthDate.trim() ? birthDate.trim() : null,
+  147:      } as any);
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+  106:      }
+  107:      setSaving(true);
+  108:      const { error } = await updateProfile({
+  109:        name: name.trim(),
+  110:        birth_date: birthDate || null,
+  111:      } as any);
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+  148:  
+  149:      if (profileError) {
+  150:        setSaving(false);
+  151:        Alert.alert('Erro ao salvar perfil', profileError);
+  152:        return;
+  153:      }
+  154:  
+  155:      if (membership?.id) {
+  156:        const { error: mErr } = await supabase
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+  112:  
+  113:      if (membership && user) {
+  114:        const { error: mErr } = await supabase
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+  157:          .from('church_members')
+  158:          .update({ instrument: serializeInstruments(instruments) })
+  159:          .eq('id', membership.id)
+  160:          .eq('user_id', user.id);
+  161:  
+  162:        if (mErr) {
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+  115:          .from('church_members')
+  116:          .update({ instrument: instrument.trim() || null })
+  117:          .eq('id', membership.id);
+  118:        if (mErr) {
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+  163:          setSaving(false);
+  164:          Alert.alert('Erro ao salvar instrumentos', formatSupabaseError(mErr));
+  165:          return;
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+  119:          setSaving(false);
+  120:          Alert.alert('Erro', formatSupabaseError(mErr));
+  121:          return;
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+  170:      setSaving(false);
+  171:      Alert.alert('Sucesso', 'Perfil atualizado.');
+  172:    };
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+  126:      setSaving(false);
+  127:      if (error) Alert.alert('Erro', error);
+  128:      else Alert.alert('Sucesso', 'Perfil atualizado.');
+  129:    };
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+  173:  
+  174:    const handleChangePassword = async () => {
+  175:      if (!user?.email) {
+  176:        Alert.alert('Erro', 'E-mail da conta não disponível.');
+  177:        return;
+  178:      }
+  179:      if (pwdNew.length < 6) {
+  180:        Alert.alert('Erro', 'A nova senha deve ter pelo menos 6 caracteres.');
+  181:        return;
+  182:      }
+  183:      if (pwdNew !== pwdConfirm) {
+  184:        Alert.alert('Erro', 'A confirmação não confere com a nova senha.');
+  185:        return;
+  186:      }
+  187:      if (!pwdCurrent) {
+  188:        Alert.alert('Erro', 'Informe a senha atual.');
+  189:        return;
+  190:      }
+  191:  
+  192:      setPwdLoading(true);
+  193:      const { error: signErr } = await supabase.auth.signInWithPassword({
+  194:        email: user.email,
+  195:        password: pwdCurrent,
+  196:      });
+  197:      if (signErr) {
+  198:        setPwdLoading(false);
+  199:        Alert.alert('Erro', 'Senha atual incorreta.');
+  200:        return;
+  201:      }
+  202:      const { error } = await supabase.auth.updateUser({ password: pwdNew });
+  203:      setPwdLoading(false);
+  204:      if (error) {
+  205:        Alert.alert('Erro', formatSupabaseError(error));
+  206:        return;
+  207:      }
+  208:      setPwdCurrent('');
+  209:      setPwdNew('');
+  210:      setPwdConfirm('');
+  211:      Alert.alert('Sucesso', 'Senha alterada com sucesso.');
+  212:    };
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+  130:  
+  131:    const handleSignOut = () => {
+  132:      Alert.alert('Sair', 'Deseja sair da conta?', [
+  133:        { text: 'Cancelar', style: 'cancel' },
+  134:        { text: 'Sair', style: 'destructive', onPress: signOut },
+  135:      ]);
+  136:    };
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+  213:  
+  214:    const initial = (name || profile?.name || 'A').charAt(0).toUpperCase();
+  215:  
+  216:    const themeOptions: { key: 'system' | 'light' | 'dark'; label: string }[] = [
+  217:      { key: 'system', label: 'Sistema' },
+  218:      { key: 'light', label: 'Claro' },
+  219:      { key: 'dark', label: 'Escuro' },
+  220:    ];
+  221:  
+  222:    return (
+  223:      <TabScreenShell>
+  224:        <ScrollView
+  225:          contentContainerStyle={styles.container}
+  226:          keyboardShouldPersistTaps="handled"
+  227:          showsVerticalScrollIndicator={false}
+  228:        >
+  229:          <Text style={styles.pageTitle}>Perfil</Text>
+  230:  
+  231:          {/* Avatar */}
+  232:          <View style={styles.avatarBlock}>
+  233:            <TouchableOpacity
+  234:              onPress={pickAvatar}
+  235:              disabled={uploading}
+  236:              activeOpacity={0.85}
+  237:            >
+  238:              {uploading ? (
+  239:                <View style={[styles.avatar, styles.avatarFallback]}>
+  240:                  <ActivityIndicator color={colors.primary} />
+  241:                </View>
+  242:              ) : profile?.avatar_url ? (
+  243:                <Image
+  244:                  source={{ uri: profile.avatar_url }}
+  245:                  style={styles.avatar}
+  246:                />
+  247:              ) : (
+  248:                <View style={[styles.avatar, styles.avatarFallback]}>
+  249:                  <Text style={styles.avatarLetter}>{initial}</Text>
+  250:                </View>
+  251:              )}
+  252:              <View style={styles.editBadge}>
+  253:                <Ionicons name="camera" size={12} color={colors.textInverse} />
+  254:              </View>
+  255:            </TouchableOpacity>
+  256:            <Text style={styles.displayName}>{name || profile?.name || '—'}</Text>
+  257:            <Text style={styles.displayMeta}>
+  258:              {roleLabel}
+  259:              {membership?.instrument
+  260:                ? ` · ${parseInstruments(membership.instrument).join(', ')}`
+  261:                : ''}
+  262:            </Text>
+  263:            <Text style={styles.changePhoto}>
+  264:              {uploading ? 'Enviando…' : 'Alterar foto'}
+  265:            </Text>
+  266:          </View>
+  267:  
+  268:          {/* Info cards */}
+  269:          <View style={styles.infoCard}>
+  270:            <View style={styles.infoRow}>
+  271:              <Text style={styles.cardLabel}>E-mail</Text>
+  272:              <Text style={styles.cardValue} numberOfLines={1}>
+  273:                {user?.email ?? '—'}
+  274:              </Text>
+  275:            </View>
+  276:            <View style={styles.divider} />
+  277:            <View style={styles.infoRow}>
+  278:              <Text style={styles.cardLabel}>Ministério</Text>
+  279:              <Text style={styles.cardValue} numberOfLines={1}>
+  280:                {church?.name ?? '—'}
+  281:              </Text>
+  282:            </View>
+  283:            <View style={styles.divider} />
+  284:            <View style={styles.infoRow}>
+  285:              <Text style={styles.cardLabel}>Função</Text>
+  286:              <Text style={styles.cardValue}>{roleLabel}</Text>
+  287:            </View>
+  288:          </View>
+  289:  
+  290:          <Text style={styles.section}>Dados pessoais</Text>
+  291:          <Input
+  292:            label="Nome"
+  293:            value={name}
+  294:            onChangeText={setName}
+  295:            autoCapitalize="words"
+  296:          />
+  297:          <DateField
+  298:            label="Data de nascimento"
+  299:            value={birthDate || ''}
+  300:            onChange={setBirthDate}
+  301:          />
+  302:          <InstrumentPicker selected={instruments} onChange={setInstruments} />
+  303:          <Button
+  304:            title="Salvar alterações"
+  305:            onPress={handleSave}
+  306:            loading={saving}
+  307:            style={styles.btn}
+  308:          />
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+  137:  
+  138:    return (
+  139:      <SafeAreaView style={styles.safe} edges={['bottom']}>
+  140:        <ScreenHeader title="Perfil" />
+  141:        <ScrollView contentContainerStyle={styles.container}>
+  142:  
+  143:          <TouchableOpacity style={styles.avatarWrap} onPress={pickAvatar} disabled={uploading}>
+  144:            {uploading ? (
+  145:              <ActivityIndicator color={colors.primary} />
+  146:            ) : profile?.avatar_url ? (
+  147:              <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
+  148:            ) : (
+  149:              <View style={[styles.avatar, styles.avatarPlaceholder]}>
+  150:                <Text style={styles.avatarLetter}>
+  151:                  {(profile?.name || '?').charAt(0).toUpperCase()}
+  152:                </Text>
+  153:              </View>
+  154:            )}
+  155:            <Text style={styles.changePhoto}>Alterar foto</Text>
+  156:          </TouchableOpacity>
+  157:          {profile?.avatar_url ? (
+  158:            <TouchableOpacity onPress={removeAvatar}>
+  159:              <Text style={styles.removePhoto}>Remover foto</Text>
+  160:            </TouchableOpacity>
+  161:          ) : null}
+  162:  
+  163:          <Input label="Nome" value={name} onChangeText={setName} autoCapitalize="words" />
+  164:          <DateField label="Data de nascimento" value={birthDate || ''} onChange={setBirthDate} />
+  165:          <Input
+  166:            label="Instrumento"
+  167:            value={instrument}
+  168:            onChangeText={setInstrument}
+  169:            placeholder="Ex: Violão, Bateria"
+  170:          />
+*****
+
+***** SRC\SCREENS\ProfileScreen.tsx
+  309:  
+  310:          <Text style={styles.section}>Aparência</Text>
+  311:          <View style={styles.themeRow}>
+  312:            {themeOptions.map((opt) => (
+  313:              <TouchableOpacity
+  314:                key={opt.key}
+  315:                style={[
+  316:                  styles.themeChip,
+  317:                  mode === opt.key && styles.themeChipOn,
+  318:                ]}
+  319:                onPress={() => setMode(opt.key)}
+  320:                activeOpacity={0.8}
+  321:              >
+  322:                <Text
+  323:                  style={[
+  324:                    styles.themeChipText,
+  325:                    mode === opt.key && styles.themeChipTextOn,
+  326:                  ]}
+  327:                >
+  328:                  {opt.label}
+  329:                </Text>
+  330:              </TouchableOpacity>
+  331:            ))}
+  332:          </View>
+  333:  
+  334:          <Text style={styles.section}>Segurança</Text>
+  335:          <View style={styles.securityBox}>
+  336:            <Input
+  337:              label="Senha atual"
+  338:              value={pwdCurrent}
+  339:              onChangeText={setPwdCurrent}
+  340:              secureTextEntry={!showPwd}
+  341:              placeholder="••••••••"
+  342:            />
+  343:            <Input
+  344:              label="Nova senha"
+  345:              value={pwdNew}
+  346:              onChangeText={setPwdNew}
+  347:              secureTextEntry={!showPwd}
+  348:              placeholder="Mínimo 6 caracteres"
+  349:            />
+  350:            <Input
+  351:              label="Confirmar nova senha"
+  352:              value={pwdConfirm}
+  353:              onChangeText={setPwdConfirm}
+  354:              secureTextEntry={!showPwd}
+  355:              placeholder="Repita a nova senha"
+  356:            />
+  357:            <TouchableOpacity
+  358:              onPress={() => setShowPwd((v) => !v)}
+  359:              style={styles.showPwd}
+  360:            >
+  361:              <Text style={styles.showPwdText}>
+  362:                {showPwd ? 'Ocultar senhas' : 'Mostrar senhas'}
+  363:              </Text>
+  364:            </TouchableOpacity>
+  365:            <Button
+  366:              title="Alterar senha"
+  367:              onPress={handleChangePassword}
+  368:              loading={pwdLoading}
+  369:              variant="secondary"
+  370:            />
+  371:          </View>
+  372:  
+  373:          <Button
+  374:            title="Sair da conta"
+  375:            onPress={() =>
+  376:              Alert.alert('Sair', 'Deseja sair da conta?', [
+  377:                { text: 'Cancelar', style: 'cancel' },
+  378:                { text: 'Sair', style: 'destructive', onPress: signOut },
+  379:              ])
+  380:            }
+  381:            variant="danger"
+  382:            style={styles.btn}
+  383:          />
+  384:        </ScrollView>
+  385:      </TabScreenShell>
+  386:    );
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+  171:  
+  172:          <View style={styles.card}>
+  173:            <Text style={styles.label}>Ministério</Text>
+  174:            <Text style={styles.value}>{church?.name ?? '—'}</Text>
+  175:          </View>
+  176:          <View style={styles.card}>
+  177:            <Text style={styles.label}>Função</Text>
+  178:            <Text style={styles.value}>{roleLabel}</Text>
+  179:          </View>
+  180:          {church?.invite_code ? (
+  181:            <View style={styles.card}>
+  182:              <Text style={styles.label}>Código de convite</Text>
+  183:              <Text style={styles.value}>{church.invite_code}</Text>
+  184:            </View>
+  185:          ) : null}
+  186:          {profile?.birth_date ? (
+  187:            <View style={styles.card}>
+  188:              <Text style={styles.label}>Aniversário</Text>
+  189:              <Text style={styles.value}>{formatDateBR(profile.birth_date)}</Text>
+  190:            </View>
+  191:          ) : null}
+  192:  
+  193:          <Button title="Salvar" onPress={handleSave} loading={saving} style={styles.btn} />
+  194:          <Button title="Sair" onPress={handleSignOut} variant="danger" style={styles.btn} />
+  195:        </ScrollView>
+  196:      </SafeAreaView>
+  197:    );
+*****
+
+Erro ao tentar sincronizar novamente. Os arquivos s�o muito diferentes
+***** SRC\SCREENS\ProfileScreen.tsx
+  388:  
+  389:  function createStyles(colors: ColorTokens) {
+  390:    return StyleSheet.create({
+  391:      container: {
+  392:        padding: spacing.lg,
+  393:        paddingBottom: spacing.xxxl,
+  394:      },
+  395:      pageTitle: {
+  396:        ...typography.h2,
+  397:        color: colors.text,
+  398:        marginBottom: spacing.lg,
+  399:      },
+  400:      avatarBlock: {
+  401:        alignItems: 'center',
+  402:        marginBottom: spacing.xl,
+  403:      },
+  404:      avatar: {
+  405:        width: 96,
+  406:        height: 96,
+  407:        borderRadius: 48,
+  408:      },
+  409:      avatarFallback: {
+  410:        backgroundColor: colors.primaryLight,
+  411:        alignItems: 'center',
+  412:        justifyContent: 'center',
+  413:      },
+  414:      avatarLetter: {
+  415:        fontSize: 34,
+  416:        fontWeight: '700',
+  417:        color: colors.primaryDark,
+  418:      },
+  419:      editBadge: {
+  420:        position: 'absolute',
+  421:        right: 2,
+  422:        bottom: 2,
+  423:        width: 28,
+  424:        height: 28,
+  425:        borderRadius: 14,
+  426:        backgroundColor: colors.primary,
+  427:        alignItems: 'center',
+  428:        justifyContent: 'center',
+  429:        borderWidth: 2,
+  430:        borderColor: colors.background,
+  431:      },
+  432:      displayName: {
+  433:        ...typography.h3,
+  434:        color: colors.text,
+  435:        marginTop: spacing.md,
+  436:      },
+  437:      displayMeta: {
+  438:        ...typography.caption,
+  439:        color: colors.textSecondary,
+  440:        marginTop: 4,
+  441:      },
+  442:      changePhoto: {
+  443:        ...typography.caption,
+  444:        color: colors.primary,
+  445:        marginTop: spacing.sm,
+  446:      },
+  447:      infoCard: {
+  448:        backgroundColor: colors.surface,
+  449:        borderRadius: radius.lg,
+  450:        borderWidth: 1,
+  451:        borderColor: colors.border,
+  452:        marginBottom: spacing.md,
+  453:        overflow: 'hidden',
+  454:      },
+  455:      infoRow: {
+  456:        paddingHorizontal: spacing.md,
+  457:        paddingVertical: 12,
+  458:      },
+  459:      divider: {
+  460:        height: StyleSheet.hairlineWidth,
+  461:        backgroundColor: colors.border,
+  462:        marginLeft: spacing.md,
+  463:      },
+  464:      cardLabel: {
+  465:        ...typography.caption,
+  466:        color: colors.textMuted,
+  467:      },
+  468:      cardValue: {
+  469:        ...typography.bodyMedium,
+  470:        color: colors.text,
+  471:        marginTop: 2,
+  472:      },
+  473:      section: {
+  474:        ...typography.label,
+  475:        color: colors.textMuted,
+  476:        textTransform: 'uppercase',
+  477:        letterSpacing: 0.5,
+  478:        marginTop: spacing.xl,
+  479:        marginBottom: spacing.sm,
+  480:      },
+  481:      btn: { marginTop: spacing.md },
+  482:      securityBox: {
+  483:        backgroundColor: colors.surface,
+  484:        borderRadius: radius.lg,
+  485:        padding: spacing.md,
+  486:        borderWidth: 1,
+  487:        borderColor: colors.border,
+***** AMPLY-REDESIGN-EXTRAIDO\SRC\SCREENS\PROFILESCREEN.TSX
+  199:  
+  200:  const styles = StyleSheet.create({
+  201:    safe: { flex: 1, backgroundColor: colors.background },
+  202:    container: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  203:    avatarWrap: { alignItems: 'center', marginBottom: spacing.sm },
+  204:    avatar: { width: 96, height: 96, borderRadius: 48 },
+  205:    avatarPlaceholder: {
+  206:      backgroundColor: colors.primaryLight,
+  207:      alignItems: 'center',
+  208:      justifyContent: 'center',
+  209:    },
+  210:    avatarLetter: { ...typography.h1, color: colors.primary },
+  211:    changePhoto: { ...typography.caption, color: colors.primary, marginTop: spacing.sm },
+  212:    removePhoto: {
+  213:      ...typography.caption,
+  214:      color: colors.danger,
+  215:      textAlign: 'center',
+  216:      marginBottom: spacing.md,
+  217:    },
+  218:    card: {
+  219:      backgroundColor: colors.surface,
+  220:      borderRadius: radius.md,
+  221:      padding: spacing.md,
+  222:      marginBottom: spacing.sm,
+  223:      borderWidth: 1,
+  224:      borderColor: colors.border,
+  225:    },
+  226:    label: { ...typography.caption, color: colors.textMuted },
+  227:    value: { ...typography.bodyMedium, color: colors.text, marginTop: 2 },
+  228:    btn: { marginTop: spacing.md },
+  229:  });
+*****
+

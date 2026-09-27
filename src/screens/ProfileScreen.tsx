@@ -1,521 +1,369 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  Alert,
-  Image,
-  TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Image,
+  Pressable,
+  Dimensions,
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
-import { Button } from '../components/Button';
-import { Input } from '../components/Input';
-import { DateField } from '../components/DateField';
-import { InstrumentPicker } from '../components/InstrumentPicker';
-import { TabScreenShell } from '../components/layout/TabScreenShell';
-import {
-  parseInstruments,
-  serializeInstruments,
-} from '../constants/instruments';
-import { spacing, typography, radius, ColorTokens } from '../constants/theme';
-import { formatSupabaseError } from '../utils/payload';
+import { Song } from '../types';
+import { Avatar } from '../components/Avatar';
+import { spacing, radius, shadow } from '../constants/theme';
+import { isBirthdayToday } from '../utils/dates';
 
+const SCREEN_W = Dimensions.get('window').width;
+const COVER_H = 180;
+
+/**
+ * PERFIL = apresentação pública (somente visualização).
+ */
 export function ProfileScreen() {
-  const {
-    profile,
-    church,
-    membership,
-    user,
-    signOut,
-    updateProfile,
-    refreshMembership,
-  } = useAuth();
-  const { colors, mode, setMode } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const { profile, church, membership, user, refreshProfile } = useAuth();
 
-  const [name, setName] = useState(profile?.name ?? '');
-  const [birthDate, setBirthDate] = useState(profile?.birth_date ?? '');
-  const [instruments, setInstruments] = useState<string[]>(() =>
-    parseInstruments(membership?.instrument)
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [loadingSongs, setLoadingSongs] = useState(true);
+  const [coverUri, setCoverUri] = useState<string | null>(profile?.cover_url ?? null);
+  const [avatarUri, setAvatarUri] = useState<string | null>(profile?.avatar_url ?? null);
+  const [displayName, setDisplayName] = useState(profile?.name ?? 'Usuário');
+
+  // Prevent infinite focus loops
+  const loadingRef = useRef(false);
+  const lastUserId = useRef<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (loadingRef.current) return;
+      loadingRef.current = true;
+      let cancelled = false;
+
+      (async () => {
+        try {
+          const userId = user?.id ?? profile?.id ?? null;
+
+          // Refresh context once (no await chain that retriggers focus)
+          if (refreshProfile) {
+            await refreshProfile();
+          }
+
+          if (userId && !cancelled) {
+            const { data: row } = await supabase
+              .from('profiles')
+              .select('id, name, avatar_url, cover_url, birth_date')
+              .eq('id', userId)
+              .maybeSingle();
+
+            if (row && !cancelled) {
+              setCoverUri((row as any).cover_url ?? null);
+              setAvatarUri((row as any).avatar_url ?? null);
+              if (row.name) setDisplayName(row.name);
+            }
+            lastUserId.current = userId;
+          }
+
+          if (!church?.id) {
+            if (!cancelled) setLoadingSongs(false);
+            return;
+          }
+
+          if (!cancelled) setLoadingSongs(true);
+          const { data } = await supabase
+            .from('songs')
+            .select('*')
+            .eq('church_id', church.id)
+            .order('is_favorite', { ascending: false })
+            .order('title')
+            .limit(12);
+
+          if (!cancelled) {
+            setSongs((data as Song[]) ?? []);
+            setLoadingSongs(false);
+          }
+        } finally {
+          // allow next focus after this run finishes
+          setTimeout(() => {
+            loadingRef.current = false;
+          }, 400);
+        }
+      })();
+
+      return () => {
+        cancelled = true;
+      };
+      // Only depend on stable ids — NOT refreshProfile function identity
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id, profile?.id, church?.id])
   );
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
-  const [pwdCurrent, setPwdCurrent] = useState('');
-  const [pwdNew, setPwdNew] = useState('');
-  const [pwdConfirm, setPwdConfirm] = useState('');
-  const [pwdLoading, setPwdLoading] = useState(false);
-  const [showPwd, setShowPwd] = useState(false);
-
+  // Sync from context when profile fields change (e.g. after edit) — no loop
   useEffect(() => {
-    if (profile?.name != null) setName(profile.name);
-    if (profile?.birth_date != null) setBirthDate(profile.birth_date);
-    else if (profile && profile.birth_date === null) setBirthDate('');
-  }, [profile?.id, profile?.name, profile?.birth_date]);
+    if (profile?.cover_url != null) setCoverUri(profile.cover_url);
+    if (profile?.avatar_url != null) setAvatarUri(profile.avatar_url);
+    if (profile?.name) setDisplayName(profile.name);
+  }, [profile?.cover_url, profile?.avatar_url, profile?.name]);
 
-  useEffect(() => {
-    if (membership) setInstruments(parseInstruments(membership.instrument));
-  }, [membership?.id, membership?.instrument]);
-
-  const roleLabel =
-    membership?.role === 'owner'
-      ? 'Administrador'
-      : membership?.role === 'leader'
-      ? 'Líder'
-      : 'Músico';
-
-  const pickAvatar = async () => {
-    if (!user) return;
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) {
-      Alert.alert('Permissão', 'Permita acesso à galeria para alterar a foto.');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-    if (result.canceled || !result.assets?.[0]) return;
-
-    const asset = result.assets[0];
-    setUploading(true);
-    try {
-      const rawExt =
-        asset.uri.split('.').pop()?.toLowerCase()?.split('?')[0] || 'jpg';
-      const ext = rawExt === 'png' || rawExt === 'webp' ? rawExt : 'jpg';
-      const contentType =
-        ext === 'png'
-          ? 'image/png'
-          : ext === 'webp'
-          ? 'image/webp'
-          : 'image/jpeg';
-      const path = `${user.id}/avatar.${ext}`;
-
-      const response = await fetch(asset.uri);
-      const arrayBuffer = await response.arrayBuffer();
-      if (!arrayBuffer || arrayBuffer.byteLength === 0) {
-        Alert.alert('Erro', 'Não foi possível ler a imagem selecionada.');
-        return;
-      }
-
-      const { error: upErr } = await supabase.storage
-        .from('avatars')
-        .upload(path, arrayBuffer, { upsert: true, contentType });
-
-      if (upErr) {
-        Alert.alert(
-          'Erro no upload',
-          formatSupabaseError(upErr) +
-            '\n\nConfirme o bucket "avatars" (público) e policies no Supabase.'
-        );
-        return;
-      }
-
-      const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
-      const url = `${pub.publicUrl}?t=${Date.now()}`;
-      const { error } = await updateProfile({ avatar_url: url });
-      if (error) Alert.alert('Erro', error);
-    } catch (e) {
-      Alert.alert('Erro', (e as Error).message || 'Falha ao enviar a foto.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleSave = async () => {
-    if (!name.trim()) {
-      Alert.alert('Erro', 'Informe o nome.');
-      return;
-    }
-    if (!user) {
-      Alert.alert('Erro', 'Sessão não carregada.');
-      return;
-    }
-
-    setSaving(true);
-    const { error: profileError } = await updateProfile({
-      name: name.trim(),
-      birth_date: birthDate && birthDate.trim() ? birthDate.trim() : null,
-    } as any);
-
-    if (profileError) {
-      setSaving(false);
-      Alert.alert('Erro ao salvar perfil', profileError);
-      return;
-    }
-
-    if (membership?.id) {
-      const { error: mErr } = await supabase
-        .from('church_members')
-        .update({ instrument: serializeInstruments(instruments) })
-        .eq('id', membership.id)
-        .eq('user_id', user.id);
-
-      if (mErr) {
-        setSaving(false);
-        Alert.alert('Erro ao salvar instrumentos', formatSupabaseError(mErr));
-        return;
-      }
-      await refreshMembership();
-    }
-
-    setSaving(false);
-    Alert.alert('Sucesso', 'Perfil atualizado.');
-  };
-
-  const handleChangePassword = async () => {
-    if (!user?.email) {
-      Alert.alert('Erro', 'E-mail da conta não disponível.');
-      return;
-    }
-    if (pwdNew.length < 6) {
-      Alert.alert('Erro', 'A nova senha deve ter pelo menos 6 caracteres.');
-      return;
-    }
-    if (pwdNew !== pwdConfirm) {
-      Alert.alert('Erro', 'A confirmação não confere com a nova senha.');
-      return;
-    }
-    if (!pwdCurrent) {
-      Alert.alert('Erro', 'Informe a senha atual.');
-      return;
-    }
-
-    setPwdLoading(true);
-    const { error: signErr } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: pwdCurrent,
-    });
-    if (signErr) {
-      setPwdLoading(false);
-      Alert.alert('Erro', 'Senha atual incorreta.');
-      return;
-    }
-    const { error } = await supabase.auth.updateUser({ password: pwdNew });
-    setPwdLoading(false);
-    if (error) {
-      Alert.alert('Erro', formatSupabaseError(error));
-      return;
-    }
-    setPwdCurrent('');
-    setPwdNew('');
-    setPwdConfirm('');
-    Alert.alert('Sucesso', 'Senha alterada com sucesso.');
-  };
-
-  const initial = (name || profile?.name || 'A').charAt(0).toUpperCase();
-
-  const themeOptions: { key: 'system' | 'light' | 'dark'; label: string }[] = [
-    { key: 'system', label: 'Sistema' },
-    { key: 'light', label: 'Claro' },
-    { key: 'dark', label: 'Escuro' },
-  ];
+  const instrumentLabel = membership?.instrument || '—';
+  const birthdayToday = profile?.birth_date ? isBirthdayToday(profile.birth_date) : false;
 
   return (
-    <TabScreenShell>
+    <View style={[styles.safe, { backgroundColor: colors.background }]}>
       <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: spacing.xxxl + 24 }}
       >
-        <Text style={styles.pageTitle}>Perfil</Text>
-
-        {/* Avatar */}
-        <View style={styles.avatarBlock}>
-          <TouchableOpacity
-            onPress={pickAvatar}
-            disabled={uploading}
-            activeOpacity={0.85}
+        {/*
+          Capa full-bleed no topo (100% largura).
+          Cantos superiores arredondados como card.
+          Respeita safe area visual via paddingTop no conteúdo abaixo;
+          a imagem começa no topo da tela de conteúdo da tab.
+        */}
+        <View style={styles.coverWrap}>
+          <View
+            style={[
+              styles.cover,
+              {
+                backgroundColor: colors.surfaceSecondary,
+                // cantos de cima arredondados (card)
+                borderTopLeftRadius: radius.xl,
+                borderTopRightRadius: radius.xl,
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0,
+                overflow: 'hidden',
+              },
+            ]}
           >
-            {uploading ? (
-              <View style={[styles.avatar, styles.avatarFallback]}>
-                <ActivityIndicator color={colors.primary} />
-              </View>
-            ) : profile?.avatar_url ? (
+            {coverUri ? (
               <Image
-                source={{ uri: profile.avatar_url }}
-                style={styles.avatar}
+                key={coverUri}
+                source={{ uri: coverUri }}
+                style={styles.coverImage}
+                resizeMode="cover"
               />
             ) : (
-              <View style={[styles.avatar, styles.avatarFallback]}>
-                <Text style={styles.avatarLetter}>{initial}</Text>
-              </View>
-            )}
-            <View style={styles.editBadge}>
-              <Ionicons name="camera" size={12} color={colors.textInverse} />
-            </View>
-          </TouchableOpacity>
-          <Text style={styles.displayName}>{name || profile?.name || '—'}</Text>
-          <Text style={styles.displayMeta}>
-            {roleLabel}
-            {membership?.instrument
-              ? ` · ${parseInstruments(membership.instrument).join(', ')}`
-              : ''}
-          </Text>
-          <Text style={styles.changePhoto}>
-            {uploading ? 'Enviando…' : 'Alterar foto'}
-          </Text>
-        </View>
-
-        {/* Info cards */}
-        <View style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <Text style={styles.cardLabel}>E-mail</Text>
-            <Text style={styles.cardValue} numberOfLines={1}>
-              {user?.email ?? '—'}
-            </Text>
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.infoRow}>
-            <Text style={styles.cardLabel}>Ministério</Text>
-            <Text style={styles.cardValue} numberOfLines={1}>
-              {church?.name ?? '—'}
-            </Text>
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.infoRow}>
-            <Text style={styles.cardLabel}>Função</Text>
-            <Text style={styles.cardValue}>{roleLabel}</Text>
-          </View>
-        </View>
-
-        <Text style={styles.section}>Dados pessoais</Text>
-        <Input
-          label="Nome"
-          value={name}
-          onChangeText={setName}
-          autoCapitalize="words"
-        />
-        <DateField
-          label="Data de nascimento"
-          value={birthDate || ''}
-          onChange={setBirthDate}
-        />
-        <InstrumentPicker selected={instruments} onChange={setInstruments} />
-        <Button
-          title="Salvar alterações"
-          onPress={handleSave}
-          loading={saving}
-          style={styles.btn}
-        />
-
-        <Text style={styles.section}>Aparência</Text>
-        <View style={styles.themeRow}>
-          {themeOptions.map((opt) => (
-            <TouchableOpacity
-              key={opt.key}
-              style={[
-                styles.themeChip,
-                mode === opt.key && styles.themeChipOn,
-              ]}
-              onPress={() => setMode(opt.key)}
-              activeOpacity={0.8}
-            >
-              <Text
+              <View
                 style={[
-                  styles.themeChipText,
-                  mode === opt.key && styles.themeChipTextOn,
+                  styles.coverImage,
+                  { backgroundColor: colors.primary, opacity: 0.1 },
+                ]}
+              />
+            )}
+          </View>
+
+          <Pressable
+            onPress={() => navigation.navigate('Settings')}
+            hitSlop={12}
+            style={[styles.settingsFab, { top: Math.max(insets.top, 12) }]}
+          >
+            <View style={[styles.fabCircle, { backgroundColor: 'rgba(255,255,255,0.92)' }]}>
+              <Ionicons name="settings-outline" size={20} color="#111" />
+            </View>
+          </Pressable>
+        </View>
+
+        {/* Avatar sobreposto à capa */}
+        <View style={styles.avatarRow}>
+          <View
+            style={[
+              styles.avatarRing,
+              { backgroundColor: colors.background, borderColor: colors.background },
+            ]}
+          >
+            <Avatar uri={avatarUri} name={displayName} size={96} />
+          </View>
+        </View>
+
+        <View style={styles.identity}>
+          <Text style={[styles.name, { color: colors.text }]}>{displayName}</Text>
+          {birthdayToday ? (
+            <Text style={[styles.bday, { color: colors.textSecondary }]}>
+              Hoje é o seu aniversário!
+            </Text>
+          ) : null}
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <Ionicons name="mic-outline" size={16} color={colors.textSecondary} />
+              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                {instrumentLabel}
+              </Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Ionicons name="musical-notes-outline" size={16} color={colors.textSecondary} />
+              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                {songs.length} {songs.length === 1 ? 'música' : 'músicas'}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Músicas que toca</Text>
+          {loadingSongs ? (
+            <ActivityIndicator color={colors.primary} style={{ marginTop: 12 }} />
+          ) : songs.length === 0 ? (
+            <Text style={[styles.empty, { color: colors.textMuted }]}>
+              Nenhuma música adicionada ainda.
+            </Text>
+          ) : (
+            songs.map((s) => (
+              <Pressable
+                key={s.id}
+                onPress={() => navigation.navigate('SongDetail', { songId: s.id })}
+                style={({ pressed }) => [
+                  styles.songRow,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    borderRadius: radius.xl,
+                    opacity: pressed ? 0.92 : 1,
+                    ...shadow.sm,
+                  },
                 ]}
               >
-                {opt.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                {s.artwork_url ? (
+                  <Image source={{ uri: s.artwork_url }} style={styles.songCoverImg} />
+                ) : (
+                  <View
+                    style={[
+                      styles.songCoverImg,
+                      {
+                        backgroundColor: colors.surfaceSecondary,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      },
+                    ]}
+                  >
+                    <Ionicons name="musical-note" size={18} color={colors.textMuted} />
+                  </View>
+                )}
+                <View style={styles.songInfo}>
+                  <Text style={[styles.songTitle, { color: colors.text }]} numberOfLines={1}>
+                    {s.title}
+                  </Text>
+                  <Text style={[styles.songKey, { color: colors.textSecondary }]}>
+                    {s.key ? `Tonalidade: ${s.key}` : s.artist || '—'}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+              </Pressable>
+            ))
+          )}
         </View>
-
-        <Text style={styles.section}>Segurança</Text>
-        <View style={styles.securityBox}>
-          <Input
-            label="Senha atual"
-            value={pwdCurrent}
-            onChangeText={setPwdCurrent}
-            secureTextEntry={!showPwd}
-            placeholder="••••••••"
-          />
-          <Input
-            label="Nova senha"
-            value={pwdNew}
-            onChangeText={setPwdNew}
-            secureTextEntry={!showPwd}
-            placeholder="Mínimo 6 caracteres"
-          />
-          <Input
-            label="Confirmar nova senha"
-            value={pwdConfirm}
-            onChangeText={setPwdConfirm}
-            secureTextEntry={!showPwd}
-            placeholder="Repita a nova senha"
-          />
-          <TouchableOpacity
-            onPress={() => setShowPwd((v) => !v)}
-            style={styles.showPwd}
-          >
-            <Text style={styles.showPwdText}>
-              {showPwd ? 'Ocultar senhas' : 'Mostrar senhas'}
-            </Text>
-          </TouchableOpacity>
-          <Button
-            title="Alterar senha"
-            onPress={handleChangePassword}
-            loading={pwdLoading}
-            variant="secondary"
-          />
-        </View>
-
-        <Button
-          title="Sair da conta"
-          onPress={() =>
-            Alert.alert('Sair', 'Deseja sair da conta?', [
-              { text: 'Cancelar', style: 'cancel' },
-              { text: 'Sair', style: 'destructive', onPress: signOut },
-            ])
-          }
-          variant="danger"
-          style={styles.btn}
-        />
       </ScrollView>
-    </TabScreenShell>
+    </View>
   );
 }
 
-function createStyles(colors: ColorTokens) {
-  return StyleSheet.create({
-    container: {
-      padding: spacing.lg,
-      paddingBottom: spacing.xxxl,
-    },
-    pageTitle: {
-      ...typography.h2,
-      color: colors.text,
-      marginBottom: spacing.lg,
-    },
-    avatarBlock: {
-      alignItems: 'center',
-      marginBottom: spacing.xl,
-    },
-    avatar: {
-      width: 96,
-      height: 96,
-      borderRadius: 48,
-    },
-    avatarFallback: {
-      backgroundColor: colors.primaryLight,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    avatarLetter: {
-      fontSize: 34,
-      fontWeight: '700',
-      color: colors.primaryDark,
-    },
-    editBadge: {
-      position: 'absolute',
-      right: 2,
-      bottom: 2,
-      width: 28,
-      height: 28,
-      borderRadius: 14,
-      backgroundColor: colors.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 2,
-      borderColor: colors.background,
-    },
-    displayName: {
-      ...typography.h3,
-      color: colors.text,
-      marginTop: spacing.md,
-    },
-    displayMeta: {
-      ...typography.caption,
-      color: colors.textSecondary,
-      marginTop: 4,
-    },
-    changePhoto: {
-      ...typography.caption,
-      color: colors.primary,
-      marginTop: spacing.sm,
-    },
-    infoCard: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-      marginBottom: spacing.md,
-      overflow: 'hidden',
-    },
-    infoRow: {
-      paddingHorizontal: spacing.md,
-      paddingVertical: 12,
-    },
-    divider: {
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: colors.border,
-      marginLeft: spacing.md,
-    },
-    cardLabel: {
-      ...typography.caption,
-      color: colors.textMuted,
-    },
-    cardValue: {
-      ...typography.bodyMedium,
-      color: colors.text,
-      marginTop: 2,
-    },
-    section: {
-      ...typography.label,
-      color: colors.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-      marginTop: spacing.xl,
-      marginBottom: spacing.sm,
-    },
-    btn: { marginTop: spacing.md },
-    securityBox: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.lg,
-      padding: spacing.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    showPwd: { marginBottom: spacing.sm },
-    showPwdText: {
-      ...typography.caption,
-      color: colors.primary,
-    },
-    themeRow: {
-      flexDirection: 'row',
-      gap: spacing.sm,
-    },
-    themeChip: {
-      flex: 1,
-      paddingVertical: 10,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-      alignItems: 'center',
-    },
-    themeChipOn: {
-      backgroundColor: colors.primaryLight,
-      borderColor: colors.primaryMuted,
-    },
-    themeChipText: {
-      ...typography.caption,
-      color: colors.textSecondary,
-      fontWeight: '500',
-    },
-    themeChipTextOn: {
-      color: colors.primaryDark,
-      fontWeight: '600',
-    },
-  });
-}
+const styles = StyleSheet.create({
+  safe: { flex: 1 },
+  // Full width — cola nas laterais da tela
+  coverWrap: {
+    width: SCREEN_W,
+    marginLeft: 0,
+    marginRight: 0,
+  },
+  cover: {
+    width: SCREEN_W,
+    height: COVER_H,
+  },
+  coverImage: {
+    width: '100%',
+    height: '100%',
+  },
+  settingsFab: {
+    position: 'absolute',
+    right: 12,
+    zIndex: 10,
+  },
+  fabCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarRow: {
+    alignItems: 'center',
+    marginTop: -48,
+  },
+  avatarRing: {
+    padding: 4,
+    borderRadius: 56,
+    borderWidth: 4,
+  },
+  identity: {
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.sm,
+  },
+  name: {
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  bday: {
+    fontSize: 14,
+    marginTop: 6,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    gap: 20,
+    marginTop: spacing.md,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  metaText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  section: {
+    marginTop: spacing.xl,
+    paddingHorizontal: spacing.md,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: spacing.sm,
+  },
+  empty: {
+    fontSize: 14,
+    marginTop: 4,
+  },
+  songRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 10,
+  },
+  songCoverImg: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+  },
+  songInfo: {
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  songTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  songKey: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+});

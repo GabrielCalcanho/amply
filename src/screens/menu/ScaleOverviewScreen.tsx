@@ -1,84 +1,104 @@
-import React, {useCallback, useState, useMemo} from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
-  TouchableOpacity,
+  ScrollView,
+  Pressable,
   ActivityIndicator,
-  RefreshControl,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { supabase } from '../../services/supabase';
 import { ScreenHeader } from '../../components/layout/ScreenHeader';
 import { EmptyState } from '../../components/EmptyState';
-import { Setlist, SetlistStatus, SETLIST_STATUS_LABELS } from '../../types';
-import { spacing, typography, radius, shadow, ColorTokens } from '../../constants/theme';
-import { formatDateBR, formatTime, todayISO } from '../../utils/dates';
-import { formatSupabaseError } from '../../utils/payload';
+import { Avatar } from '../../components/Avatar';
+import { Badge } from '../../components/Badge';
+import { Button } from '../../components/Button';
+import { Setlist, SETLIST_STATUS_LABELS, SetlistStatus, MemberStatus } from '../../types';
+import { spacing, radius, shadow } from '../../constants/theme';
+import { formatTime, todayISO } from '../../utils/dates';
 
-type SetlistWithCounts = Setlist & {
-  pending_count: number;
-  confirmed_count: number;
-  declined_count: number;
-  members_count: number;
+type MemberPreview = {
+  id: string;
+  user_id: string;
+  status: MemberStatus;
+  profile?: { name: string; avatar_url: string | null } | null;
 };
 
+type SetlistWithMeta = Setlist & {
+  members?: MemberPreview[];
+  songs_count?: number;
+  confirmed?: number;
+  pending?: number;
+  declined?: number;
+};
+
+function formatDayLong(iso: string) {
+  try {
+    const d = new Date(iso + 'T12:00:00');
+    const s = d.toLocaleDateString('pt-BR', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  } catch {
+    return iso;
+  }
+}
+
+function shiftDate(iso: string, days: number) {
+  const d = new Date(iso + 'T12:00:00');
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 export function ScaleOverviewScreen() {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   const { church, membership } = useAuth();
+  const { colors } = useTheme();
   const navigation = useNavigation<any>();
-  const [items, setItems] = useState<SetlistWithCounts[]>([]);
+  const [selectedDate, setSelectedDate] = useState(todayISO());
+  const [all, setAll] = useState<SetlistWithMeta[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const canManage = membership?.role === 'owner' || membership?.role === 'leader';
+  const load = useCallback(async () => {
+    if (!church) return;
+    setLoading(true);
+    const today = todayISO();
+    const { data } = await supabase
+      .from('setlists')
+      .select(
+        '*, setlist_songs(count), setlist_members(id, user_id, status, profile:profiles(name, avatar_url))'
+      )
+      .eq('church_id', church.id)
+      .gte('date', today)
+      .neq('status', 'cancelled')
+      .order('date', { ascending: true })
+      .limit(40);
 
-  const load = useCallback(
-    async (isRefresh = false) => {
-      if (!church) {
-        setLoading(false);
-        return;
-      }
-      if (isRefresh) setRefreshing(true);
-      else setLoading(true);
-      setError(null);
-
-      const { data, error: err } = await supabase
-        .from('setlists')
-        .select('*, setlist_members(status)')
-        .eq('church_id', church.id)
-        .gte('date', todayISO())
-        .order('date', { ascending: true })
-        .limit(40);
-
-      if (err) {
-        setError(formatSupabaseError(err));
-        setItems([]);
-      } else {
-        const mapped: SetlistWithCounts[] = (data ?? []).map((row: any) => {
-          const members = (row.setlist_members ?? []) as { status: string }[];
-          return {
-            ...row,
-            setlist_members: undefined,
-            members_count: members.length,
-            pending_count: members.filter((m) => m.status === 'pending').length,
-            confirmed_count: members.filter((m) => m.status === 'confirmed').length,
-            declined_count: members.filter((m) => m.status === 'declined').length,
-          };
-        });
-        setItems(mapped);
-      }
-      setLoading(false);
-      setRefreshing(false);
-    },
-    [church]
-  );
+    const mapped: SetlistWithMeta[] = (data ?? []).map((s: any) => {
+      const members: MemberPreview[] = (s.setlist_members ?? []).map((m: any) => ({
+        id: m.id,
+        user_id: m.user_id,
+        status: m.status,
+        profile: m.profile,
+      }));
+      return {
+        ...s,
+        songs_count: s.setlist_songs?.[0]?.count ?? 0,
+        members,
+        confirmed: members.filter((m) => m.status === 'confirmed').length,
+        pending: members.filter((m) => m.status === 'pending').length,
+        declined: members.filter((m) => m.status === 'declined').length,
+      };
+    });
+    setAll(mapped);
+    setLoading(false);
+  }, [church]);
 
   useFocusEffect(
     useCallback(() => {
@@ -86,145 +106,322 @@ export function ScaleOverviewScreen() {
     }, [load])
   );
 
-  if (loading && !refreshing) {
-    return (
-      <SafeAreaView style={styles.safe} edges={['bottom']}>
-        <ScreenHeader title="Panorama de escala" />
+  const daySetlists = useMemo(
+    () => all.filter((s) => s.date === selectedDate),
+    [all, selectedDate]
+  );
+
+  const otherSetlists = useMemo(
+    () => all.filter((s) => s.date !== selectedDate).slice(0, 8),
+    [all, selectedDate]
+  );
+
+  const statusTone = (status: SetlistStatus) => {
+    if (status === 'confirmed') return 'success' as const;
+    if (status === 'cancelled') return 'danger' as const;
+    return 'info' as const;
+  };
+
+  return (
+    <View style={[styles.safe, { backgroundColor: colors.background }]}>
+      <ScreenHeader title="Minhas escalas" />
+
+      {/* Date selector */}
+      <View style={styles.dateBar}>
+        <Pressable
+          onPress={() => setSelectedDate((d) => shiftDate(d, -1))}
+          hitSlop={10}
+          style={({ pressed }) => [{ opacity: pressed ? 0.5 : 1, padding: 8 }]}
+        >
+          <Ionicons name="chevron-back" size={22} color={colors.text} />
+        </Pressable>
+        <View style={styles.dateCenter}>
+          <Text style={[styles.dateText, { color: colors.text }]}>
+            {formatDayLong(selectedDate)}
+          </Text>
+          <Ionicons name="calendar-outline" size={16} color={colors.textMuted} />
+        </View>
+        <Pressable
+          onPress={() => setSelectedDate((d) => shiftDate(d, 1))}
+          hitSlop={10}
+          style={({ pressed }) => [{ opacity: pressed ? 0.5 : 1, padding: 8 }]}
+        >
+          <Ionicons name="chevron-forward" size={22} color={colors.text} />
+        </Pressable>
+      </View>
+
+      {loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <ScreenHeader title="Panorama de escala" />
-      {error ? (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      ) : null}
-      <FlatList
-        data={items}
-        keyExtractor={(i) => i.id}
-        contentContainerStyle={styles.list}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={colors.primary} />
-        }
-        ListEmptyComponent={
-          <EmptyState
-            title="Nenhuma escala futura"
-            description="Crie escalas para acompanhar confirmações e pendências."
-            actionLabel={canManage ? 'Criar escala' : undefined}
-            onAction={canManage ? () => navigation.navigate('SetlistForm') : undefined}
-          />
-        }
-        renderItem={({ item }) => {
-          const statusKey = (item.status as SetlistStatus) || 'scheduled';
-          const missing = item.pending_count;
-          return (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => navigation.navigate('SetlistDetail', { setlistId: item.id })}
-              activeOpacity={0.85}
-            >
-              <View style={styles.top}>
-                <Text style={styles.title} numberOfLines={1}>
-                  {item.title}
+      ) : (
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          {daySetlists.length === 0 ? (
+            <EmptyState
+              icon="calendar-outline"
+              title="Nenhuma escala neste dia"
+              description="Use as setas para ver outros dias ou crie uma nova escala."
+            />
+          ) : (
+            daySetlists.map((item) => (
+              <Pressable
+                key={item.id}
+                onPress={() =>
+                  navigation.navigate('SetlistDetail', { setlistId: item.id })
+                }
+                style={({ pressed }) => [
+                  styles.card,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    borderRadius: radius.xl,
+                    opacity: pressed ? 0.94 : 1,
+                    ...shadow.sm,
+                  },
+                ]}
+              >
+                {/* Data em destaque */}
+                <Text style={[styles.cardDay, { color: colors.textMuted }]}>
+                  {formatDayLong(item.date).toUpperCase()}
                 </Text>
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>
-                    {SETLIST_STATUS_LABELS[statusKey] ?? statusKey}
-                  </Text>
+
+                <View style={styles.cardTopRow}>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text
+                      style={[styles.cardTitle, { color: colors.text }]}
+                      numberOfLines={2}
+                    >
+                      {item.title}
+                    </Text>
+                    {item.time ? (
+                      <Text style={[styles.cardTime, { color: colors.text }]}>
+                        {formatTime(item.time)}
+                      </Text>
+                    ) : (
+                      <Text style={[styles.cardTime, { color: colors.textMuted }]}>
+                        Horário a definir
+                      </Text>
+                    )}
+                    {item.location ? (
+                      <Text
+                        style={[styles.cardLoc, { color: colors.textSecondary }]}
+                        numberOfLines={2}
+                      >
+                        {item.location}
+                      </Text>
+                    ) : null}
+                  </View>
+                  <Badge
+                    label={
+                      SETLIST_STATUS_LABELS[(item.status as SetlistStatus) || 'scheduled']
+                    }
+                    tone={statusTone((item.status as SetlistStatus) || 'scheduled')}
+                  />
                 </View>
-              </View>
-              <Text style={styles.meta}>
-                {formatDateBR(item.date)}
-                {item.time ? ` · ${formatTime(item.time)}` : ''}
+
+                {/* Avatares da equipe */}
+                {(item.members?.length ?? 0) > 0 ? (
+                  <View style={styles.avatars}>
+                    {item.members!.slice(0, 5).map((m) => (
+                      <View key={m.id} style={styles.avatarWrap}>
+                        <Avatar
+                          uri={m.profile?.avatar_url}
+                          name={m.profile?.name}
+                          size={28}
+                        />
+                      </View>
+                    ))}
+                    {(item.members?.length ?? 0) > 5 ? (
+                      <View
+                        style={[
+                          styles.moreAvatar,
+                          { backgroundColor: colors.surfaceSecondary },
+                        ]}
+                      >
+                        <Text
+                          style={{
+                            color: colors.textSecondary,
+                            fontSize: 11,
+                            fontWeight: '600',
+                          }}
+                        >
+                          +{(item.members?.length ?? 0) - 5}
+                        </Text>
+                      </View>
+                    ) : null}
+                    <Text
+                      style={[styles.avatarHint, { color: colors.textMuted }]}
+                    >
+                      {item.members!.length}{' '}
+                      {item.members!.length === 1 ? 'integrante' : 'integrantes'}
+                      {' · '}
+                      {item.songs_count ?? 0}{' '}
+                      {(item.songs_count ?? 0) === 1 ? 'música' : 'músicas'}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={[styles.avatarHint, { color: colors.textMuted, marginTop: 12 }]}>
+                    {item.songs_count ?? 0}{' '}
+                    {(item.songs_count ?? 0) === 1 ? 'música' : 'músicas'}
+                    {' · '}
+                    Sem equipe definida
+                  </Text>
+                )}
+              </Pressable>
+            ))
+          )}
+
+          {otherSetlists.length > 0 ? (
+            <View style={{ marginTop: spacing.xl }}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                Outras escalas
               </Text>
-              {item.location ? <Text style={styles.sub}>{item.location}</Text> : null}
+              {otherSetlists.map((item) => (
+                <Pressable
+                  key={item.id}
+                  onPress={() =>
+                    navigation.navigate('SetlistDetail', { setlistId: item.id })
+                  }
+                  style={({ pressed }) => [
+                    styles.otherCard,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.border,
+                      borderRadius: radius.lg,
+                      opacity: pressed ? 0.92 : 1,
+                      ...shadow.sm,
+                    },
+                  ]}
+                >
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={[styles.otherTitle, { color: colors.text }]} numberOfLines={1}>
+                      {item.title}
+                    </Text>
+                    <Text style={[styles.otherMeta, { color: colors.textSecondary }]} numberOfLines={1}>
+                      {formatDayLong(item.date)}
+                      {item.time ? ` · ${formatTime(item.time)}` : ''}
+                    </Text>
+                    {item.location ? (
+                      <Text style={[styles.otherLoc, { color: colors.textMuted }]} numberOfLines={1}>
+                        {item.location}
+                      </Text>
+                    ) : null}
+                  </View>
+                  <Badge
+                    label={
+                      SETLIST_STATUS_LABELS[(item.status as SetlistStatus) || 'scheduled']
+                    }
+                    tone={statusTone((item.status as SetlistStatus) || 'scheduled')}
+                  />
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
 
-              <View style={styles.statsRow}>
-                <Text style={[styles.stat, { color: colors.success }]}>
-                  {item.confirmed_count} conf.
-                </Text>
-                <Text style={[styles.stat, { color: colors.warning }]}>
-                  {item.pending_count} pend.
-                </Text>
-                <Text style={[styles.stat, { color: colors.danger }]}>
-                  {item.declined_count} aus.
-                </Text>
-                <Text style={[styles.stat, { color: colors.textMuted }]}>
-                  {item.members_count} no total
-                </Text>
-              </View>
-
-              {missing > 0 ? (
-                <Text style={styles.need}>
-                  {missing === 1
-                    ? '1 presença ainda aguarda resposta'
-                    : `${missing} presenças ainda aguardam resposta`}
-                </Text>
-              ) : item.members_count > 0 ? (
-                <Text style={styles.ok}>Todas as presenças respondidas</Text>
-              ) : (
-                <Text style={styles.need}>Nenhum músico atribuído ainda</Text>
-              )}
-            </TouchableOpacity>
-          );
-        }}
-      />
-    </SafeAreaView>
+          <View style={{ height: spacing.xxl }} />
+        </ScrollView>
+      )}
+    </View>
   );
 }
 
-function createStyles(colors: ColorTokens) {
-  return StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+const styles = StyleSheet.create({
+  safe: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  list: { padding: spacing.lg, flexGrow: 1, paddingBottom: spacing.xxxl },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...shadow.sm,
-  },
-  top: {
+  dateBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
-  title: { ...typography.bodyMedium, color: colors.text, flex: 1 },
-  meta: { ...typography.caption, color: colors.textSecondary, marginTop: 4 },
-  sub: { ...typography.small, color: colors.textMuted, marginTop: 2 },
-  badge: {
-    backgroundColor: colors.primary + '18',
     paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radius.sm,
+    paddingVertical: spacing.xs,
   },
-  badgeText: { ...typography.small, color: colors.primary, fontWeight: '600' },
-  statsRow: {
+  dateCenter: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-    marginTop: spacing.sm,
+    alignItems: 'center',
+    gap: 8,
   },
-  stat: { ...typography.small, fontWeight: '600' },
-  need: { ...typography.caption, color: colors.warning, marginTop: spacing.sm, fontWeight: '500' },
-  ok: { ...typography.caption, color: colors.success, marginTop: spacing.sm, fontWeight: '500' },
-  errorBox: {
-    margin: spacing.lg,
+  dateText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  content: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.xxxl,
+  },
+  card: {
     padding: spacing.md,
-    backgroundColor: colors.dangerLight,
-    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: spacing.md,
   },
-  errorText: { ...typography.body, color: colors.danger },
-})
-}
-
+  cardDay: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  cardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  cardTime: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginTop: 6,
+    letterSpacing: -0.3,
+  },
+  cardLoc: {
+    fontSize: 13,
+    marginTop: 4,
+  },
+  avatars: {
+    flexDirection: 'row',
+    marginTop: 14,
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  avatarWrap: {
+    marginRight: -8,
+  },
+  moreAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
+  },
+  avatarHint: {
+    fontSize: 12,
+    marginLeft: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: spacing.sm,
+  },
+  otherCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 10,
+    gap: 12,
+  },
+  otherTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  otherMeta: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+});

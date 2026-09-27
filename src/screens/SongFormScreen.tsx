@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Text,
   StyleSheet,
@@ -10,19 +10,18 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../services/supabase';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { ScreenHeader } from '../components/layout/ScreenHeader';
-import { spacing, typography, ColorTokens } from '../constants/theme';
+import { colors, spacing, typography } from '../constants/theme';
 import { emptyToNull, formatSupabaseError } from '../utils/payload';
 
 export function SongFormScreen() {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   const { church, user } = useAuth();
   const navigation = useNavigation<any>();
+  const toast = useToast();
   const route = useRoute<any>();
   const songId = route.params?.songId as string | undefined;
 
@@ -129,7 +128,7 @@ export function SongFormScreen() {
       return;
     }
 
-    Alert.alert('Sucesso', songId ? 'Música atualizada.' : 'Música adicionada ao repertório.');
+    toast.success(songId ? 'Música atualizada' : 'Música adicionada');
     navigation.goBack();
   };
 
@@ -196,13 +195,10 @@ export function SongFormScreen() {
   );
 }
 
-function createStyles(colors: ColorTokens) {
-  return StyleSheet.create({
+const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   container: { padding: spacing.lg, paddingBottom: spacing.xxl },
   error: { ...typography.caption, color: colors.danger, marginBottom: spacing.sm },
   btn: { marginTop: spacing.md },
-})
-}
-
+});

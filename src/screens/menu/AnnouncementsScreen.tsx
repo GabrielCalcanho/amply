@@ -1,17 +1,15 @@
-import React, {useCallback, useState, useMemo} from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   Modal,
   Pressable,
   TextInput,
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
@@ -20,7 +18,10 @@ import { supabase } from '../../services/supabase';
 import { ScreenHeader } from '../../components/layout/ScreenHeader';
 import { EmptyState } from '../../components/EmptyState';
 import { Button } from '../../components/Button';
-import { spacing, typography, radius, ColorTokens } from '../../constants/theme';
+import { SegmentedControl } from '../../components/SegmentedControl';
+import { IconButton } from '../../components/IconButton';
+import { ActionMenu, ActionMenuItem } from '../../components/ActionMenu';
+import { spacing, radius, shadow } from '../../constants/theme';
 import { formatSupabaseError } from '../../utils/payload';
 import { notifyChurchMembers } from '../../utils/notifications';
 
@@ -33,17 +34,34 @@ type Announcement = {
   created_by: string | null;
 };
 
+type FilterKey = 'all' | 'important' | 'general';
+
+function formatDate(iso: string) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  } catch {
+    return iso.slice(0, 10);
+  }
+}
+
 export function AnnouncementsScreen() {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   const { church, membership, user } = useAuth();
+  const { colors } = useTheme();
   const [items, setItems] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<FilterKey>('all');
   const [modal, setModal] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [priority, setPriority] = useState<'normal' | 'high'>('normal');
   const [saving, setSaving] = useState(false);
+  const [menuFor, setMenuFor] = useState<Announcement | null>(null);
+
   const canManage = membership?.role === 'owner' || membership?.role === 'leader';
 
   const load = useCallback(async () => {
@@ -64,6 +82,12 @@ export function AnnouncementsScreen() {
       load();
     }, [load])
   );
+
+  const filtered = useMemo(() => {
+    if (filter === 'important') return items.filter((i) => i.priority === 'high');
+    if (filter === 'general') return items.filter((i) => i.priority !== 'high');
+    return items;
+  }, [items, filter]);
 
   const create = async () => {
     if (!title.trim()) {
@@ -87,14 +111,16 @@ export function AnnouncementsScreen() {
       Alert.alert('Erro', formatSupabaseError(error));
       return;
     }
-    await notifyChurchMembers({
-      churchId: church.id,
-      type: 'admin_notice',
-      title: title.trim(),
-      body: body.trim() || null,
-      excludeUserId: user.id,
-      data: { kind: 'announcement' },
-    });
+    try {
+      await notifyChurchMembers({
+        churchId: church.id,
+        type: 'announcement',
+        title: title.trim(),
+        body: body.trim() || 'Novo aviso no ministério',
+      });
+    } catch {
+      /* optional */
+    }
     setModal(false);
     setTitle('');
     setBody('');
@@ -102,14 +128,14 @@ export function AnnouncementsScreen() {
     load();
   };
 
-  const remove = (id: string) => {
-    Alert.alert('Excluir aviso', 'Deseja excluir este aviso?', [
+  const remove = (item: Announcement) => {
+    Alert.alert('Excluir aviso', 'Essa ação não poderá ser desfeita.', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Excluir',
         style: 'destructive',
         onPress: async () => {
-          const { error } = await supabase.from('announcements').delete().eq('id', id);
+          const { error } = await supabase.from('announcements').delete().eq('id', item.id);
           if (error) Alert.alert('Erro', formatSupabaseError(error));
           else load();
         },
@@ -117,162 +143,357 @@ export function AnnouncementsScreen() {
     ]);
   };
 
+  const menuItems: ActionMenuItem[] = menuFor
+    ? [
+        {
+          key: 'delete',
+          label: 'Excluir',
+          icon: 'trash-outline',
+          destructive: true,
+          onPress: () => remove(menuFor),
+        },
+      ]
+    : [];
+
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
+    <View style={[styles.safe, { backgroundColor: colors.background }]}>
       <ScreenHeader
         title="Avisos"
         right={
           canManage ? (
-            <TouchableOpacity onPress={() => setModal(true)} accessibilityLabel="Novo aviso" style={styles.addBtn}>
-              <Ionicons name="add" size={26} color={colors.primary} />
-            </TouchableOpacity>
+            <IconButton
+              icon="add"
+              onPress={() => setModal(true)}
+              accessibilityLabel="Novo aviso"
+            />
           ) : null
         }
       />
+
+      <View style={styles.toolbar}>
+        <SegmentedControl
+          options={[
+            { key: 'all', label: 'Todos' },
+            { key: 'important', label: 'Importantes' },
+            { key: 'general', label: 'Geral' },
+          ]}
+          value={filter}
+          onChange={setFilter}
+        />
+      </View>
+
       {loading ? (
-        <ActivityIndicator color={colors.primary} style={{ marginTop: 40 }} />
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.primary} size="large" />
+        </View>
       ) : (
         <FlatList
-          data={items}
+          data={filtered}
           keyExtractor={(i) => i.id}
           contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <EmptyState
+              icon="megaphone-outline"
               title="Nenhum aviso"
-              description="Comunicados do ministério aparecerão aqui. Aplique a migration 005 se as tabelas ainda não existirem."
+              description={
+                canManage
+                  ? 'Crie o primeiro aviso para o ministério.'
+                  : 'Quando houver avisos, eles aparecerão aqui.'
+              }
               actionLabel={canManage ? 'Criar aviso' : undefined}
               onAction={canManage ? () => setModal(true) : undefined}
             />
           }
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <View style={styles.cardTop}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                {item.priority === 'high' ? (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>Alta</Text>
+          renderItem={({ item }) => {
+            const important = item.priority === 'high';
+            return (
+              <Pressable
+                onPress={() => {
+                  Alert.alert(item.title, item.body || 'Sem descrição');
+                }}
+                onLongPress={canManage ? () => setMenuFor(item) : undefined}
+                style={({ pressed }) => [
+                  styles.card,
+                  {
+                    backgroundColor: important ? colors.surfaceInverse : colors.surface,
+                    borderColor: important ? 'transparent' : colors.border,
+                    borderRadius: radius.xl,
+                    opacity: pressed ? 0.92 : 1,
+                    ...shadow.sm,
+                  },
+                ]}
+              >
+                <View style={styles.cardTop}>
+                  <View
+                    style={[
+                      styles.iconCircle,
+                      {
+                        backgroundColor: important
+                          ? 'rgba(255,255,255,0.15)'
+                          : colors.surfaceSecondary,
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name="calendar-outline"
+                      size={18}
+                      color={important ? colors.textInverse : colors.text}
+                    />
                   </View>
+                  <Text
+                    style={[
+                      styles.badge,
+                      { color: important ? 'rgba(255,255,255,0.7)' : colors.textSecondary },
+                    ]}
+                  >
+                    {important ? 'Importante' : 'Geral'}
+                  </Text>
+                  {canManage ? (
+                    <IconButton
+                      icon="ellipsis-horizontal"
+                      size={18}
+                      color={important ? colors.textInverse : colors.textMuted}
+                      onPress={() => setMenuFor(item)}
+                      style={{ width: 36, height: 36 }}
+                    />
+                  ) : (
+                    <View style={{ width: 36 }} />
+                  )}
+                </View>
+                <Text
+                  style={[
+                    styles.cardTitle,
+                    { color: important ? colors.textInverse : colors.text },
+                  ]}
+                >
+                  {item.title}
+                </Text>
+                {item.body ? (
+                  <Text
+                    style={[
+                      styles.cardBody,
+                      {
+                        color: important
+                          ? 'rgba(255,255,255,0.75)'
+                          : colors.textSecondary,
+                      },
+                    ]}
+                    numberOfLines={3}
+                  >
+                    {item.body}
+                  </Text>
                 ) : null}
-              </View>
-              {item.body ? <Text style={styles.cardBody}>{item.body}</Text> : null}
-              <View style={styles.cardFooter}>
-                <Text style={styles.meta}>{new Date(item.created_at).toLocaleDateString('pt-BR')}</Text>
-                {canManage ? (
-                  <TouchableOpacity onPress={() => remove(item.id)}>
-                    <Text style={styles.delete}>Excluir</Text>
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-            </View>
-          )}
-          refreshing={loading}
-          onRefresh={load}
+                <Text
+                  style={[
+                    styles.cardDate,
+                    {
+                      color: important
+                        ? 'rgba(255,255,255,0.5)'
+                        : colors.textMuted,
+                    },
+                  ]}
+                >
+                  {formatDate(item.created_at)}
+                </Text>
+              </Pressable>
+            );
+          }}
         />
       )}
 
+      <ActionMenu
+        visible={!!menuFor}
+        onClose={() => setMenuFor(null)}
+        title="Ações do aviso"
+        items={menuItems}
+      />
+
       <Modal visible={modal} transparent animationType="slide" onRequestClose={() => setModal(false)}>
-        <Pressable style={styles.modalBg} onPress={() => setModal(false)}>
-          <Pressable style={styles.modal} onPress={(e) => e.stopPropagation?.()}>
-            <Text style={styles.modalTitle}>Novo aviso</Text>
+        <View style={[styles.modalBackdrop, { backgroundColor: colors.overlay }]}>
+          <View
+            style={[
+              styles.modalSheet,
+              {
+                backgroundColor: colors.surface,
+                borderTopLeftRadius: radius.xxl,
+                borderTopRightRadius: radius.xxl,
+              },
+            ]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Novo aviso</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  color: colors.text,
+                  borderColor: colors.border,
+                  backgroundColor: colors.surfaceSecondary,
+                  borderRadius: radius.lg,
+                },
+              ]}
               placeholder="Título"
+              placeholderTextColor={colors.textMuted}
               value={title}
               onChangeText={setTitle}
-              placeholderTextColor={colors.textMuted}
             />
             <TextInput
-              style={[styles.input, styles.area]}
-              placeholder="Conteúdo (opcional)"
+              style={[
+                styles.input,
+                styles.textarea,
+                {
+                  color: colors.text,
+                  borderColor: colors.border,
+                  backgroundColor: colors.surfaceSecondary,
+                  borderRadius: radius.lg,
+                },
+              ]}
+              placeholder="Descrição"
+              placeholderTextColor={colors.textMuted}
               value={body}
               onChangeText={setBody}
               multiline
-              placeholderTextColor={colors.textMuted}
             />
             <View style={styles.prioRow}>
-              <TouchableOpacity
-                style={[styles.prioBtn, priority === 'normal' && styles.prioActive]}
+              <Pressable
                 onPress={() => setPriority('normal')}
+                style={[
+                  styles.prioChip,
+                  {
+                    backgroundColor:
+                      priority === 'normal' ? colors.primary : colors.surfaceSecondary,
+                    borderRadius: radius.full,
+                  },
+                ]}
               >
-                <Text style={styles.prioText}>Normal</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.prioBtn, priority === 'high' && styles.prioActive]}
+                <Text
+                  style={{
+                    color: priority === 'normal' ? colors.textInverse : colors.text,
+                    fontWeight: '600',
+                    fontSize: 13,
+                  }}
+                >
+                  Geral
+                </Text>
+              </Pressable>
+              <Pressable
                 onPress={() => setPriority('high')}
+                style={[
+                  styles.prioChip,
+                  {
+                    backgroundColor:
+                      priority === 'high' ? colors.primary : colors.surfaceSecondary,
+                    borderRadius: radius.full,
+                  },
+                ]}
               >
-                <Text style={styles.prioText}>Alta</Text>
-              </TouchableOpacity>
+                <Text
+                  style={{
+                    color: priority === 'high' ? colors.textInverse : colors.text,
+                    fontWeight: '600',
+                    fontSize: 13,
+                  }}
+                >
+                  Importante
+                </Text>
+              </Pressable>
             </View>
-            <Button title="Publicar" onPress={create} loading={saving} />
-            <Button title="Cancelar" variant="ghost" onPress={() => setModal(false)} />
-          </Pressable>
-        </Pressable>
+            <Button title="Publicar" onPress={create} loading={saving} fullWidth />
+            <Button
+              title="Cancelar"
+              onPress={() => setModal(false)}
+              variant="ghost"
+              fullWidth
+              style={{ marginTop: 8 }}
+            />
+          </View>
+        </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
-function createStyles(colors: ColorTokens) {
-  return StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  list: { padding: spacing.md, flexGrow: 1, paddingBottom: spacing.xxl },
-  addBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+const styles = StyleSheet.create({
+  safe: { flex: 1 },
+  toolbar: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  list: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.xxxl,
+    gap: 12,
+  },
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
     padding: spacing.md,
-    marginBottom: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 2,
   },
-  cardTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  cardTitle: { ...typography.bodyMedium, color: colors.text, flex: 1 },
-  badge: {
-    backgroundColor: colors.dangerLight,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: radius.sm,
-  },
-  badgeText: { ...typography.small, color: colors.danger, fontWeight: '600' },
-  cardBody: { ...typography.body, color: colors.textSecondary, marginTop: 6 },
-  cardFooter: {
+  cardTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: spacing.sm,
+    marginBottom: 10,
   },
-  meta: { ...typography.small, color: colors.textMuted },
-  delete: { ...typography.caption, color: colors.danger },
-  modalBg: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
-  modal: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    padding: spacing.xl,
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badge: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  cardBody: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 10,
+  },
+  cardDate: {
+    fontSize: 12,
+  },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    padding: spacing.lg,
     paddingBottom: spacing.xxl,
   },
-  modalTitle: { ...typography.h3, color: colors.text, marginBottom: spacing.md },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: spacing.md,
+  },
   input: {
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 12,
+    fontSize: 15,
     marginBottom: spacing.sm,
-    ...typography.body,
-    color: colors.text,
   },
-  area: { minHeight: 88, textAlignVertical: 'top' },
-  prioRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
-  prioBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
+  textarea: {
+    minHeight: 100,
+    textAlignVertical: 'top',
   },
-  prioActive: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
-  prioText: { ...typography.label, color: colors.text },
-})
-}
-
+  prioRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: spacing.md,
+  },
+  prioChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+});

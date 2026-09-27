@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useMemo} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   StyleSheet,
@@ -10,14 +10,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../services/supabase';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { DateField } from '../components/DateField';
 import { TimeField } from '../components/TimeField';
 import { ScreenHeader } from '../components/layout/ScreenHeader';
-import { spacing, typography, radius, ColorTokens } from '../constants/theme';
+import { colors, spacing, typography, radius } from '../constants/theme';
 import { emptyToNull, formatSupabaseError } from '../utils/payload';
 import { notifyChurchMembers } from '../utils/notifications';
 import { toPostgresTime, todayISO, formatTime } from '../utils/dates';
@@ -32,10 +32,9 @@ const STATUS_OPTIONS: SetlistStatus[] = [
 ];
 
 export function SetlistFormScreen() {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   const { church, user, membership } = useAuth();
   const navigation = useNavigation<any>();
+  const toast = useToast();
   const route = useRoute<any>();
   const setlistId = route.params?.setlistId as string | undefined;
 
@@ -106,14 +105,13 @@ export function SetlistFormScreen() {
     }
 
     setLoading(true);
-    // Explicit payload — never send undefined (PostgREST rejects or ignores inconsistently)
-    const payload: Record<string, string | null> = {
+    const payload = {
       title: title.trim(),
-      date: date.slice(0, 10),
+      date,
       time: timeValue,
       location: emptyToNull(location),
       notes: emptyToNull(notes),
-      status: status || 'scheduled',
+      status,
     };
 
     let error;
@@ -129,7 +127,6 @@ export function SetlistFormScreen() {
     setLoading(false);
 
     if (error) {
-      console.warn('[AMPLY] setlist save error', error);
       Alert.alert('Erro ao salvar escala', formatSupabaseError(error));
       return;
     }
@@ -145,7 +142,7 @@ export function SetlistFormScreen() {
       });
     }
 
-    Alert.alert('Sucesso', setlistId ? 'Escala atualizada.' : 'Escala criada com sucesso.');
+    toast.success(setlistId ? 'Escala atualizada' : 'Escala criada');
     navigation.goBack();
   };
 
@@ -220,8 +217,7 @@ export function SetlistFormScreen() {
   );
 }
 
-function createStyles(colors: ColorTokens) {
-  return StyleSheet.create({
+const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   container: { padding: spacing.lg, paddingBottom: spacing.xxl },
   section: {
@@ -245,6 +241,4 @@ function createStyles(colors: ColorTokens) {
   chipText: { ...typography.caption, color: colors.textSecondary },
   chipTextOn: { color: colors.primaryDark, fontWeight: '600' },
   btn: { marginTop: spacing.md },
-})
-}
-
+});

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,17 +13,16 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
+import { colors, typography, spacing } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
-import { spacing, typography, ColorTokens } from '../../constants/theme';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
 };
 
 export function SignUpScreen({ navigation }: Props) {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   const { signUp, loading } = useAuth();
+  const { colors } = useTheme();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -112,8 +111,7 @@ export function SignUpScreen({ navigation }: Props) {
   );
 }
 
-function createStyles(colors: ColorTokens) {
-  return StyleSheet.create({
+const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   container: {
@@ -128,7 +126,7 @@ function createStyles(colors: ColorTokens) {
   logo: {
     fontSize: 36,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.charcoal,
     letterSpacing: 2,
   },
   subtitle: {
@@ -162,4 +160,3 @@ function createStyles(colors: ColorTokens) {
     color: colors.primary,
   },
 });
-}

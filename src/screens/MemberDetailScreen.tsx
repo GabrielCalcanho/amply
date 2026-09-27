@@ -1,35 +1,110 @@
-import React, {useCallback, useState, useMemo} from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  Image,
+  Pressable,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../services/supabase';
-import { ChurchMember, Profile } from '../types';
-import { ScreenHeader } from '../components/layout/ScreenHeader';
-import { spacing, typography, ColorTokens } from '../constants/theme';
+import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { ChurchMember, Profile, Song } from '../types';
 import { Avatar } from '../components/Avatar';
-import { Badge } from '../components/Badge';
-import { formatDateBR, formatDayMonth } from '../utils/dates';
+import { Button } from '../components/Button';
+import { EmptyState } from '../components/EmptyState';
+import { spacing, radius, shadow } from '../constants/theme';
+import { isBirthdayToday } from '../utils/dates';
+
+type MemberRow = ChurchMember & { profile?: Profile | null };
 
 export function MemberDetailScreen() {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { church, user } = useAuth();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const memberId = route.params?.memberId as string;
-  const [member, setMember] = useState<(ChurchMember & { profile?: Profile }) | null>(null);
+  const insets = useSafeAreaInsets();
+
+  const memberId = route.params?.memberId as string | undefined;
+  const userIdParam = route.params?.userId as string | undefined;
+
+  const [member, setMember] = useState<MemberRow | null>(null);
+  const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from('church_members')
-      .select('*, profile:profiles(*)')
-      .eq('id', memberId)
-      .single();
-    setMember(data as any);
-    setLoading(false);
-  }, [memberId]);
+    try {
+      let row: MemberRow | null = null;
+
+      if (memberId) {
+        const { data } = await supabase
+          .from('church_members')
+          .select('*, profile:profiles(*)')
+          .eq('id', memberId)
+          .maybeSingle();
+        row = (data as MemberRow) ?? null;
+      }
+
+      if (!row && userIdParam && church) {
+        const { data } = await supabase
+          .from('church_members')
+          .select('*, profile:profiles(*)')
+          .eq('church_id', church.id)
+          .eq('user_id', userIdParam)
+          .maybeSingle();
+        row = (data as MemberRow) ?? null;
+      }
+
+      // Fallback: only profile
+      if (!row && userIdParam) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userIdParam)
+          .maybeSingle();
+        if (prof) {
+          row = {
+            id: '',
+            church_id: church?.id ?? '',
+            user_id: userIdParam,
+            role: 'musician',
+            instrument: null,
+            created_at: '',
+            profile: prof as Profile,
+          };
+        }
+      }
+
+      setMember(row);
+
+      // Songs of the church as a simple "musicas que toca" list
+      // Prefer favorites / recent if available
+      if (church) {
+        const { data: songData } = await supabase
+          .from('songs')
+          .select('*')
+          .eq('church_id', church.id)
+          .order('is_favorite', { ascending: false })
+          .order('title')
+          .limit(12);
+        setSongs((songData as Song[]) ?? []);
+      } else {
+        setSongs([]);
+      }
+    } catch (e) {
+      console.warn('MemberDetail load', e);
+      setMember(null);
+      setSongs([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [memberId, userIdParam, church]);
 
   useFocusEffect(
     useCallback(() => {
@@ -37,65 +112,271 @@ export function MemberDetailScreen() {
     }, [load])
   );
 
-  if (loading || !member) {
+  if (loading) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+      <View style={[styles.safe, { backgroundColor: colors.background }]}>
+        <View style={[styles.center, { paddingTop: insets.top }]}>
+          <ActivityIndicator color={colors.primary} size="large" />
         </View>
-      </SafeAreaView>
+      </View>
+    );
+  }
+
+  if (!member) {
+    return (
+      <View style={[styles.safe, { backgroundColor: colors.background }]}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={[styles.backFab, { top: insets.top + 8 }]}
+        >
+          <Ionicons name="chevron-back" size={24} color={colors.text} />
+        </Pressable>
+        <EmptyState
+          icon="person-outline"
+          title="Membro não encontrado"
+          description="Não foi possível carregar os dados deste integrante."
+          actionLabel="Voltar"
+          onAction={() => navigation.goBack()}
+        />
+      </View>
     );
   }
 
   const p = member.profile;
-  const roleLabel =
-    member.role === 'owner' ? 'Administrador' : member.role === 'leader' ? 'Líder' : 'Músico';
+  const name = p?.name ?? 'Integrante';
+  const birthdayToday = p?.birth_date ? isBirthdayToday(p.birth_date) : false;
+  const instrument = member.instrument || '—';
+  const coverUri: string | null = (p as any)?.cover_url ?? null;
+
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <ScreenHeader title="Membro" />
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.hero}>
-          <Avatar uri={p?.avatar_url} name={p?.name} size={88} />
-          <Text style={styles.name}>{p?.name ?? 'Integrante'}</Text>
-          <Badge label={roleLabel} tone="primary" />
+    <View style={[styles.safe, { backgroundColor: colors.background }]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: spacing.xxxl + 24 }}
+      >
+        {/* Cover */}
+        <View style={[styles.cover, { backgroundColor: colors.surfaceSecondary }]}>
+          {coverUri ? (
+            <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFillObject} />
+          ) : (
+            <View
+              style={[
+                StyleSheet.absoluteFillObject,
+                { backgroundColor: colors.primary, opacity: 0.08 },
+              ]}
+            />
+          )}
+          <Pressable
+            onPress={() => navigation.goBack()}
+            hitSlop={12}
+            style={[styles.backFab, { top: insets.top + 8 }]}
+          >
+            <View
+              style={[
+                styles.backCircle,
+                { backgroundColor: 'rgba(255,255,255,0.92)' },
+              ]}
+            >
+              <Ionicons name="chevron-back" size={22} color="#111" />
+            </View>
+          </Pressable>
         </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Instrumento / função</Text>
-          <Text style={styles.value}>{member.instrument || '—'}</Text>
+
+        {/* Avatar overlapping cover */}
+        <View style={styles.avatarRow}>
+          <View
+            style={[
+              styles.avatarRing,
+              {
+                backgroundColor: colors.background,
+                borderColor: colors.background,
+              },
+            ]}
+          >
+            <Avatar uri={p?.avatar_url} name={name} size={96} />
+          </View>
         </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Aniversário</Text>
-          <Text style={styles.value}>
-            {p?.birth_date ? formatDayMonth(p.birth_date) : 'Não informado'}
+
+        {/* Identity */}
+        <View style={styles.identity}>
+          <Text style={[styles.name, { color: colors.text }]}>{name}</Text>
+          {birthdayToday ? (
+            <Text style={[styles.bday, { color: colors.textSecondary }]}>
+              Hoje é o aniversário!
+            </Text>
+          ) : null}
+
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <Ionicons name="mic-outline" size={16} color={colors.textSecondary} />
+              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                {instrument}
+              </Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Ionicons name="musical-notes-outline" size={16} color={colors.textSecondary} />
+              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                {songs.length} {songs.length === 1 ? 'música' : 'músicas'}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Songs section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Músicas que toca
           </Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Status</Text>
-          <Text style={styles.value}>
-            {member.is_active === false ? 'Inativo' : 'Ativo'}
-          </Text>
+          {songs.length === 0 ? (
+            <Text style={[styles.emptySongs, { color: colors.textMuted }]}>
+              Nenhuma música no repertório ainda.
+            </Text>
+          ) : (
+            songs.map((s) => (
+              <Pressable
+                key={s.id}
+                onPress={() => navigation.navigate('SongDetail', { songId: s.id })}
+                style={({ pressed }) => [
+                  styles.songRow,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    borderRadius: radius.lg,
+                    opacity: pressed ? 0.92 : 1,
+                    ...shadow.sm,
+                  },
+                ]}
+              >
+                {s.artwork_url ? (
+                  <Image source={{ uri: s.artwork_url }} style={styles.songCover} />
+                ) : (
+                  <View
+                    style={[
+                      styles.songCover,
+                      {
+                        backgroundColor: colors.surfaceSecondary,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      },
+                    ]}
+                  >
+                    <Ionicons name="musical-note" size={18} color={colors.textMuted} />
+                  </View>
+                )}
+                <View style={styles.songInfo}>
+                  <Text style={[styles.songTitle, { color: colors.text }]} numberOfLines={1}>
+                    {s.title}
+                  </Text>
+                  <Text style={[styles.songKey, { color: colors.textSecondary }]}>
+                    {s.key ? `Tonalidade: ${s.key}` : s.artist || '—'}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+              </Pressable>
+            ))
+          )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
-function createStyles(colors: ColorTokens) {
-  return StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+const styles = StyleSheet.create({
+  safe: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  container: { padding: spacing.xl },
-  back: { ...typography.body, color: colors.primary, marginBottom: spacing.xl },
-  hero: { alignItems: 'center', marginBottom: spacing.xxl, gap: spacing.xs },
-  name: { ...typography.h2, color: colors.text, marginTop: spacing.sm },
-  row: {
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  cover: {
+    height: 160,
+    width: '100%',
   },
-  label: { ...typography.caption, color: colors.textMuted },
-  value: { ...typography.bodyMedium, color: colors.text, marginTop: 2 },
-})
-}
-
+  backFab: {
+    position: 'absolute',
+    left: 12,
+    zIndex: 10,
+  },
+  backCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarRow: {
+    alignItems: 'center',
+    marginTop: -48,
+  },
+  avatarRing: {
+    padding: 4,
+    borderRadius: 56,
+    borderWidth: 4,
+  },
+  identity: {
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.sm,
+  },
+  name: {
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  bday: {
+    fontSize: 14,
+    marginTop: 6,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    gap: 20,
+    marginTop: spacing.md,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  metaText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  section: {
+    marginTop: spacing.xl,
+    paddingHorizontal: spacing.md,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: spacing.sm,
+  },
+  emptySongs: {
+    fontSize: 14,
+    marginTop: 4,
+  },
+  songRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 10,
+  },
+  songCover: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+  },
+  songInfo: {
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  songTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  songKey: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  footer: {
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.xl,
+  },
+});

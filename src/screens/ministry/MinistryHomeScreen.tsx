@@ -1,171 +1,289 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  Platform,
+  FlatList,
+  Pressable,
+  ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { TabScreenShell } from '../../components/layout/TabScreenShell';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { spacing, typography, radius, ColorTokens } from '../../constants/theme';
+import { supabase } from '../../services/supabase';
+import { ScreenHeader } from '../../components/layout/ScreenHeader';
+import { SearchField } from '../../components/SearchField';
+import { EmptyState } from '../../components/EmptyState';
+import { spacing, radius, shadow } from '../../constants/theme';
 
-const LINKS: {
-  label: string;
+type MinistryItem = {
+  key: string;
+  name: string;
   icon: keyof typeof Ionicons.glyphMap;
-  route: string;
+  count: number;
+};
+
+/** Default ministry groups mapped from instruments / roles */
+const MINISTRY_DEFS: {
+  key: string;
+  name: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  match: (instrument: string | null | undefined) => boolean;
 }[] = [
-  { label: 'Equipes', icon: 'people-outline', route: 'Teams' },
-  { label: 'Funções', icon: 'musical-notes-outline', route: 'Roles' },
-  { label: 'Classificações', icon: 'pricetags-outline', route: 'Classifications' },
-  { label: 'Membros', icon: 'person-outline', route: 'Team' },
+  {
+    key: 'louvor',
+    name: 'Louvor',
+    icon: 'musical-notes',
+    match: (i) => {
+      const v = (i ?? '').toLowerCase();
+      return !v || v.includes('louvor') || v.includes('líder') || v.includes('lider') || v.includes('regência') || v.includes('regencia');
+    },
+  },
+  {
+    key: 'banda',
+    name: 'Banda',
+    icon: 'people',
+    match: (i) => {
+      const v = (i ?? '').toLowerCase();
+      return v.includes('banda') || v.includes('banda');
+    },
+  },
+  {
+    key: 'vocal',
+    name: 'Vocal',
+    icon: 'mic',
+    match: (i) => {
+      const v = (i ?? '').toLowerCase();
+      return v.includes('vocal') || v.includes('voz') || v.includes('canto');
+    },
+  },
+  {
+    key: 'violao',
+    name: 'Violão',
+    icon: 'musical-note',
+    match: (i) => {
+      const v = (i ?? '').toLowerCase();
+      return v.includes('violão') || v.includes('violao') || v.includes('guitarra acústica');
+    },
+  },
+  {
+    key: 'bateria',
+    name: 'Bateria',
+    icon: 'radio',
+    match: (i) => {
+      const v = (i ?? '').toLowerCase();
+      return v.includes('bateria') || v.includes('cajón') || v.includes('cajon') || v.includes('percuss');
+    },
+  },
+  {
+    key: 'teclado',
+    name: 'Teclado',
+    icon: 'grid',
+    match: (i) => {
+      const v = (i ?? '').toLowerCase();
+      return v.includes('teclado') || v.includes('piano') || v.includes('keys');
+    },
+  },
+  {
+    key: 'baixo',
+    name: 'Baixo',
+    icon: 'pulse',
+    match: (i) => {
+      const v = (i ?? '').toLowerCase();
+      return v.includes('baixo') || v.includes('bass');
+    },
+  },
+  {
+    key: 'guitarra',
+    name: 'Guitarra',
+    icon: 'flash',
+    match: (i) => {
+      const v = (i ?? '').toLowerCase();
+      return v.includes('guitarra') && !v.includes('acústica') && !v.includes('acustica');
+    },
+  },
+  {
+    key: 'outros',
+    name: 'Outros',
+    icon: 'ellipsis-horizontal',
+    match: () => false, // filled as remainder
+  },
 ];
 
 export function MinistryHomeScreen() {
   const navigation = useNavigation<any>();
-  const { church, membership } = useAuth();
-  const { colors, isDark } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { church } = useAuth();
+  const { colors } = useTheme();
+  const [members, setMembers] = useState<{ instrument: string | null }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
-  const shadow = Platform.select({
-    ios: {
-      shadowColor: isDark ? '#000' : '#0F172A',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: isDark ? 0.3 : 0.06,
-      shadowRadius: 6,
-    },
-    android: { elevation: 2 },
-    default: {},
-  });
+  const load = useCallback(async () => {
+    if (!church) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const { data } = await supabase
+      .from('church_members')
+      .select('instrument')
+      .eq('church_id', church.id);
+    setMembers((data as { instrument: string | null }[]) ?? []);
+    setLoading(false);
+  }, [church]);
+
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
+
+  const items: MinistryItem[] = useMemo(() => {
+    const counts: Record<string, number> = {};
+    MINISTRY_DEFS.forEach((d) => {
+      counts[d.key] = 0;
+    });
+
+    for (const m of members) {
+      let matched = false;
+      for (const def of MINISTRY_DEFS) {
+        if (def.key === 'outros') continue;
+        if (def.match(m.instrument)) {
+          counts[def.key] += 1;
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) counts.outros += 1;
+    }
+
+    // Always show core list; hide zero only for optional groups like guitarra if 0
+    return MINISTRY_DEFS.filter((d) => {
+      if (['louvor', 'vocal', 'violao', 'bateria', 'teclado', 'baixo', 'outros', 'banda'].includes(d.key)) {
+        return true;
+      }
+      return (counts[d.key] ?? 0) > 0;
+    }).map((d) => ({
+      key: d.key,
+      name: d.name,
+      icon: d.icon,
+      count: counts[d.key] ?? 0,
+    }));
+  }, [members]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter((i) => i.name.toLowerCase().includes(q));
+  }, [items, search]);
+
+  const openMinistry = (item: MinistryItem) => {
+    // Navigate to team filtered by instrument group when possible
+    navigation.navigate('Team', { filterInstrument: item.key, title: item.name });
+  };
 
   return (
-    <TabScreenShell>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Banner / capa */}
-        <View style={[styles.banner, shadow]}>
-          {church?.logo_url ? (
-            <Image source={{ uri: church.logo_url }} style={styles.bannerImage} />
-          ) : (
-            <View style={[styles.bannerImage, styles.bannerPlaceholder]}>
-              <Ionicons name="business-outline" size={40} color={colors.primary} />
-            </View>
-          )}
-          <View style={styles.bannerOverlay}>
-            <Text style={styles.bannerLabel}>Ministério</Text>
-            <Text style={styles.bannerName} numberOfLines={2}>
-              {church?.name ?? 'Ministério'}
-            </Text>
-            {church?.invite_code ? (
-              <Text style={styles.bannerInvite}>Convite · {church.invite_code}</Text>
-            ) : null}
-          </View>
-        </View>
+    <View style={[styles.safe, { backgroundColor: colors.background }]}>
+      <ScreenHeader title="Ministérios" showBack />
+      <View style={styles.toolbar}>
+        <SearchField
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Buscar ministério..."
+        />
+      </View>
 
-        <Text style={styles.section}>Estrutura</Text>
-        <View style={styles.grid}>
-          {LINKS.map((item) => (
-            <TouchableOpacity
-              key={item.route}
-              style={[styles.card, shadow]}
-              onPress={() => navigation.navigate(item.route)}
-              activeOpacity={0.85}
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.primary} size="large" />
+        </View>
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(i) => i.key}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <EmptyState
+              icon="business-outline"
+              title="Nenhum ministério encontrado"
+              description="Ajuste a busca ou cadastre membros com instrumento no perfil."
+            />
+          }
+          renderItem={({ item }) => (
+            <Pressable
+              onPress={() => openMinistry(item)}
+              style={({ pressed }) => [
+                styles.row,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  borderRadius: radius.xl,
+                  opacity: pressed ? 0.92 : 1,
+                  ...shadow.sm,
+                },
+              ]}
             >
-              <View style={[styles.iconWrap, { backgroundColor: colors.primaryLight }]}>
-                <Ionicons name={item.icon} size={22} color={colors.primary} />
+              <View
+                style={[
+                  styles.iconCircle,
+                  { backgroundColor: colors.primary },
+                ]}
+              >
+                <Ionicons name={item.icon} size={18} color={colors.textInverse} />
               </View>
-              <Text style={styles.cardLabel}>{item.label}</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {membership?.role === 'owner' || membership?.role === 'leader' ? (
-          <Text style={styles.hint}>
-            Você pode gerenciar equipes, funções e classificações. A imagem do ministério pode ser
-            alterada na Home.
-          </Text>
-        ) : null}
-      </ScrollView>
-    </TabScreenShell>
+              <View style={styles.info}>
+                <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
+                <Text style={[styles.meta, { color: colors.textSecondary }]}>
+                  {item.count} {item.count === 1 ? 'membro' : 'membros'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </Pressable>
+          )}
+        />
+      )}
+    </View>
   );
 }
 
-function createStyles(colors: ColorTokens) {
-  return StyleSheet.create({
-    content: { padding: spacing.lg, paddingBottom: spacing.xxxl },
-    banner: {
-      borderRadius: radius.xl,
-      overflow: 'hidden',
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.border,
-      marginBottom: spacing.xl,
-    },
-    bannerImage: {
-      width: '100%',
-      height: 140,
-    },
-    bannerPlaceholder: {
-      backgroundColor: colors.primaryLight,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    bannerOverlay: {
-      padding: spacing.md,
-      backgroundColor: colors.surface,
-    },
-    bannerLabel: {
-      ...typography.label,
-      color: colors.textMuted,
-      textTransform: 'uppercase',
-      fontSize: 10,
-    },
-    bannerName: {
-      ...typography.h2,
-      color: colors.text,
-      marginTop: 4,
-    },
-    bannerInvite: {
-      ...typography.caption,
-      color: colors.primary,
-      marginTop: 6,
-      fontWeight: '600',
-    },
-    section: {
-      ...typography.label,
-      color: colors.textMuted,
-      textTransform: 'uppercase',
-      marginBottom: spacing.sm,
-    },
-    grid: { gap: spacing.sm },
-    card: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      padding: spacing.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    iconWrap: {
-      width: 40,
-      height: 40,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    cardLabel: { ...typography.bodyMedium, color: colors.text, flex: 1 },
-    hint: {
-      ...typography.caption,
-      color: colors.textMuted,
-      marginTop: spacing.xl,
-      lineHeight: 18,
-    },
-  });
-}
+const styles = StyleSheet.create({
+  safe: { flex: 1 },
+  toolbar: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  list: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.xxxl,
+    gap: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 2,
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  info: {
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  name: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  meta: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+});

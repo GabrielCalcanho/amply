@@ -1,47 +1,52 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
-  TextInput,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { TabScreenShell } from '../components/layout/TabScreenShell';
+import { AppHeader } from '../components/layout/AppHeader';
+import { SegmentedControl } from '../components/SegmentedControl';
+import { EmptyState } from '../components/EmptyState';
+import { Badge } from '../components/Badge';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
 import { Setlist, SETLIST_STATUS_LABELS, SetlistStatus } from '../types';
-import { useTheme } from '../contexts/ThemeContext';
-import { spacing, typography, radius, ColorTokens } from '../constants/theme';
-import { EmptyState } from '../components/EmptyState';
-import { formatDateLongBR, formatTime } from '../utils/dates';
+import { spacing, radius, shadow } from '../constants/theme';
+import { formatDateLongBR, formatTime, todayISO } from '../utils/dates';
+
+type FilterKey = 'upcoming' | 'past' | 'all';
 
 export function SetlistsScreen() {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   const { church, membership } = useAuth();
+  const { colors } = useTheme();
   const navigation = useNavigation<any>();
   const [setlists, setSetlists] = useState<Setlist[]>([]);
-  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<FilterKey>('upcoming');
   const [loading, setLoading] = useState(true);
 
   const canManage = membership?.role === 'owner' || membership?.role === 'leader';
+  const today = todayISO();
 
   const load = useCallback(async () => {
     if (!church) return;
     setLoading(true);
     const { data } = await supabase
       .from('setlists')
-      .select('*, setlist_songs(count)')
+      .select('*, setlist_songs(count), setlist_members(count)')
       .eq('church_id', church.id)
       .order('date', { ascending: false });
 
     const mapped = (data ?? []).map((s: any) => ({
       ...s,
       songs_count: s.setlist_songs?.[0]?.count ?? 0,
+      members_count: s.setlist_members?.[0]?.count ?? 0,
     }));
     setSetlists(mapped);
     setLoading(false);
@@ -54,18 +59,30 @@ export function SetlistsScreen() {
   );
 
   const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return setlists;
-    return setlists.filter(
-      (s) =>
-        s.title.toLowerCase().includes(q) ||
-        (s.location && s.location.toLowerCase().includes(q))
-    );
-  }, [setlists, search]);
+    if (filter === 'upcoming') {
+      return setlists
+        .filter((s) => s.date >= today && s.status !== 'cancelled')
+        .sort((a, b) => a.date.localeCompare(b.date));
+    }
+    if (filter === 'past') {
+      return setlists
+        .filter((s) => s.date < today || s.status === 'completed')
+        .sort((a, b) => b.date.localeCompare(a.date));
+    }
+    return setlists;
+  }, [setlists, filter, today]);
+
+  const statusTone = (status: SetlistStatus) => {
+    if (status === 'confirmed') return 'success' as const;
+    if (status === 'cancelled') return 'danger' as const;
+    if (status === 'completed') return 'neutral' as const;
+    return 'info' as const;
+  };
 
   if (loading) {
     return (
       <TabScreenShell>
+        <AppHeader title="Setlists" showNotifications={false} showAvatar={false} />
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
@@ -75,237 +92,165 @@ export function SetlistsScreen() {
 
   return (
     <TabScreenShell>
-      <View style={styles.root}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Setlists</Text>
-          <View style={styles.headerRight}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Calendar')}
-              hitSlop={8}
-              style={styles.iconBtn}
+      <AppHeader
+        title="Setlists"
+        showNotifications={false}
+        showAvatar={false}
+        right={
+          canManage ? (
+            <Pressable
+              onPress={() => navigation.navigate('SetlistForm')}
+              hitSlop={10}
+              style={({ pressed }) => [
+                styles.addBtn,
+                {
+                  backgroundColor: colors.primary,
+                  borderRadius: radius.full,
+                  opacity: pressed ? 0.85 : 1,
+                },
+              ]}
             >
-              <Ionicons
-                name="calendar-outline"
-                size={22}
-                color={colors.textSecondary}
-              />
-            </TouchableOpacity>
-            {canManage ? (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('SetlistForm')}
-                style={styles.addBtn}
-                hitSlop={8}
-              >
-                <Ionicons name="add" size={22} color={colors.primary} />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-        </View>
+              <Ionicons name="add" size={20} color={colors.textInverse} />
+            </Pressable>
+          ) : null
+        }
+      />
 
-        <View style={styles.searchWrap}>
-          <Ionicons
-            name="search-outline"
-            size={18}
-            color={colors.textMuted}
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.search}
-            value={search}
-            onChangeText={setSearch}
-            placeholder="Buscar setlist ou local"
-            placeholderTextColor={colors.textMuted}
-            returnKeyType="search"
-          />
-        </View>
-
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <EmptyState
-              title="Nenhuma setlist"
-              description="Crie a primeira setlist para organizar o culto."
-              actionLabel={canManage ? 'Criar setlist' : undefined}
-              onAction={
-                canManage
-                  ? () => navigation.navigate('SetlistForm')
-                  : undefined
-              }
-            />
-          }
-          renderItem={({ item }) => {
-            const statusKey = (item.status as SetlistStatus) || 'scheduled';
-            return (
-              <TouchableOpacity
-                style={styles.item}
-                activeOpacity={0.7}
-                onPress={() =>
-                  navigation.navigate('SetlistDetail', {
-                    setlistId: item.id,
-                  })
-                }
-              >
-                <View style={styles.itemTop}>
-                  <Text style={styles.itemTitle} numberOfLines={2}>
-                    {item.title}
-                  </Text>
-                  <View style={styles.statusPill}>
-                    <Text style={styles.statusText}>
-                      {SETLIST_STATUS_LABELS[statusKey] ?? statusKey}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.itemMeta}>
-                  {formatDateLongBR(item.date)}
-                  {item.time ? ` · ${formatTime(item.time)}` : ''}
-                </Text>
-                {item.location ? (
-                  <Text style={styles.itemLoc} numberOfLines={1}>
-                    {item.location}
-                  </Text>
-                ) : null}
-                <View style={styles.itemFooter}>
-                  <Text style={styles.itemSongs}>
-                    {item.songs_count ?? 0}{' '}
-                    {(item.songs_count ?? 0) === 1 ? 'música' : 'músicas'}
-                  </Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={16}
-                    color={colors.textMuted}
-                  />
-                </View>
-              </TouchableOpacity>
-            );
-          }}
+      <View style={styles.toolbar}>
+        <SegmentedControl
+          options={[
+            { key: 'upcoming', label: 'Próximos' },
+            { key: 'past', label: 'Passadas' },
+            { key: 'all', label: 'Todas' },
+          ]}
+          value={filter}
+          onChange={setFilter}
         />
       </View>
+
+      <FlatList
+        data={filtered}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <EmptyState
+            icon="calendar-outline"
+            title={
+              filter === 'upcoming'
+                ? 'Nenhuma escala próxima'
+                : filter === 'past'
+                  ? 'Nenhuma escala passada'
+                  : 'Nenhuma escala cadastrada'
+            }
+            description={
+              canManage
+                ? 'Crie sua primeira escala para começar a organizar o ministério.'
+                : 'Aguarde o líder criar uma escala.'
+            }
+            actionLabel={canManage ? 'Criar escala' : undefined}
+            onAction={canManage ? () => navigation.navigate('SetlistForm') : undefined}
+          />
+        }
+        renderItem={({ item, index }) => {
+          const highlight = filter === 'upcoming' && index === 0;
+          const titleColor = highlight ? colors.textInverse : colors.text;
+          const metaColor = highlight ? colors.textInverse : colors.textSecondary;
+          const mutedColor = highlight ? colors.textInverse : colors.textMuted;
+          return (
+          <Pressable
+            onPress={() => navigation.navigate('SetlistDetail', { setlistId: item.id })}
+            style={({ pressed }) => [
+              styles.card,
+              {
+                backgroundColor: highlight ? colors.surfaceInverse : colors.surface,
+                borderColor: highlight ? 'transparent' : colors.border,
+                borderRadius: radius.xl,
+                opacity: pressed ? 0.92 : 1,
+                ...(highlight ? {} : shadow.sm),
+              },
+            ]}
+          >
+            <View style={styles.cardTop}>
+              <Text style={[styles.cardTitle, { color: titleColor }]} numberOfLines={1}>
+                {item.title}
+              </Text>
+              <Badge
+                label={SETLIST_STATUS_LABELS[(item.status as SetlistStatus) || 'scheduled']}
+                tone={highlight ? 'inverse' : statusTone((item.status as SetlistStatus) || 'scheduled')}
+              />
+            </View>
+            <Text style={[styles.cardMeta, { color: metaColor, opacity: highlight ? 0.8 : 1 }]}>
+              {formatDateLongBR(item.date)}
+              {item.time ? ` · ${formatTime(item.time)}` : ''}
+            </Text>
+            {item.location ? (
+              <Text style={[styles.cardLoc, { color: mutedColor, opacity: highlight ? 0.7 : 1 }]} numberOfLines={1}>
+                {item.location}
+              </Text>
+            ) : null}
+            <View style={styles.cardFooter}>
+              <Text style={[styles.cardStats, { color: mutedColor, opacity: highlight ? 0.7 : 1 }]}>
+                {item.members_count ?? 0} membros · {item.songs_count ?? 0} músicas
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color={mutedColor} />
+            </View>
+          </Pressable>
+          );
+        }}
+      />
     </TabScreenShell>
   );
 }
 
-function createStyles(colors: ColorTokens) {
-  return StyleSheet.create({
-    root: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    center: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: spacing.lg,
-      paddingTop: spacing.md,
-      paddingBottom: spacing.sm,
-    },
-    headerRight: {
-      flexDirection: 'row',
-      gap: spacing.sm,
-      alignItems: 'center',
-    },
-    title: {
-      ...typography.h2,
-      color: colors.text,
-    },
-    iconBtn: {
-      width: 36,
-      height: 36,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    addBtn: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: colors.primaryLight,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    searchWrap: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginHorizontal: spacing.lg,
-      marginBottom: spacing.md,
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      paddingHorizontal: spacing.md,
-    },
-    searchIcon: {
-      marginRight: spacing.sm,
-    },
-    search: {
-      flex: 1,
-      height: 44,
-      ...typography.body,
-      color: colors.text,
-    },
-    list: {
-      paddingHorizontal: spacing.lg,
-      paddingBottom: spacing.xxl,
-      flexGrow: 1,
-    },
-    item: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.lg,
-      padding: spacing.lg,
-      marginBottom: spacing.sm,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    itemTop: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      gap: spacing.sm,
-    },
-    itemTitle: {
-      ...typography.h3,
-      color: colors.text,
-      flex: 1,
-    },
-    statusPill: {
-      paddingHorizontal: 10,
-      paddingVertical: 3,
-      borderRadius: radius.full,
-      backgroundColor: colors.primaryLight,
-    },
-    statusText: {
-      ...typography.small,
-      color: colors.primaryDark,
-      fontWeight: '600',
-    },
-    itemMeta: {
-      ...typography.body,
-      color: colors.textSecondary,
-      marginTop: spacing.sm,
-    },
-    itemLoc: {
-      ...typography.caption,
-      color: colors.textMuted,
-      marginTop: 4,
-    },
-    itemFooter: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginTop: spacing.md,
-      paddingTop: spacing.sm,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
-    },
-    itemSongs: {
-      ...typography.caption,
-      color: colors.textSecondary,
-    },
-  });
-}
+const styles = StyleSheet.create({
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  toolbar: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  addBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  list: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.xxxl,
+    gap: 10,
+  },
+  card: {
+    padding: spacing.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: 2,
+  },
+  cardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+  },
+  cardMeta: {
+    fontSize: 13,
+    marginTop: 6,
+  },
+  cardLoc: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  cardStats: {
+    fontSize: 12,
+  },
+});

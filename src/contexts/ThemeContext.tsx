@@ -1,115 +1,133 @@
 import React, {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
+  useCallback,
 } from 'react';
-import { useColorScheme } from 'react-native';
+import { useColorScheme as useSystemColorScheme, Appearance } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-  lightColors,
-  darkColors,
-  ColorTokens,
-  ThemeMode,
+  ColorScheme,
+  ThemeColors,
+  getColors,
+  spacing,
+  radius,
+  typography,
+  shadow,
+  hitSlop,
+  pagePadding,
+  cardPadding,
 } from '../constants/theme';
 
-const STORAGE_KEY = '@amply/theme-preference';
+export type ThemePreference = 'light' | 'dark';
 
-export type ThemeColors = ColorTokens;
-
-type ThemeContextValue = {
+interface ThemeContextValue {
+  preference: ThemePreference;
+  scheme: ColorScheme;
   colors: ThemeColors;
   isDark: boolean;
-  scheme: 'light' | 'dark';
-  mode: ThemeMode;
-  theme: 'light' | 'dark';
-  setMode: (mode: ThemeMode) => void;
-  setTheme: (theme: 'light' | 'dark') => void;
-  toggleTheme: () => void;
-  toggle: () => void;
-};
+  setPreference: (p: ThemePreference) => void;
+  spacing: typeof spacing;
+  radius: typeof radius;
+  typography: typeof typography;
+  shadow: typeof shadow;
+  hitSlop: typeof hitSlop;
+  pagePadding: number;
+  cardPadding: number;
+}
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
+const STORAGE_KEY = '@amply/theme_preference';
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const system = useColorScheme();
-  const [mode, setModeState] = useState<ThemeMode>('system');
-  const [ready, setReady] = useState(false);
+  const system = useSystemColorScheme();
+  const [preference, setPreferenceState] = useState<ThemePreference>('light');
+  const [systemScheme, setSystemScheme] = useState<ColorScheme>(
+    system === 'dark' ? 'dark' : 'light'
+  );
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (!cancelled && stored) {
-          if (stored === 'light' || stored === 'dark' || stored === 'system') {
-            setModeState(stored);
-          } else if (stored === 'true' || stored === 'dark-mode') {
-            setModeState('dark');
-          } else if (stored === 'false') {
-            setModeState('light');
-          }
+    let mounted = true;
+    AsyncStorage.getItem(STORAGE_KEY)
+      .then((v) => {
+        if (!mounted) return;
+        if (v === 'light' || v === 'dark') {
+          setPreferenceState(v);
+        } else if (v === 'system') {
+          // legacy: map system → current device
+          setPreferenceState(Appearance.getColorScheme() === 'dark' ? 'dark' : 'light');
         }
-      } catch {
-        /* ignore */
-      } finally {
-        if (!cancelled) setReady(true);
-      }
-    })();
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (mounted) setLoaded(true);
+      });
     return () => {
-      cancelled = true;
+      mounted = false;
     };
   }, []);
 
-  const setMode = useCallback((next: ThemeMode) => {
-    setModeState(next);
-    AsyncStorage.setItem(STORAGE_KEY, next).catch(() => {});
+  // Track system appearance changes for "system" preference
+  useEffect(() => {
+    const sub = Appearance.addChangeListener(({ colorScheme }) => {
+      setSystemScheme(colorScheme === 'dark' ? 'dark' : 'light');
+    });
+    setSystemScheme(system === 'dark' ? 'dark' : 'light');
+    return () => sub.remove();
+  }, [system]);
+
+  const setPreference = useCallback((p: ThemePreference) => {
+    setPreferenceState(p);
+    AsyncStorage.setItem(STORAGE_KEY, p).catch(() => {});
   }, []);
 
-  const setTheme = useCallback(
-    (theme: 'light' | 'dark') => {
-      setMode(theme);
-    },
-    [setMode]
-  );
+  const scheme: ColorScheme = preference;
 
-  const isDark = useMemo(() => {
-    if (mode === 'system') return system === 'dark';
-    return mode === 'dark';
-  }, [mode, system]);
-
-  const toggleTheme = useCallback(() => {
-    setMode(isDark ? 'light' : 'dark');
-  }, [isDark, setMode]);
+  const colors = useMemo(() => getColors(scheme), [scheme]);
 
   const value = useMemo<ThemeContextValue>(
     () => ({
-      colors: isDark ? darkColors : lightColors,
-      isDark,
-      scheme: isDark ? 'dark' : 'light',
-      mode,
-      theme: isDark ? 'dark' : 'light',
-      setMode,
-      setTheme,
-      toggleTheme,
-      toggle: toggleTheme,
+      preference,
+      scheme,
+      colors,
+      isDark: scheme === 'dark',
+      setPreference,
+      spacing,
+      radius,
+      typography,
+      shadow,
+      hitSlop,
+      pagePadding,
+      cardPadding,
     }),
-    [isDark, mode, setMode, setTheme, toggleTheme]
+    [preference, scheme, colors, setPreference]
   );
-
-  if (!ready) {
-    return null;
-  }
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
-export function useTheme(): ThemeContextValue {
+export function useTheme() {
   const ctx = useContext(ThemeContext);
   if (!ctx) {
-    throw new Error('useTheme must be used within ThemeProvider');
+    const colors = getColors('light');
+    return {
+      preference: 'light' as ThemePreference,
+      scheme: 'light' as ColorScheme,
+      colors,
+      isDark: false,
+      setPreference: () => {},
+      spacing,
+      radius,
+      typography,
+      shadow,
+      hitSlop,
+      pagePadding,
+      cardPadding,
+    };
   }
   return ctx;
 }

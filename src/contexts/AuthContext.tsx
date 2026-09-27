@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import * as Linking from 'expo-linking';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 import { Profile, Church, ChurchMember } from '../types';
 
@@ -23,6 +22,8 @@ interface AuthContextValue extends AuthState {
   joinChurch: (inviteCode: string) => Promise<{ error: string | null }>;
   refreshMembership: () => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<{ error: string | null }>;
+  refreshProfile: () => Promise<void>;
+  updateChurch: (data: Partial<Pick<Church, 'name' | 'logo_url'>>) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -170,16 +171,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, name: string) => {
     setState((prev) => ({ ...prev, loading: true }));
-    // Deep link back into the app (Expo Go / production). Must also be allowlisted
-    // in Supabase Auth → URL Configuration → Redirect URLs.
-    const emailRedirectTo = Linking.createURL('/');
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { name },
-        emailRedirectTo,
-      },
+      options: { data: { name } },
     });
     setState((prev) => ({ ...prev, loading: false }));
     return { error: error?.message ?? null };
@@ -207,8 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resetPassword = async (email: string) => {
-    const redirectTo = Linking.createURL('/');
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
     return { error: error?.message ?? null };
   };
 
@@ -258,6 +252,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateProfile = async (data: Partial<Profile>) => {
     if (!state.user) return { error: 'Não autenticado' };
     const { error } = await supabase.from('profiles').update(data).eq('id', state.user.id);
+    if (error) return { error: error.message };
+    // Optimistic merge so Profile tab sees new cover/avatar immediately
+    setState((prev) => ({
+      ...prev,
+      profile: prev.profile ? { ...prev.profile, ...data } : prev.profile,
+    }));
+    await loadUserData(state.user.id);
+    return { error: null };
+  };
+
+  const refreshProfile = async () => {
+    if (state.user) await loadUserData(state.user.id);
+  };
+
+  const updateChurch = async (data: Partial<Pick<Church, 'name' | 'logo_url'>>) => {
+    if (!state.user || !state.church) return { error: 'Não autenticado ou sem igreja' };
+    const { error } = await supabase
+      .from('churches')
+      .update({ ...data, updated_at: new Date().toISOString() })
+      .eq('id', state.church.id);
     if (!error) await loadUserData(state.user.id);
     return { error: error?.message ?? null };
   };
@@ -274,6 +288,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         joinChurch,
         refreshMembership,
         updateProfile,
+        refreshProfile,
+        updateChurch,
       }}
     >
       {children}

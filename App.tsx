@@ -3,8 +3,9 @@ import { StatusBar } from 'expo-status-bar';
 import { View, Text, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ThemeProvider } from './src/contexts/ThemeContext';
 import { AuthProvider } from './src/contexts/AuthContext';
+import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
+import { ToastProvider } from './src/contexts/ToastContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
 
 class ErrorBoundary extends Component<
@@ -37,8 +38,13 @@ class ErrorBoundary extends Component<
   }
 }
 
+function AppStatusBar() {
+  const { isDark } = useTheme();
+  return <StatusBar style={isDark ? 'light' : 'dark'} />;
+}
+
 export default function App() {
-  if (__DEV__) console.log('[AMPLY] REFORM_2026_09_15 v2.0.1 — boot');
+  if (__DEV__) console.log('[AMPLY] REDESIGN_2026_09_21 v2.1.0 — boot');
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -46,8 +52,10 @@ export default function App() {
         <ThemeProvider>
           <ErrorBoundary>
             <AuthProvider>
-              <StatusBar style="auto" />
-              <RootNavigator />
+              <ToastProvider>
+                <AppStatusBar />
+                <RootNavigator />
+              </ToastProvider>
             </AuthProvider>
           </ErrorBoundary>
         </ThemeProvider>
@@ -62,9 +70,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
-    backgroundColor: '#F7F6F3',
+    backgroundColor: '#F5F5F5',
   },
-  crashTitle: { fontSize: 18, fontWeight: '700', color: '#1A1C19', marginBottom: 8 },
-  crashMsg: { fontSize: 14, color: '#B91C1C', textAlign: 'center', marginBottom: 12 },
-  crashHint: { fontSize: 13, color: '#8B8E86', textAlign: 'center' },
+  crashTitle: { fontSize: 18, fontWeight: '700', color: '#111111', marginBottom: 8 },
+  crashMsg: { fontSize: 14, color: '#C41E3A', textAlign: 'center', marginBottom: 12 },
+  crashHint: { fontSize: 13, color: '#6B6B6B', textAlign: 'center' },
 });

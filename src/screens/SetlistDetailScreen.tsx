@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Image,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../services/supabase';
 import {
   Setlist,
@@ -22,11 +26,15 @@ import {
   MEMBER_STATUS_LABELS,
   SetlistStatus,
 } from '../types';
-import { useTheme } from '../contexts/ThemeContext';
-import { spacing, typography, radius, ColorTokens } from '../constants/theme';
+import { spacing, typography, radius, shadow, getColors } from '../constants/theme';
+const _c = getColors('light'); // StyleSheet static fallback only
 import { ScreenHeader } from '../components/layout/ScreenHeader';
 import { notifyUsers } from '../utils/notifications';
 import { Button } from '../components/Button';
+import { Badge } from '../components/Badge';
+import { IconButton } from '../components/IconButton';
+import { Avatar } from '../components/Avatar';
+import { ActionMenu, ActionMenuItem } from '../components/ActionMenu';
 import { formatSupabaseError } from '../utils/payload';
 import { formatDateBR, formatTime } from '../utils/dates';
 
@@ -35,8 +43,8 @@ type SongRow = SetlistSong & { song: Song };
 export function SetlistDetailScreen() {
   const { membership, church, user } = useAuth();
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation<any>();
+  const toast = useToast();
   const route = useRoute<any>();
   const setlistId = route.params?.setlistId as string;
 
@@ -44,6 +52,7 @@ export function SetlistDetailScreen() {
   const [songs, setSongs] = useState<SongRow[]>([]);
   const [members, setMembers] = useState<SetlistMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const canManage = membership?.role === 'owner' || membership?.role === 'leader';
@@ -207,7 +216,7 @@ export function SetlistDetailScreen() {
     if (error) Alert.alert('Erro', formatSupabaseError(error));
     else {
       setMembers((prev) => prev.map((m) => (m.id === myMember.id ? { ...m, status } : m)));
-      Alert.alert('Sucesso', MEMBER_STATUS_LABELS[status]);
+      toast.success(MEMBER_STATUS_LABELS[status]);
     }
   };
 
@@ -260,7 +269,7 @@ export function SetlistDetailScreen() {
             );
           }
           setBusy(false);
-          Alert.alert('Sucesso', 'Escala duplicada como rascunho.');
+          toast.success('Escala duplicada');
           navigation.replace('SetlistDetail', { setlistId: created.id });
         },
       },
@@ -286,8 +295,8 @@ export function SetlistDetailScreen() {
 
   if (loading || !setlist) {
     return (
-      <SafeAreaView style={styles.safe} edges={['bottom']}>
-        <ScreenHeader title="Setlist" />
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={["bottom"]}>
+        <ScreenHeader title="Escala" />
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
@@ -298,41 +307,72 @@ export function SetlistDetailScreen() {
   const statusKey = (setlist.status as SetlistStatus) || 'scheduled';
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={["bottom"]}>
       <ScreenHeader
-        title="Setlist"
+        title="Escala"
         right={
           canManage ? (
-            <View style={styles.topActions}>
-              <TouchableOpacity onPress={duplicateSetlist}>
-                <Text style={styles.edit}>Duplicar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate('SetlistForm', { setlistId })}>
-                <Text style={styles.edit}>Editar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={deleteSetlist}>
-                <Text style={styles.delete}>Excluir</Text>
-              </TouchableOpacity>
-            </View>
+            <IconButton
+              icon="ellipsis-horizontal"
+              onPress={() => setMenuOpen(true)}
+              accessibilityLabel="Mais opções"
+            />
           ) : null
         }
       />
+      <ActionMenu
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        title="Ações da escala"
+        items={[
+          {
+            key: 'edit',
+            label: 'Editar',
+            icon: 'create-outline',
+            onPress: () => navigation.navigate('SetlistForm', { setlistId }),
+          },
+          {
+            key: 'duplicate',
+            label: 'Duplicar',
+            icon: 'copy-outline',
+            onPress: duplicateSetlist,
+          },
+          {
+            key: 'delete',
+            label: 'Excluir',
+            icon: 'trash-outline',
+            destructive: true,
+            onPress: deleteSetlist,
+          },
+        ] as ActionMenuItem[]}
+      />
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>{setlist.title}</Text>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{SETLIST_STATUS_LABELS[statusKey] ?? statusKey}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{setlist.title}</Text>
+        <View style={{ marginTop: 8, marginBottom: 4 }}>
+          <Badge
+            label={SETLIST_STATUS_LABELS[statusKey] ?? statusKey}
+            tone={
+              statusKey === 'confirmed'
+                ? 'success'
+                : statusKey === 'cancelled'
+                  ? 'danger'
+                  : statusKey === 'completed'
+                    ? 'neutral'
+                    : 'inverse'
+            }
+          />
         </View>
-        <Text style={styles.meta}>
+        <Text style={[styles.meta, { color: colors.textSecondary }]}>
           {formatDateBR(setlist.date)}
           {setlist.time ? ` · ${formatTime(setlist.time)}` : ''}
         </Text>
-        {setlist.location ? <Text style={styles.meta}>{setlist.location}</Text> : null}
-        {setlist.notes ? <Text style={styles.notes}>{setlist.notes}</Text> : null}
+        {setlist.location ? <Text style={[styles.meta, { color: colors.textSecondary }]}>{setlist.location}</Text> : null}
+        {setlist.notes ? <Text style={[styles.notes, { color: colors.textSecondary }]}>{setlist.notes}</Text> : null}
 
         {myMember ? (
-          <View style={styles.presenceBox}>
-            <Text style={styles.section}>Sua presença</Text>
-            <Text style={styles.presenceCurrent}>
+          <View style={[styles.presenceBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.section, { color: colors.textMuted, marginTop: 0 }]}>Sua presença</Text>
+            <Text style={[styles.presenceCurrent, { color: colors.text }]}>
               Status: {MEMBER_STATUS_LABELS[myMember.status]}
             </Text>
             <View style={styles.presenceRow}>
@@ -360,95 +400,201 @@ export function SetlistDetailScreen() {
           </View>
         ) : null}
 
-        <Text style={styles.section}>Repertório ({songs.length})</Text>
+                <Text style={[styles.section, { color: colors.textMuted }]}>
+          Repertório ({songs.length})
+        </Text>
         {songs.length === 0 ? (
-          <Text style={styles.empty}>Nenhuma música nesta escala.</Text>
+          <Text style={[styles.empty, { color: colors.textMuted }]}>
+            Nenhuma música nesta escala.
+          </Text>
         ) : (
           songs.map((ss, idx) => (
-            <View key={ss.id} style={styles.songItem}>
-              <TouchableOpacity
-                style={styles.songMain}
-                onPress={() =>
-                  ss.song_id && navigation.navigate('SongDetail', { songId: ss.song_id })
-                }
+            <Pressable
+              key={ss.id}
+              onPress={() =>
+                ss.song_id && navigation.navigate('SongDetail', { songId: ss.song_id })
+              }
+              style={({ pressed }) => [
+                styles.songCard,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  opacity: pressed ? 0.94 : 1,
+                  ...shadow.sm,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.posBadge,
+                  { backgroundColor: colors.surfaceSecondary },
+                ]}
               >
-                <Text style={styles.songPos}>{idx + 1}</Text>
-                <View style={styles.songInfo}>
-                  <Text style={styles.songTitle}>{ss.song?.title ?? '—'}</Text>
-                  <Text style={styles.songKey}>
-                    {[ss.song?.artist, ss.song?.key].filter(Boolean).join(' · ')}
-                  </Text>
+                <Text style={[styles.posText, { color: colors.text }]}>{idx + 1}</Text>
+              </View>
+
+              {ss.song?.artwork_url ? (
+                <Image source={{ uri: ss.song.artwork_url }} style={styles.thumb} />
+              ) : (
+                <View
+                  style={[
+                    styles.thumb,
+                    {
+                      backgroundColor: colors.surfaceSecondary,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    },
+                  ]}
+                >
+                  <Text style={{ fontSize: 14, color: colors.textMuted }}>♪</Text>
                 </View>
-              </TouchableOpacity>
+              )}
+
+              <View style={styles.songInfo}>
+                <Text
+                  style={[styles.songTitle, { color: colors.text }]}
+                  numberOfLines={1}
+                >
+                  {ss.song?.title ?? '—'}
+                </Text>
+                <Text
+                  style={[styles.songKey, { color: colors.textSecondary }]}
+                  numberOfLines={1}
+                >
+                  {[ss.song?.artist, ss.song?.key ? `Tom ${ss.song.key}` : null]
+                    .filter(Boolean)
+                    .join(' · ') || '—'}
+                </Text>
+              </View>
+
               {canManage ? (
                 <View style={styles.songActions}>
-                  <TouchableOpacity
+                  <IconButton
+                    icon="chevron-up"
+                    size={18}
                     onPress={() => moveSong(idx, -1)}
                     disabled={idx === 0 || busy}
-                  >
-                    <Text style={[styles.actionBtn, idx === 0 && styles.actionDisabled]}>↑</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
+                    accessibilityLabel="Mover para cima"
+                    style={{ width: 32, height: 32, opacity: idx === 0 ? 0.28 : 1 }}
+                  />
+                  <IconButton
+                    icon="chevron-down"
+                    size={18}
                     onPress={() => moveSong(idx, 1)}
                     disabled={idx === songs.length - 1 || busy}
-                  >
-                    <Text
-                      style={[
-                        styles.actionBtn,
-                        idx === songs.length - 1 && styles.actionDisabled,
-                      ]}
-                    >
-                      ↓
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => removeSong(ss)} disabled={busy}>
-                    <Text style={[styles.actionBtn, { color: colors.danger }]}>✕</Text>
-                  </TouchableOpacity>
+                    accessibilityLabel="Mover para baixo"
+                    style={{
+                      width: 32,
+                      height: 32,
+                      opacity: idx === songs.length - 1 ? 0.28 : 1,
+                    }}
+                  />
+                  <IconButton
+                    icon="trash-outline"
+                    size={16}
+                    color={colors.danger}
+                    onPress={() => removeSong(ss)}
+                    disabled={busy}
+                    accessibilityLabel="Remover música"
+                    style={{ width: 32, height: 32 }}
+                  />
                 </View>
               ) : null}
-            </View>
+            </Pressable>
           ))
         )}
         {canManage ? (
-          <Button title="Adicionar músicas" onPress={openPicker} variant="secondary" />
+          <Pressable
+            onPress={openPicker}
+            style={({ pressed }) => [
+              styles.compactAdd,
+              {
+                borderColor: colors.border,
+                backgroundColor: colors.surface,
+                opacity: pressed ? 0.85 : 1,
+              },
+            ]}
+          >
+            <Text style={[styles.compactAddText, { color: colors.text }]}>
+              +  Adicionar música
+            </Text>
+          </Pressable>
         ) : null}
 
-        <Text style={styles.section}>Equipe ({members.length})</Text>
+        <Text style={[styles.section, { color: colors.textMuted }]}>
+          Equipe ({members.length})
+        </Text>
         {members.length === 0 ? (
-          <Text style={styles.empty}>Nenhum integrante nesta escala.</Text>
+          <Text style={[styles.empty, { color: colors.textMuted }]}>
+            Nenhum integrante nesta escala.
+          </Text>
         ) : (
           members.map((m) => (
-            <View key={m.id} style={styles.memberItem}>
+            <View
+              key={m.id}
+              style={[
+                styles.memberCard,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  ...shadow.sm,
+                },
+              ]}
+            >
+              <Avatar
+                uri={m.profile?.avatar_url}
+                name={m.profile?.name}
+                size={40}
+              />
               <View style={styles.memberInfo}>
-                <Text style={styles.memberName}>{m.profile?.name ?? 'Músico'}</Text>
-                <Text style={styles.memberMeta}>
-                  {[m.instrument, MEMBER_STATUS_LABELS[m.status]].filter(Boolean).join(' · ')}
+                <Text style={[styles.memberName, { color: colors.text }]}>
+                  {m.profile?.name ?? 'Músico'}
+                </Text>
+                <Text style={[styles.memberMeta, { color: colors.textSecondary }]}>
+                  {[m.instrument, MEMBER_STATUS_LABELS[m.status]]
+                    .filter(Boolean)
+                    .join(' · ')}
                 </Text>
               </View>
               {canManage ? (
-                <TouchableOpacity onPress={() => removeMember(m)} disabled={busy}>
-                  <Text style={{ color: colors.danger }}>Remover</Text>
-                </TouchableOpacity>
+                <IconButton
+                  icon="trash-outline"
+                  size={16}
+                  color={colors.danger}
+                  onPress={() => removeMember(m)}
+                  disabled={busy}
+                  accessibilityLabel="Remover músico"
+                  style={{ width: 36, height: 36 }}
+                />
               ) : null}
             </View>
           ))
         )}
         {canManage ? (
-          <Button
-            title="Adicionar músico"
+          <Pressable
             onPress={addMember}
-            variant="secondary"
-            style={{ marginTop: spacing.sm }}
-          />
+            style={({ pressed }) => [
+              styles.compactAdd,
+              {
+                borderColor: colors.border,
+                backgroundColor: colors.surface,
+                opacity: pressed ? 0.85 : 1,
+                marginTop: 4,
+              },
+            ]}
+          >
+            <Text style={[styles.compactAddText, { color: colors.text }]}>
+              +  Adicionar músico
+            </Text>
+          </Pressable>
         ) : null}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function createStyles(colors: ColorTokens) {
-  return StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+const styles = StyleSheet.create({
+  safe: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   container: { padding: spacing.lg, paddingBottom: spacing.xxl },
   topRow: {
@@ -456,70 +602,96 @@ function createStyles(colors: ColorTokens) {
     justifyContent: 'space-between',
     marginBottom: spacing.md,
   },
-  topActions: { flexDirection: 'row', gap: spacing.md, flexWrap: 'wrap', justifyContent: 'flex-end' },
-  back: { ...typography.body, color: colors.primary },
-  edit: { ...typography.body, color: colors.primary },
-  delete: { ...typography.body, color: colors.danger },
-  title: { ...typography.h1, color: colors.text },
+  topActions: { flexDirection: 'row', gap: spacing.md },
+  back: { ...typography.body, color: _c.primary },
+  edit: { ...typography.body, color: _c.primary },
+  delete: { ...typography.body, color: _c.danger },
+  title: { ...typography.h1, color: _c.text },
   badge: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.primaryLight,
+    backgroundColor: _c.primaryLight,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: radius.full,
     marginTop: spacing.sm,
   },
-  badgeText: { ...typography.caption, color: colors.primaryDark, fontWeight: '600' },
-  meta: { ...typography.body, color: colors.textSecondary, marginTop: spacing.xs },
-  notes: { ...typography.body, color: colors.textSecondary, marginTop: spacing.md },
+  badgeText: { ...typography.caption, color: _c.primaryDark, fontWeight: '600' },
+  meta: { ...typography.body, color: _c.textSecondary, marginTop: spacing.xs },
+  notes: { ...typography.body, color: _c.textSecondary, marginTop: spacing.md },
   section: {
-    ...typography.label,
-    color: colors.textMuted,
+    ...typography.caption,
+    color: _c.textMuted,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
     marginTop: spacing.xl,
     marginBottom: spacing.sm,
   },
-  empty: { ...typography.body, color: colors.textMuted },
+  empty: { ...typography.body },
   presenceBox: {
     marginTop: spacing.lg,
     padding: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: radius.xl,
+    borderWidth: StyleSheet.hairlineWidth,
   },
-  presenceCurrent: { ...typography.body, color: colors.text, marginBottom: spacing.sm },
+  presenceCurrent: { ...typography.body, marginBottom: spacing.sm },
   presenceRow: { gap: spacing.xs },
   presenceBtn: { marginTop: spacing.xs },
-  songItem: {
+  songCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: radius.xl,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 10,
   },
-  songMain: { flex: 1, flexDirection: 'row', alignItems: 'center' },
-  songPos: { ...typography.bodyMedium, color: colors.primary, width: 28 },
-  songInfo: { flex: 1 },
-  songTitle: { ...typography.bodyMedium, color: colors.text },
-  songKey: { ...typography.caption, color: colors.textSecondary },
-  songActions: { flexDirection: 'row', gap: spacing.sm },
-  actionBtn: { ...typography.body, color: colors.textSecondary, padding: spacing.xs },
-  actionDisabled: { opacity: 0.3 },
-  memberItem: {
+  posBadge: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  posText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  thumb: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+  },
+  songInfo: { flex: 1, minWidth: 0 },
+  songTitle: { fontSize: 15, fontWeight: '600' },
+  songKey: { fontSize: 12, marginTop: 2 },
+  songActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
   },
-  memberInfo: { flex: 1 },
-  memberName: { ...typography.bodyMedium, color: colors.text },
-  memberMeta: { ...typography.caption, color: colors.textSecondary },
+  compactAdd: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: radius.full,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  compactAddText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  memberCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: radius.xl,
+    padding: 10,
+    marginBottom: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 12,
+  },
+  memberInfo: { flex: 1, minWidth: 0 },
+  memberName: { fontSize: 15, fontWeight: '600' },
+  memberMeta: { fontSize: 12, marginTop: 2 },
 });
-}
-

@@ -1,79 +1,187 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Alert,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme, ThemePreference } from '../../contexts/ThemeContext';
 import { ScreenHeader } from '../../components/layout/ScreenHeader';
-import { spacing, typography, radius, ColorTokens, ThemeMode } from '../../constants/theme';
+import { SegmentedControl } from '../../components/SegmentedControl';
+import { spacing, radius, shadow } from '../../constants/theme';
+
+type Row = {
+  key: string;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  onPress?: () => void;
+  soon?: boolean;
+};
 
 export function SettingsScreen() {
   const navigation = useNavigation<any>();
-  const { signOut, church, profile } = useAuth();
-  const { colors, mode, setMode } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { profile, church, signOut } = useAuth();
+  const { colors, preference, setPreference, scheme } = useTheme();
 
-  const themes: { id: ThemeMode; label: string }[] = [
-    { id: 'system', label: 'Sistema' },
-    { id: 'light', label: 'Claro' },
-    { id: 'dark', label: 'Escuro' },
+  const account: Row[] = [
+    {
+      key: 'account',
+      label: 'Perfil da conta',
+      icon: 'person-circle-outline',
+      onPress: () => navigation.navigate('AccountProfile'),
+    },
+    {
+      key: 'personal',
+      label: 'Dados pessoais',
+      icon: 'document-text-outline',
+      onPress: () => navigation.navigate('PersonalData'),
+    },
+    {
+      key: 'edit_profile',
+      label: 'Editar perfil',
+      icon: 'create-outline',
+      onPress: () => navigation.navigate('EditProfile'),
+    },
+    {
+      key: 'link',
+      label: 'Vincular conta',
+      icon: 'link-outline',
+      soon: true,
+    },
   ];
 
+  const other: Row[] = [
+    {
+      key: 'notifications',
+      label: 'Notificações',
+      icon: 'notifications-outline',
+      onPress: () => navigation.navigate('Notifications'),
+    },
+    {
+      key: 'privacy',
+      label: 'Privacidade',
+      icon: 'shield-outline',
+      soon: true,
+    },
+    {
+      key: 'about',
+      label: 'Sobre o AMPLY',
+      icon: 'information-circle-outline',
+      onPress: () =>
+        Alert.alert('AMPLY', 'AMPLY — prepare-se para tocar.\nVersão 2.1.0'),
+    },
+  ];
+
+  const renderSection = (title: string, rows: Row[]) => (
+    <View style={styles.section}>
+      <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>{title}</Text>
+      <View
+        style={[
+          styles.group,
+          {
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
+            borderRadius: radius.xl,
+            ...shadow.sm,
+          },
+        ]}
+      >
+        {rows.map((r, idx) => (
+          <Pressable
+            key={r.key}
+            onPress={() => {
+              if (r.soon) {
+                Alert.alert(
+                  'Em breve',
+                  `"${r.label}" estará disponível em uma próxima atualização.`
+                );
+                return;
+              }
+              r.onPress?.();
+            }}
+            style={({ pressed }) => [
+              styles.row,
+              {
+                borderBottomWidth: idx < rows.length - 1 ? StyleSheet.hairlineWidth : 0,
+                borderBottomColor: colors.divider,
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
+          >
+            <Ionicons name={r.icon} size={20} color={colors.text} />
+            <Text style={[styles.rowText, { color: colors.text }]}>{r.label}</Text>
+            {r.soon ? (
+              <Text style={[styles.soon, { color: colors.textMuted }]}>Em breve</Text>
+            ) : (
+              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+            )}
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
+    <View style={[styles.safe, { backgroundColor: colors.background }]}>
       <ScreenHeader title="Configurações" />
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.identity}>
-          <Text style={styles.identityName}>{profile?.name ?? 'Usuário'}</Text>
-          <Text style={styles.identityChurch}>{church?.name ?? 'Ministério'}</Text>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View
+          style={[
+            styles.identity,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              borderRadius: radius.xl,
+              ...shadow.sm,
+            },
+          ]}
+        >
+          <Text style={[styles.identityName, { color: colors.text }]}>
+            {profile?.name ?? 'Usuário'}
+          </Text>
+          <Text style={[styles.identityChurch, { color: colors.textSecondary }]}>
+            {church?.name ?? 'Ministério'}
+          </Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Aparência</Text>
-        <View style={styles.themeRow}>
-          {themes.map((t) => (
-            <TouchableOpacity
-              key={t.id}
-              style={[styles.themeChip, mode === t.id && styles.themeChipOn]}
-              onPress={() => setMode(t.id)}
-            >
-              <Text style={[styles.themeText, mode === t.id && styles.themeTextOn]}>{t.label}</Text>
-            </TouchableOpacity>
-          ))}
+        {renderSection('Conta', account)}
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Aparência</Text>
+          <View
+            style={[
+              styles.group,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                borderRadius: radius.xl,
+                padding: spacing.md,
+                ...shadow.sm,
+              },
+            ]}
+          >
+            <Text style={[styles.themeLabel, { color: colors.textSecondary }]}>
+              Tema {scheme === 'dark' ? '(escuro ativo)' : '(claro ativo)'}
+            </Text>
+            <SegmentedControl
+              options={[
+                { key: 'light', label: 'Claro' },
+                { key: 'dark', label: 'Escuro' },
+              ]}
+              value={preference}
+              onChange={(v) => setPreference(v as ThemePreference)}
+            />
+          </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Conta</Text>
-        <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('Profile')}>
-          <Ionicons name="person-outline" size={20} color={colors.textSecondary} />
-          <Text style={styles.rowText}>Meu perfil</Text>
-          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('Notifications')}>
-          <Ionicons name="notifications-outline" size={20} color={colors.textSecondary} />
-          <Text style={styles.rowText}>Notificações</Text>
-          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-        </TouchableOpacity>
+        {renderSection('Outras', other)}
 
-        <Text style={styles.sectionTitle}>Ministério</Text>
-        <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('Overview')}>
-          <Ionicons name="grid-outline" size={20} color={colors.textSecondary} />
-          <Text style={styles.rowText}>Visão geral</Text>
-          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('Plans')}>
-          <Ionicons name="card-outline" size={20} color={colors.textSecondary} />
-          <Text style={styles.rowText}>Planos</Text>
-          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-        </TouchableOpacity>
-
-        <Text style={styles.sectionTitle}>Integrações</Text>
-        <View style={styles.row}>
-          <Ionicons name="musical-notes-outline" size={20} color={colors.textMuted} />
-          <Text style={[styles.rowText, styles.disabled]}>Spotify</Text>
-          <Text style={styles.soon}>Em breve</Text>
-        </View>
-
-        <TouchableOpacity
+        <Pressable
           style={styles.logout}
           onPress={() =>
             Alert.alert('Sair', 'Deseja sair da conta?', [
@@ -82,66 +190,47 @@ export function SettingsScreen() {
             ])
           }
         >
-          <Text style={styles.logoutText}>Sair da conta</Text>
-        </TouchableOpacity>
+          <Text style={[styles.logoutText, { color: colors.danger }]}>Sair da conta</Text>
+        </Pressable>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
-function createStyles(colors: ColorTokens) {
-  return StyleSheet.create({
-    safe: { flex: 1, backgroundColor: colors.background },
-    content: { padding: spacing.md, paddingBottom: spacing.xxxl },
-    identity: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.lg,
-      padding: spacing.lg,
-      marginBottom: spacing.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    identityName: { ...typography.h3, color: colors.text },
-    identityChurch: { ...typography.caption, color: colors.primary, marginTop: 2 },
-    sectionTitle: {
-      ...typography.caption,
-      color: colors.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: 0.6,
-      marginBottom: spacing.xs,
-      marginLeft: 4,
-      marginTop: spacing.md,
-    },
-    themeRow: { flexDirection: 'row', gap: 8, marginBottom: spacing.sm },
-    themeChip: {
-      flex: 1,
-      paddingVertical: 12,
-      alignItems: 'center',
-      borderRadius: radius.md,
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    themeChipOn: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
-    themeText: { ...typography.bodyMedium, color: colors.textSecondary },
-    themeTextOn: { color: colors.primaryDark },
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.sm,
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.md,
-      paddingVertical: 14,
-      marginBottom: 4,
-      borderWidth: 1,
-      borderColor: colors.border,
-      minHeight: 48,
-    },
-    rowText: { ...typography.body, color: colors.text, flex: 1 },
-    disabled: { color: colors.textMuted },
-    soon: { ...typography.small, color: colors.textMuted },
-    logout: { marginTop: spacing.xl, alignItems: 'center', padding: spacing.md },
-    logoutText: { ...typography.bodyMedium, color: colors.danger },
-  });
-}
+const styles = StyleSheet.create({
+  safe: { flex: 1 },
+  content: { padding: spacing.md, paddingBottom: spacing.xxxl },
+  identity: {
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  identityName: { fontSize: 18, fontWeight: '700' },
+  identityChurch: { fontSize: 13, marginTop: 4 },
+  section: { marginBottom: spacing.lg },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: spacing.xs,
+    marginLeft: 4,
+  },
+  group: {
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 14,
+    minHeight: 52,
+  },
+  rowText: { fontSize: 15, flex: 1 },
+  soon: { fontSize: 12 },
+  themeLabel: { fontSize: 13, fontWeight: '500', marginBottom: 10 },
+  logout: { marginTop: spacing.md, alignItems: 'center', padding: spacing.md },
+  logoutText: { fontSize: 15, fontWeight: '600' },
+});

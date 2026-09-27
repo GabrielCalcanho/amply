@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -13,40 +13,18 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
-import { Song, SongMaterial } from '../types';
+import { Song, SongMaterial, UserSongNote } from '../types';
 import { ScreenHeader } from '../components/layout/ScreenHeader';
-import { Button } from '../components/Button';
-import { spacing, typography, radius, ColorTokens } from '../constants/theme';
+import { colors, spacing, typography, radius } from '../constants/theme';
 import { formatSupabaseError } from '../utils/payload';
-
-function labelType(t: string) {
-  const map: Record<string, string> = {
-    youtube: 'YouTube',
-    spotify: 'Spotify',
-    external_link: 'Link',
-    pdf: 'PDF',
-    chord: 'Cifra',
-    note: 'Nota',
-  };
-  return map[t] ?? t;
-}
-
-function typeIcon(t: string): keyof typeof Ionicons.glyphMap {
-  if (t === 'chord' || t === 'note') return 'document-text-outline';
-  if (t === 'youtube') return 'logo-youtube';
-  if (t === 'spotify') return 'musical-notes-outline';
-  if (t === 'pdf') return 'document-outline';
-  return 'link-outline';
-}
+import { Button } from '../components/Button';
+import { IconButton } from '../components/IconButton';
+import { ActionMenu, ActionMenuItem } from '../components/ActionMenu';
 
 export function SongDetailScreen() {
   const { user, membership } = useAuth();
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const songId = route.params?.songId as string;
@@ -56,6 +34,7 @@ export function SongDetailScreen() {
   const [note, setNote] = useState('');
   const [noteId, setNoteId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [savingNote, setSavingNote] = useState(false);
 
   const canManage = membership?.role === 'owner' || membership?.role === 'leader';
@@ -64,18 +43,9 @@ export function SongDetailScreen() {
     setLoading(true);
     const [{ data: s }, { data: mats }, { data: notes }] = await Promise.all([
       supabase.from('songs').select('*').eq('id', songId).single(),
-      supabase
-        .from('song_materials')
-        .select('*')
-        .eq('song_id', songId)
-        .order('created_at'),
+      supabase.from('song_materials').select('*').eq('song_id', songId).order('created_at'),
       user
-        ? supabase
-            .from('user_song_notes')
-            .select('*')
-            .eq('song_id', songId)
-            .eq('user_id', user.id)
-            .maybeSingle()
+        ? supabase.from('user_song_notes').select('*').eq('song_id', songId).eq('user_id', user.id).maybeSingle()
         : Promise.resolve({ data: null }),
     ]);
     setSong(s);
@@ -83,9 +53,6 @@ export function SongDetailScreen() {
     if (notes) {
       setNote(notes.content);
       setNoteId(notes.id);
-    } else {
-      setNote('');
-      setNoteId(null);
     }
     setLoading(false);
   }, [songId, user]);
@@ -96,33 +63,29 @@ export function SongDetailScreen() {
     }, [load])
   );
 
-  const openExternal = (url?: string | null) => {
-    if (!url) return;
-    Linking.openURL(url).catch(() =>
-      Alert.alert('Erro', 'Não foi possível abrir o link')
-    );
+  const openSpotify = () => {
+    if (song?.spotify_url) {
+      Linking.openURL(song.spotify_url).catch(() =>
+        Alert.alert('Erro', 'Não foi possível abrir o Spotify')
+      );
+    }
   };
 
   const openMaterial = (m: SongMaterial) => {
     if (m.type === 'chord' || m.type === 'note') {
-      navigation.navigate('ChordViewer', {
-        materialId: m.id,
-        title: m.title,
-        content: m.content,
-      });
+      navigation.navigate('ChordViewer', { materialId: m.id, title: m.title, content: m.content });
       return;
     }
-    if (m.url) openExternal(m.url);
+    if (m.url) {
+      Linking.openURL(m.url).catch(() => Alert.alert('Erro', 'Não foi possível abrir o link'));
+    }
   };
 
   const saveNote = async () => {
     if (!user) return;
     setSavingNote(true);
     if (noteId) {
-      await supabase
-        .from('user_song_notes')
-        .update({ content: note })
-        .eq('id', noteId);
+      await supabase.from('user_song_notes').update({ content: note }).eq('id', noteId);
     } else if (note.trim()) {
       const { data } = await supabase
         .from('user_song_notes')
@@ -132,16 +95,6 @@ export function SongDetailScreen() {
       if (data) setNoteId(data.id);
     }
     setSavingNote(false);
-  };
-
-  const toggleFavorite = async () => {
-    if (!song) return;
-    const next = !song.is_favorite;
-    const { error } = await supabase
-      .from('songs')
-      .update({ is_favorite: next })
-      .eq('id', song.id);
-    if (!error) setSong({ ...song, is_favorite: next });
   };
 
   if (loading || !song) {
@@ -160,104 +113,55 @@ export function SongDetailScreen() {
       <ScreenHeader
         title="Música"
         right={
-          canManage ? (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('SongForm', { songId })}
-              hitSlop={8}
-            >
-              <Text style={styles.edit}>Editar</Text>
-            </TouchableOpacity>
-          ) : undefined
+          <IconButton
+            icon="ellipsis-horizontal"
+            onPress={() => setMenuOpen(true)}
+            accessibilityLabel="Mais opções"
+          />
         }
       />
-      <ScrollView
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Hero */}
-        <View style={styles.hero}>
-          {song.artwork_url ? (
-            <Image source={{ uri: song.artwork_url }} style={styles.artwork} />
-          ) : (
-            <View style={[styles.artwork, styles.artworkPh]}>
-              <Ionicons
-                name="musical-notes"
-                size={40}
-                color={colors.primary}
-              />
-            </View>
-          )}
-          <View style={styles.heroText}>
-            <Text style={styles.title}>{song.title}</Text>
-            {song.artist ? (
-              <Text style={styles.artist}>{song.artist}</Text>
-            ) : null}
-            {song.album ? (
-              <Text style={styles.album}>{song.album}</Text>
-            ) : null}
-          </View>
-          <TouchableOpacity
-            onPress={toggleFavorite}
-            style={styles.favBtn}
-            hitSlop={10}
-            accessibilityLabel={
-              song.is_favorite ? 'Remover dos favoritos' : 'Favoritar'
-            }
-          >
-            <Ionicons
-              name={song.is_favorite ? 'heart' : 'heart-outline'}
-              size={24}
-              color={song.is_favorite ? colors.primary : colors.textMuted}
-            />
-          </TouchableOpacity>
-        </View>
+      <ActionMenu
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        title="Ações da música"
+        items={[
+          {
+            key: 'edit',
+            label: 'Editar',
+            icon: 'create-outline',
+            onPress: () => navigation.navigate('SongForm', { songId }),
+          },
+        ] as ActionMenuItem[]}
+      />
+      <ScrollView contentContainerStyle={styles.container}>
+        {song.artwork_url ? (
+          <Image source={{ uri: song.artwork_url }} style={styles.artwork} />
+        ) : null}
+        <Text style={styles.title}>{song.title}</Text>
+        {song.artist ? <Text style={styles.artist}>{song.artist}</Text> : null}
+        {song.album ? <Text style={styles.artist}>{song.album}</Text> : null}
 
-        {/* Meta pills */}
+        {song.spotify_url ? (
+          <TouchableOpacity style={styles.spotifyBtn} onPress={openSpotify}>
+            <Text style={styles.spotifyBtnText}>Abrir no Spotify</Text>
+          </TouchableOpacity>
+        ) : null}
+
         <View style={styles.metaRow}>
           {song.key ? (
-            <View style={styles.pill}>
-              <Text style={styles.pillLabel}>Tom</Text>
-              <Text style={styles.pillValue}>{song.key}</Text>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{song.key}</Text>
             </View>
           ) : null}
           {song.bpm ? (
-            <View style={styles.pill}>
-              <Text style={styles.pillLabel}>BPM</Text>
-              <Text style={styles.pillValue}>{song.bpm}</Text>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{song.bpm} BPM</Text>
             </View>
           ) : null}
         </View>
 
-        {/* Links externos */}
-        {song.spotify_url ? (
-          <TouchableOpacity
-            style={styles.linkBtn}
-            onPress={() => openExternal(song.spotify_url)}
-            activeOpacity={0.85}
-          >
-            <Ionicons
-              name="musical-notes-outline"
-              size={18}
-              color={colors.primary}
-            />
-            <Text style={styles.linkBtnText}>Ouvir / abrir link externo</Text>
-            <Ionicons
-              name="open-outline"
-              size={16}
-              color={colors.textMuted}
-            />
-          </TouchableOpacity>
-        ) : null}
+        {song.notes ? <Text style={styles.notes}>{song.notes}</Text> : null}
 
-        {song.notes ? (
-          <View style={styles.notesBlock}>
-            <Text style={styles.section}>Observações</Text>
-            <Text style={styles.notes}>{song.notes}</Text>
-          </View>
-        ) : null}
-
-        {/* Materiais */}
         <Text style={styles.section}>Materiais</Text>
         {materials.length === 0 ? (
           <Text style={styles.empty}>Nenhum material cadastrado</Text>
@@ -280,8 +184,7 @@ export function SongDetailScreen() {
                               .from('song_materials')
                               .delete()
                               .eq('id', m.id);
-                            if (error)
-                              Alert.alert('Erro', formatSupabaseError(error));
+                            if (error) Alert.alert('Erro', formatSupabaseError(error));
                             else load();
                           },
                         },
@@ -289,220 +192,109 @@ export function SongDetailScreen() {
                     }
                   : undefined
               }
-              activeOpacity={0.75}
             >
-              <View style={styles.materialIcon}>
-                <Ionicons
-                  name={typeIcon(m.type)}
-                  size={18}
-                  color={colors.primary}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.materialType}>{labelType(m.type)}</Text>
-                <Text style={styles.materialTitle} numberOfLines={1}>
-                  {m.title}
-                </Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={colors.textMuted}
-              />
+              <Text style={styles.materialType}>{labelType(m.type)}</Text>
+              <Text style={styles.materialTitle}>{m.title}</Text>
             </TouchableOpacity>
           ))
         )}
 
-        {canManage ? (
-          <Button
-            title="Adicionar material"
-            onPress={() => navigation.navigate('MaterialForm', { songId })}
-            variant="secondary"
-            style={{ marginTop: spacing.sm }}
-          />
-        ) : null}
+        <Button
+          title="Adicionar material"
+          onPress={() => navigation.navigate('MaterialForm', { songId })}
+          variant="secondary"
+          style={{ marginTop: spacing.sm }}
+        />
 
-        {/* Anotação pessoal */}
         <Text style={styles.section}>Minha anotação</Text>
-        <Text style={styles.noteHint}>Só você vê estas anotações</Text>
         <TextInput
           style={styles.noteInput}
           value={note}
           onChangeText={setNote}
-          placeholder="Acordes, dicas de arranjo, lembretes…"
+          placeholder="Anotações pessoais (só você vê)"
           placeholderTextColor={colors.textMuted}
           multiline
           textAlignVertical="top"
         />
-        <Button
-          title="Salvar anotação"
-          onPress={saveNote}
-          loading={savingNote}
-          variant="ghost"
-        />
+        <Button title="Salvar anotação" onPress={saveNote} loading={savingNote} variant="ghost" />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function createStyles(colors: ColorTokens) {
-  return StyleSheet.create({
-    safe: { flex: 1, backgroundColor: colors.background },
-    center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-    container: {
-      padding: spacing.lg,
-      paddingBottom: spacing.xxxl,
-    },
-    edit: {
-      ...typography.bodyMedium,
-      color: colors.primary,
-    },
-
-    hero: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-      marginBottom: spacing.lg,
-    },
-    artwork: {
-      width: 88,
-      height: 88,
-      borderRadius: radius.md,
-    },
-    artworkPh: {
-      backgroundColor: colors.primaryLight,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    heroText: { flex: 1, minWidth: 0 },
-    title: {
-      ...typography.h2,
-      color: colors.text,
-    },
-    artist: {
-      ...typography.body,
-      color: colors.textSecondary,
-      marginTop: 4,
-    },
-    album: {
-      ...typography.caption,
-      color: colors.textMuted,
-      marginTop: 2,
-    },
-    favBtn: {
-      padding: spacing.xs,
-    },
-
-    metaRow: {
-      flexDirection: 'row',
-      gap: spacing.sm,
-      marginBottom: spacing.md,
-    },
-    pill: {
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.sm,
-      minWidth: 72,
-    },
-    pillLabel: {
-      ...typography.small,
-      color: colors.textMuted,
-      textTransform: 'uppercase',
-    },
-    pillValue: {
-      ...typography.bodyMedium,
-      color: colors.text,
-      marginTop: 2,
-    },
-
-    linkBtn: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.sm,
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      paddingVertical: 12,
-      paddingHorizontal: spacing.md,
-      marginBottom: spacing.md,
-    },
-    linkBtnText: {
-      ...typography.bodyMedium,
-      color: colors.text,
-      flex: 1,
-    },
-
-    notesBlock: {
-      marginBottom: spacing.sm,
-    },
-    notes: {
-      ...typography.body,
-      color: colors.textSecondary,
-    },
-
-    section: {
-      ...typography.label,
-      color: colors.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-      marginTop: spacing.xl,
-      marginBottom: spacing.sm,
-    },
-    empty: {
-      ...typography.body,
-      color: colors.textMuted,
-    },
-
-    material: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      padding: spacing.md,
-      marginBottom: spacing.sm,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    materialIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: radius.sm,
-      backgroundColor: colors.primaryLight,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    materialType: {
-      ...typography.small,
-      color: colors.primary,
-      fontWeight: '600',
-    },
-    materialTitle: {
-      ...typography.bodyMedium,
-      color: colors.text,
-      marginTop: 2,
-    },
-
-    noteHint: {
-      ...typography.caption,
-      color: colors.textMuted,
-      marginBottom: spacing.sm,
-      marginTop: -4,
-    },
-    noteInput: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: spacing.md,
-      minHeight: 110,
-      ...typography.body,
-      color: colors.text,
-      marginBottom: spacing.sm,
-    },
-  });
+function labelType(t: string) {
+  const map: Record<string, string> = {
+    youtube: 'YouTube',
+    spotify: 'Spotify',
+    external_link: 'Link',
+    pdf: 'PDF',
+    chord: 'Cifra',
+    note: 'Nota',
+  };
+  return map[t] ?? t;
 }
+
+const styles = StyleSheet.create({
+  artwork: { width: 160, height: 160, borderRadius: 12, alignSelf: 'center', marginBottom: 16 },
+  spotifyBtn: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#1DB954',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  spotifyBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+
+  safe: { flex: 1, backgroundColor: colors.background },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  container: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+  },
+  back: { ...typography.body, color: colors.primary },
+  edit: { ...typography.bodyMedium, color: colors.primary },
+  title: { ...typography.h1, color: colors.text },
+  artist: { ...typography.body, color: colors.textSecondary, marginTop: spacing.xs },
+  metaRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+  badge: {
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.sm,
+  },
+  badgeText: { ...typography.caption, color: colors.primaryDark, fontWeight: '600' },
+  notes: { ...typography.body, color: colors.textSecondary, marginTop: spacing.md },
+  section: {
+    ...typography.caption,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginTop: spacing.xl,
+    marginBottom: spacing.sm,
+  },
+  empty: { ...typography.body, color: colors.textMuted },
+  material: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  materialType: { ...typography.small, color: colors.primary, fontWeight: '600' },
+  materialTitle: { ...typography.bodyMedium, color: colors.text, marginTop: 2 },
+  noteInput: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    minHeight: 100,
+    ...typography.body,
+    color: colors.text,
+  },
+});

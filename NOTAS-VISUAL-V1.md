@@ -1,27 +1,27 @@
-# AMPLY — Nova identidade visual (v1 completa)
+# AMPLY — Identidade visual v1 (completa + revisão global)
 
 ## Design System
-- Paleta: carvão / off-white / verde oliva (#5C6B4A · #9BB084 dark)
-- Tokens unificados em theme.ts + ThemeContext
-- Tipografia, spacing, radius, sombras suaves
-- Header neutro (sem barra colorida)
+- Carvão / off-white / verde oliva (#5C6B4A · #9BB084 dark)
+- Tokens unificados (theme.ts + ThemeContext)
+- Header neutro, tipografia e spacing consistentes
 
-## Navegação (4 tabs)
-Início · Músicas · Setlists · Perfil
+## Navegação
+Tabs: Início · Músicas · Setlists · Perfil
+Drawer: Ministério, Equipe, Calendário, Mensagens + menus
 
-Drawer: Ministério, Equipe, Calendário, Mensagens + menu existente.
+## Telas principais
+Home, Músicas, Detalhe música, Setlists, Detalhe setlist, Equipe, Perfil
 
-## Telas refeitas
-- Home — saudação, próximo compromisso, semana, atalhos
-- Músicas — busca, chips Todas/Favoritas, lista
-- Detalhe da música — hero, tom/BPM, materiais, anotação
-- Setlists — busca, status pill, cards
-- Detalhe setlist — tema dinâmico
-- Equipe — avatar, badges, convite, edição
-- Perfil — tab shell, aparência (tema), dados, segurança
+## Revisão global (ETAPA 10)
+Todas as telas secundárias migradas para useTheme():
+- Formulários (Song, Setlist, Material, SongPicker)
+- Calendar, Notifications, ChordViewer, MemberDetail
+- Menu (Announcements, Birthdays, Metronome, Plans, ScaleOverview, Unavailability, Settings)
+- Ministry SimpleEntityList
+- TimeField
+- Auth já usava useTheme
 
-## Sem alteração
-Supabase, auth, RLS, APIs, regras de negócio, deps novas
+Settings: opção Sistema / Claro / Escuro (sem forçar light)
 
 ## Aplicar
 pnpm exec expo start --clear
