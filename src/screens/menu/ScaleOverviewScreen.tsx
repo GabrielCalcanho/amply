@@ -424,4 +424,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 2,
   },
+  otherLoc: {
+    fontSize: 13,
+    marginTop: 2,
+  },
 });

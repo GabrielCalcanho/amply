@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   coverImg: { width: '100%', height: '100%' },
   coverEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.35)',
     alignItems: 'center',
     justifyContent: 'center',

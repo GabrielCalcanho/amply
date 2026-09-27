@@ -161,7 +161,8 @@ export type NotificationType =
   | 'setlist_updated'
   | 'presence_pending'
   | 'birthday'
-  | 'admin_notice';
+  | 'admin_notice'
+  | 'announcement';
 
 export interface NotificationItem {
   id: string;
