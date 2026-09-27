@@ -9,6 +9,10 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Keyboard,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -309,8 +313,12 @@ export function AnnouncementsScreen() {
         items={menuItems}
       />
 
-      <Modal visible={modal} transparent animationType="slide" onRequestClose={() => setModal(false)}>
-        <View style={[styles.modalBackdrop, { backgroundColor: colors.overlay }]}>
+      <Modal visible={modal} transparent animationType="slide" onRequestClose={() => Keyboard.dismiss()}>
+        <KeyboardAvoidingView
+          style={[styles.modalBackdrop, { backgroundColor: colors.overlay }]}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <Pressable style={styles.modalDismissArea} onPress={Keyboard.dismiss} />
           <View
             style={[
               styles.modalSheet,
@@ -321,7 +329,12 @@ export function AnnouncementsScreen() {
               },
             ]}
           >
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Novo aviso</Text>
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.modalContent}
+              >
+                <Text style={[styles.modalTitle, { color: colors.text }]}>Novo aviso</Text>
             <TextInput
               style={[
                 styles.input,
@@ -362,6 +375,8 @@ export function AnnouncementsScreen() {
                   {
                     backgroundColor:
                       priority === 'normal' ? colors.primary : colors.surfaceSecondary,
+                    borderColor: priority === 'normal' ? colors.primary : colors.borderStrong,
+                    borderWidth: 1,
                     borderRadius: radius.full,
                   },
                 ]}
@@ -383,6 +398,8 @@ export function AnnouncementsScreen() {
                   {
                     backgroundColor:
                       priority === 'high' ? colors.primary : colors.surfaceSecondary,
+                    borderColor: priority === 'high' ? colors.primary : colors.borderStrong,
+                    borderWidth: 1,
                     borderRadius: radius.full,
                   },
                 ]}
@@ -401,13 +418,17 @@ export function AnnouncementsScreen() {
             <Button title="Publicar" onPress={create} loading={saving} fullWidth />
             <Button
               title="Cancelar"
-              onPress={() => setModal(false)}
+              onPress={() => {
+                Keyboard.dismiss();
+                setModal(false);
+              }}
               variant="ghost"
               fullWidth
               style={{ marginTop: 8 }}
             />
+              </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -467,10 +488,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
   },
+  modalDismissArea: { flex: 1 },
   modalSheet: {
+    maxHeight: '92%',
     padding: spacing.lg,
     paddingBottom: spacing.xxl,
   },
+  modalContent: { paddingBottom: spacing.xs },
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',

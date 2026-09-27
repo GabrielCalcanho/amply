@@ -44,6 +44,7 @@ export function UnavailabilityScreen() {
   const [end, setEnd] = useState(todayISO());
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
+  const [selected, setSelected] = useState<Row | null>(null);
 
   const load = useCallback(async () => {
     if (!church || !user) return;
@@ -145,7 +146,7 @@ export function UnavailabilityScreen() {
             />
           }
           renderItem={({ item }) => (
-            <View style={styles.card}>
+            <TouchableOpacity style={styles.card} onPress={() => setSelected(item)} activeOpacity={0.8}>
               <Text style={styles.dates}>
                 {fmt(item.start_date)}
                 {item.end_date !== item.start_date ? ` → ${fmt(item.end_date)}` : ''}
@@ -154,7 +155,7 @@ export function UnavailabilityScreen() {
               <TouchableOpacity onPress={() => remove(item.id)} style={styles.del}>
                 <Text style={styles.delText}>Remover</Text>
               </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           )}
           refreshing={loading}
           onRefresh={load}
@@ -177,6 +178,32 @@ export function UnavailabilityScreen() {
             />
             <Button title="Salvar" onPress={create} loading={saving} />
             <Button title="Cancelar" variant="ghost" onPress={() => setModal(false)} />
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal visible={!!selected} transparent animationType="fade" onRequestClose={() => setSelected(null)}>
+        <Pressable style={styles.detailBg} onPress={() => setSelected(null)}>
+          <Pressable style={styles.detailSheet} onPress={(e) => e.stopPropagation?.()}>
+            <View style={styles.detailIcon}>
+              <Ionicons name="calendar-clear-outline" size={22} color={colors.textInverse} />
+            </View>
+            <Text style={styles.detailTitle}>Indisponibilidade</Text>
+            <Text style={styles.detailDate}>
+              {selected ? `${formatDateBR(selected.start_date)}${selected.end_date !== selected.start_date ? ` – ${formatDateBR(selected.end_date)}` : ''}` : ''}
+            </Text>
+            <Text style={styles.detailBody}>
+              {selected?.reason || 'Você marcou este período como indisponível.'}
+            </Text>
+            <Button
+              title="Remover indisponibilidade"
+              variant="danger"
+              onPress={() => {
+                if (selected) remove(selected.id);
+                setSelected(null);
+              }}
+            />
+            <Button title="Fechar" variant="ghost" onPress={() => setSelected(null)} />
           </Pressable>
         </Pressable>
       </Modal>
@@ -220,6 +247,12 @@ function createStyles(colors: ColorTokens) {
     ...typography.body,
     color: colors.text,
   },
+  detailBg: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'center', padding: spacing.lg },
+  detailSheet: { backgroundColor: colors.surface, borderRadius: radius.xl, padding: spacing.xl },
+  detailIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md },
+  detailTitle: { ...typography.h2, color: colors.text, marginBottom: spacing.xs },
+  detailDate: { ...typography.bodyMedium, color: colors.textSecondary, marginBottom: spacing.md },
+  detailBody: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.lg },
 })
 }
 
