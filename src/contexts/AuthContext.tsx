@@ -1,6 +1,11 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
+import {
+  handleWebOAuthCallback,
+  signInWithProvider,
+  OAuthProvider,
+} from '../services/oauth';
 import { Profile, Church, ChurchMember } from '../types';
 import { formatAuthError } from '../utils/payload';
 
@@ -21,6 +26,7 @@ interface AuthContextValue extends AuthState {
     name: string
   ) => Promise<{ error: string | null; needsConfirmation?: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signInWithOAuth: (provider: OAuthProvider) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   createChurch: (name: string) => Promise<{ error: string | null; church?: Church }>;
@@ -117,6 +123,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       try {
+        // Web OAuth: convert tokens in the redirect URL into a session first.
+        await handleWebOAuthCallback();
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) console.warn('[AMPLY] getSession:', error.message);
         if (cancelled) return;
@@ -194,6 +202,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setState((prev) => ({ ...prev, loading: false }));
     return { error: error ? formatAuthError(error.message) : null };
+  };
+
+  const signInWithOAuth = async (provider: OAuthProvider) => {
+    setState((prev) => ({ ...prev, loading: true }));
+    try {
+      const { error } = await signInWithProvider(provider);
+      // On success the session arrives via onAuthStateChange (which reloads user
+      // data); on web the page redirects away. Clear the spinner either way so
+      // it can never get stuck.
+      setState((prev) => ({ ...prev, loading: false }));
+      return { error };
+    } catch (e) {
+      setState((prev) => ({ ...prev, loading: false }));
+      return { error: formatAuthError((e as Error)?.message) };
+    }
   };
 
   const signOut = async () => {
@@ -291,6 +314,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...state,
         signUp,
         signIn,
+        signInWithOAuth,
         signOut,
         resetPassword,
         createChurch,

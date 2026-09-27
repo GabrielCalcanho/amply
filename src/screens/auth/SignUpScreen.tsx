@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
+import { OAuthButtons } from '../../components/OAuthButtons';
 import { typography, spacing, radius, type ThemeColors } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -133,6 +134,10 @@ export function SignUpScreen({ navigation }: Props) {
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
             <Button title="Criar conta" onPress={handleSignUp} loading={loading} fullWidth style={styles.btn} />
+
+            <View style={styles.oauth}>
+              <OAuthButtons />
+            </View>
           </View>
 
           <View style={styles.footer}>
@@ -215,6 +220,9 @@ const createStyles = (colors: ThemeColors) =>
     },
     btn: {
       marginTop: spacing.md,
+    },
+    oauth: {
+      marginTop: spacing.lg,
     },
     error: {
       ...typography.caption,

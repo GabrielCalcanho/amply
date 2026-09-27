@@ -14,6 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
+import { OAuthButtons } from '../../components/OAuthButtons';
 import { spacing } from '../../constants/theme';
 
 type Props = {
@@ -97,6 +98,10 @@ export function LoginScreen({ navigation }: Props) {
                 Esqueceu a senha?
               </Text>
             </Pressable>
+
+            <View style={styles.oauth}>
+              <OAuthButtons />
+            </View>
           </View>
 
           <View style={styles.footer}>
@@ -146,6 +151,9 @@ const styles = StyleSheet.create({
   forgot: {
     alignItems: 'center',
     marginTop: spacing.lg,
+  },
+  oauth: {
+    marginTop: spacing.xl,
   },
   forgotText: {
     fontSize: 14,
