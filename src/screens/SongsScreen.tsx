@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -19,16 +19,49 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
 import { Song } from '../types';
-import { spacing, radius, shadow, typography } from '../constants/theme';
+import { spacing, radius, typography } from '../constants/theme';
 import { formatSupabaseError } from '../utils/payload';
+
+function FilterChip({
+  active,
+  label,
+  icon,
+  onPress,
+}: {
+  active: boolean;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  onPress: () => void;
+}) {
+  const { colors } = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.chip,
+        {
+          backgroundColor: active ? colors.primary : colors.surfaceSecondary,
+          opacity: pressed ? 0.85 : 1,
+        },
+      ]}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+    >
+      <Ionicons name={icon} size={14} color={active ? colors.textInverse : colors.textSecondary} />
+      <Text style={[styles.chipText, { color: active ? colors.textInverse : colors.textSecondary }]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
 
 export function SongsScreen() {
   const { church, membership } = useAuth();
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
   const [songs, setSongs] = useState<Song[]>([]);
-  const [filtered, setFiltered] = useState<Song[]>([]);
   const [search, setSearch] = useState('');
+  const [favOnly, setFavOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,7 +82,6 @@ export function SongsScreen() {
       setError(formatSupabaseError(error));
     } else if (data) {
       setSongs(data);
-      setFiltered(data);
     }
     setLoading(false);
   }, [church]);
@@ -60,29 +92,29 @@ export function SongsScreen() {
     }, [loadSongs])
   );
 
-  const handleSearch = (text: string) => {
-    setSearch(text);
-    const q = text.toLowerCase().trim();
-    if (!q) {
-      setFiltered(songs);
-      return;
-    }
-    setFiltered(
-      songs.filter(
-        (s) =>
-          s.title.toLowerCase().includes(q) ||
-          (s.artist && s.artist.toLowerCase().includes(q)) ||
-          (s.key && s.key.toLowerCase().includes(q))
-      )
-    );
-  };
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    return songs.filter((s) => {
+      if (favOnly && !s.is_favorite) return false;
+      if (!q) return true;
+      return (
+        s.title.toLowerCase().includes(q) ||
+        (s.artist ?? '').toLowerCase().includes(q) ||
+        (s.key ?? '').toLowerCase().includes(q)
+      );
+    });
+  }, [songs, search, favOnly]);
+
+  const favoriteCount = useMemo(() => songs.filter((s) => s.is_favorite).length, [songs]);
 
   const toggleFavorite = async (song: Song) => {
     const next = !song.is_favorite;
+    setSongs((prev) => prev.map((s) => (s.id === song.id ? { ...s, is_favorite: next } : s)));
     const { error } = await supabase.from('songs').update({ is_favorite: next }).eq('id', song.id);
-    if (!error) {
-      setSongs((prev) => prev.map((s) => (s.id === song.id ? { ...s, is_favorite: next } : s)));
-      setFiltered((prev) => prev.map((s) => (s.id === song.id ? { ...s, is_favorite: next } : s)));
+    if (error) {
+      setSongs((prev) =>
+        prev.map((s) => (s.id === song.id ? { ...s, is_favorite: song.is_favorite } : s))
+      );
     }
   };
 
@@ -156,27 +188,50 @@ export function SongsScreen() {
       <View style={styles.toolbar}>
         <SearchField
           value={search}
-          onChangeText={handleSearch}
+          onChangeText={setSearch}
           placeholder="Buscar música, artista, tom..."
         />
+        <View style={styles.chips}>
+          <FilterChip
+            active={!favOnly}
+            label="Todas"
+            icon="albums-outline"
+            onPress={() => setFavOnly(false)}
+          />
+          {favoriteCount > 0 ? (
+            <FilterChip
+              active={favOnly}
+              label={`Favoritas (${favoriteCount})`}
+              icon="heart"
+              onPress={() => setFavOnly((v) => !v)}
+            />
+          ) : null}
+        </View>
       </View>
 
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
+        style={[
+          styles.listSurface,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+        ]}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View style={[styles.sep, { backgroundColor: colors.border }]} />}
         ListEmptyComponent={
           <EmptyState
             icon="musical-notes-outline"
-            title="Nenhuma música no repertório"
+            title={favOnly ? 'Nenhuma favorita' : 'Nenhuma música no repertório'}
             description={
-              canCreate
-                ? 'Cadastre a primeira música do ministério.'
-                : 'Aguarde o líder cadastrar músicas.'
+              favOnly
+                ? 'Toque no coração de uma música para adicioná-la às favoritas.'
+                : canCreate
+                  ? 'Cadastre a primeira música do ministério.'
+                  : 'Aguarde o líder cadastrar músicas.'
             }
-            actionLabel={canCreate ? 'Adicionar música' : undefined}
-            onAction={canCreate ? () => navigation.navigate('SongForm') : undefined}
+            actionLabel={!favOnly && canCreate ? 'Adicionar música' : undefined}
+            onAction={!favOnly && canCreate ? () => navigation.navigate('SongForm') : undefined}
           />
         }
         renderItem={({ item }) => (
@@ -185,25 +240,13 @@ export function SongsScreen() {
             onLongPress={canManage ? () => handleDelete(item) : undefined}
             style={({ pressed }) => [
               styles.row,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                borderRadius: radius.xl,
-                opacity: pressed ? 0.92 : 1,
-                ...shadow.sm,
-              },
+              { backgroundColor: pressed ? colors.surfaceSecondary : 'transparent' },
             ]}
           >
             {item.artwork_url ? (
               <Image source={{ uri: item.artwork_url }} style={styles.cover} />
             ) : (
-              <View
-                style={[
-                  styles.cover,
-                  styles.coverPh,
-                  { backgroundColor: colors.surfaceSecondary },
-                ]}
-              >
+              <View style={[styles.cover, styles.coverPh, { backgroundColor: colors.surfaceSecondary }]}>
                 <Ionicons name="musical-note" size={20} color={colors.textMuted} />
               </View>
             )}
@@ -212,13 +255,17 @@ export function SongsScreen() {
                 {item.title}
               </Text>
               <Text style={[styles.meta, { color: colors.textSecondary }]} numberOfLines={1}>
-                {[item.artist, item.key].filter(Boolean).join(' · ') || '—'}
+                {[item.artist, item.key ? `Tom ${item.key}` : null].filter(Boolean).join(' · ') ||
+                  'Artista não informado'}
               </Text>
             </View>
             <Pressable
               onPress={() => toggleFavorite(item)}
               hitSlop={12}
-              style={styles.fav}
+              style={({ pressed }) => [styles.fav, { opacity: pressed ? 0.6 : 1 }]}
+              accessibilityLabel={
+                item.is_favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
+              }
             >
               <Ionicons
                 name={item.is_favorite ? 'heart' : 'heart-outline'}
@@ -226,7 +273,6 @@ export function SongsScreen() {
                 color={item.is_favorite ? colors.danger : colors.textMuted}
               />
             </Pressable>
-            <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
           </Pressable>
         )}
       />
@@ -240,27 +286,52 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.sm,
   },
+  chips: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+    borderRadius: radius.full,
+  },
+  chipText: {
+    ...typography.caption,
+    fontWeight: '600',
+  },
   addBtn: {
     width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  list: {
-    paddingHorizontal: spacing.md,
+  listSurface: {
+    marginHorizontal: spacing.md,
+    borderRadius: radius.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+  },
+  listContent: {
     paddingBottom: spacing.xxxl,
-    gap: spacing.sm,
+  },
+  sep: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 76,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.md,
-    borderWidth: StyleSheet.hairlineWidth,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
   cover: {
     width: 48,
     height: 48,
-    borderRadius: 10,
+    borderRadius: 8,
   },
   coverPh: {
     alignItems: 'center',
@@ -269,6 +340,7 @@ const styles = StyleSheet.create({
   info: {
     flex: 1,
     marginLeft: spacing.md,
+    marginRight: spacing.sm,
   },
   title: {
     ...typography.cardTitle,
@@ -279,6 +351,5 @@ const styles = StyleSheet.create({
   },
   fav: {
     padding: 6,
-    marginRight: 4,
   },
 });
