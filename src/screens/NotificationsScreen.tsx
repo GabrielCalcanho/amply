@@ -25,19 +25,20 @@ export function NotificationsScreen() {
   const { user } = useAuth();
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data, error } = await supabase
+    setError(null);
+    const { data, error: loadError } = await supabase
       .from('notifications')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(50);
-    if (error) {
-      // Table may not exist yet
-      console.warn(error.message);
+    if (loadError) {
+      setError(formatSupabaseError(loadError));
       setItems([]);
     } else {
       setItems((data as NotificationItem[]) ?? []);
@@ -108,18 +109,35 @@ export function NotificationsScreen() {
         keyExtractor={(i) => i.id}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
-          <EmptyState
-            title="Nenhuma notificação"
-            description="Avisos de escalas, presença e aniversários aparecerão aqui."
-          />
+          error ? (
+            <EmptyState
+              icon="alert-circle-outline"
+              title="Não foi possível carregar"
+              description={error}
+              actionLabel="Tentar novamente"
+              onAction={load}
+            />
+          ) : (
+            <EmptyState
+              icon="notifications-outline"
+              title="Nenhuma notificação"
+              description="Avisos de escalas, presença e aniversários aparecerão aqui."
+            />
+          )
         }
         renderItem={({ item }) => (
           <TouchableOpacity
             style={[styles.item, !item.read_at && styles.unread]}
             onPress={() => openNotification(item)}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.title}${item.read_at ? '' : ', não lida'}`}
           >
-            <Text style={styles.itemTitle}>{item.title}</Text>
-            {item.body ? <Text style={styles.itemBody}>{item.body}</Text> : null}
+            <View style={styles.itemRow}>
+              {!item.read_at ? <View style={styles.unreadDot} /> : null}
+              <Text style={styles.itemTitle} numberOfLines={2}>{item.title}</Text>
+            </View>
+            {item.body ? <Text style={styles.itemBody} numberOfLines={3}>{item.body}</Text> : null}
           </TouchableOpacity>
         )}
       />
@@ -132,17 +150,24 @@ function createStyles(colors: ColorTokens) {
   safe: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   link: { ...typography.caption, color: colors.primary, fontWeight: '600' },
-  list: { padding: spacing.xl, flexGrow: 1 },
+  list: { padding: spacing.lg, flexGrow: 1 },
   item: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.md,
     marginBottom: spacing.xs,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
   },
-  unread: { borderColor: colors.primaryMuted, backgroundColor: colors.primaryLight },
-  itemTitle: { ...typography.bodyMedium, color: colors.text },
+  unread: { borderColor: colors.borderStrong, backgroundColor: colors.primaryMuted },
+  itemRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  unreadDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+  },
+  itemTitle: { ...typography.bodyMedium, color: colors.text, flex: 1 },
   itemBody: { ...typography.caption, color: colors.textSecondary, marginTop: 4 },
 })
 }

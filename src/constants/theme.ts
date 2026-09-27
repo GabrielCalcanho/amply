@@ -16,8 +16,8 @@ const lightColors = {
 
   // Text
   text: '#111111',
-  textSecondary: '#6B6B6B',
-  textMuted: '#999999',
+  textSecondary: '#5C5C5C',
+  textMuted: '#757575',
   textInverse: '#FFFFFF',
   textOnInverse: '#FFFFFF',
 
@@ -58,7 +58,7 @@ const lightColors = {
   tabBarBg: '#FFFFFF',
   tabBarBorder: '#E8E8E8',
   tabActive: '#111111',
-  tabInactive: '#999999',
+  tabInactive: '#757575',
 };
 
 const darkColors = {
@@ -70,7 +70,7 @@ const darkColors = {
 
   text: '#FFFFFF',
   textSecondary: '#A5A5A5',
-  textMuted: '#6B6B6B',
+  textMuted: '#8C8C8C',
   textInverse: '#111111',
   textOnInverse: '#111111',
 
@@ -105,7 +105,7 @@ const darkColors = {
   tabBarBg: '#0B0B0B',
   tabBarBorder: '#292929',
   tabActive: '#FFFFFF',
-  tabInactive: '#6B6B6B',
+  tabInactive: '#8C8C8C',
 };
 
 export type ThemeColors = typeof lightColors;

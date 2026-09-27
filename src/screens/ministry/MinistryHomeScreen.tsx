@@ -15,8 +15,9 @@ import { supabase } from '../../services/supabase';
 import { ScreenHeader } from '../../components/layout/ScreenHeader';
 import { SearchField } from '../../components/SearchField';
 import { EmptyState } from '../../components/EmptyState';
-import { spacing, radius, shadow } from '../../constants/theme';
+import { spacing, radius, shadow, typography } from '../../constants/theme';
 import { MINISTRY_DEFS } from '../../constants/ministries';
+import { formatSupabaseError } from '../../utils/payload';
 
 type MinistryItem = {
   key: string;
@@ -31,6 +32,7 @@ export function MinistryHomeScreen() {
   const { colors } = useTheme();
   const [members, setMembers] = useState<{ instrument: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
   const canManage = membership?.role === 'owner' || membership?.role === 'leader';
@@ -41,11 +43,13 @@ export function MinistryHomeScreen() {
       return;
     }
     setLoading(true);
-    const { data } = await supabase
+    setError(null);
+    const { data, error } = await supabase
       .from('church_members')
       .select('instrument')
       .eq('church_id', church.id);
-    setMembers((data as { instrument: string | null }[]) ?? []);
+    if (error) setError(formatSupabaseError(error));
+    else setMembers((data as { instrument: string | null }[]) ?? []);
     setLoading(false);
   }, [church]);
 
@@ -114,6 +118,14 @@ export function MinistryHomeScreen() {
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
+      ) : error ? (
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Não foi possível carregar"
+          description={error}
+          actionLabel="Tentar novamente"
+          onAction={load}
+        />
       ) : (
         <FlatList
           data={filtered}
@@ -214,14 +226,13 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.xxxl,
-    gap: 10,
+    gap: spacing.sm,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.md,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 2,
   },
   iconCircle: {
     width: 40,
@@ -238,13 +249,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   manageTitle: {
-    fontSize: 13,
+    ...typography.caption,
     fontWeight: '600',
     marginBottom: spacing.sm,
   },
   manageRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: spacing.sm,
   },
   manageCard: {
     flex: 1,
@@ -254,15 +265,14 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   manageLabel: {
-    fontSize: 13,
+    ...typography.caption,
     fontWeight: '600',
   },
   name: {
-    fontSize: 16,
-    fontWeight: '600',
+    ...typography.h3,
   },
   meta: {
-    fontSize: 13,
+    ...typography.caption,
     marginTop: 2,
   },
 });

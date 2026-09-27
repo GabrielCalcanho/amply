@@ -25,7 +25,7 @@ export function EmptyState({
   return (
     <View style={styles.wrap}>
       <View style={[styles.iconCircle, { backgroundColor: colors.surfaceSecondary }]}>
-        <Ionicons name={icon} size={28} color={colors.textMuted} />
+        <Ionicons name={icon} size={28} color={colors.textSecondary} />
       </View>
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
       {description ? (
@@ -57,13 +57,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: spacing.xs,
   },
   desc: {
-    fontSize: 14,
+    fontSize: 13,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 19,
   },
 });

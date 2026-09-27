@@ -130,8 +130,8 @@ export function ChatScreen() {
     setLoadingMore(false);
   };
 
-  const send = async () => {
-    const body = draft.trim();
+  const send = async (bodyOverride?: string) => {
+    const body = (bodyOverride ?? draft).trim();
     if (!body || !user || sending) return;
     setSending(true);
     setError(null);
@@ -170,8 +170,7 @@ export function ChatScreen() {
   const retry = async (m: UiMessage) => {
     if (!m.failed || !user) return;
     setMessages((prev) => prev.filter((x) => x.id !== m.id));
-    setDraft(m.body);
-    send();
+    send(m.body);
   };
 
   const renderDay = (iso: string) => formatDayMonth(iso.slice(0, 10));
@@ -273,6 +272,11 @@ export function ChatScreen() {
                         </Text>
                       </View>
                     </View>
+                    {item.failed ? (
+                      <Text style={[styles.retryHint, { color: colors.danger }]}>
+                        Falhou — toque para reenviar
+                      </Text>
+                    ) : null}
                   </View>
                 </Pressable>
               </View>
@@ -295,13 +299,15 @@ export function ChatScreen() {
             maxLength={4000}
           />
           <Pressable
-            onPress={send}
+            onPress={() => send()}
             disabled={!draft.trim() || sending}
             hitSlop={6}
             style={({ pressed }) => [
               styles.sendBtn,
               {
-                backgroundColor: draft.trim() && !sending ? colors.primary : colors.primaryMuted,
+                backgroundColor: draft.trim() && !sending ? colors.primary : colors.surfaceSecondary,
+                borderWidth: draft.trim() && !sending ? 0 : StyleSheet.hairlineWidth,
+                borderColor: colors.borderStrong,
                 opacity: pressed ? 0.85 : 1,
               },
             ]}
@@ -337,10 +343,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     maxWidth: '100%',
   },
-  body: { fontSize: 15, lineHeight: 20 },
+  body: { fontSize: 15, lineHeight: 22 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, justifyContent: 'flex-end', marginTop: 2 },
   metaRowMine: { justifyContent: 'flex-end' },
-  time: { fontSize: 11, opacity: 0.75 },
+  time: { fontSize: 11, opacity: 0.85 },
+  retryHint: { fontSize: 11, marginTop: 2, marginLeft: 4 },
   errorBar: { paddingHorizontal: spacing.md, paddingVertical: 6 },
   errorText: { fontSize: 13, textAlign: 'center' },
   inputBar: {

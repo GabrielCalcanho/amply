@@ -39,6 +39,8 @@ export function SegmentedControl<T extends string>({
                   : colors.segmentInactiveBg,
                 opacity: pressed ? 0.9 : 1,
                 borderRadius: radius.full,
+                borderWidth: active ? 0 : StyleSheet.hairlineWidth,
+                borderColor: colors.border,
               },
             ]}
           >
@@ -81,7 +83,7 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    minHeight: 36,
+    minHeight: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },

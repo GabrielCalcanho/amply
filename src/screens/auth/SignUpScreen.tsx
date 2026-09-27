@@ -13,7 +13,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
-import { colors, typography, spacing } from '../../constants/theme';
+import { typography, spacing, type ThemeColors } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 
 type Props = {
@@ -23,6 +23,7 @@ type Props = {
 export function SignUpScreen({ navigation }: Props) {
   const { signUp, loading } = useAuth();
   const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -96,12 +97,12 @@ export function SignUpScreen({ navigation }: Props) {
             />
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
-            <Button title="Criar conta" onPress={handleSignUp} loading={loading} style={styles.btn} />
+            <Button title="Criar conta" onPress={handleSignUp} loading={loading} fullWidth style={styles.btn} />
           </View>
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Já tem conta?</Text>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
+            <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={10}>
               <Text style={styles.link}>Entrar</Text>
             </TouchableOpacity>
           </View>
@@ -111,52 +112,53 @@ export function SignUpScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  flex: { flex: 1 },
-  container: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    justifyContent: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-  },
-  logo: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: colors.charcoal,
-    letterSpacing: 2,
-  },
-  subtitle: {
-    ...typography.body,
-    color: colors.textSecondary,
-    marginTop: spacing.sm,
-  },
-  form: {
-    marginBottom: spacing.xl,
-  },
-  btn: {
-    marginTop: spacing.md,
-  },
-  error: {
-    ...typography.caption,
-    color: colors.danger,
-    marginBottom: spacing.sm,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  footerText: {
-    ...typography.body,
-    color: colors.textSecondary,
-  },
-  link: {
-    ...typography.bodyMedium,
-    color: colors.primary,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.background },
+    flex: { flex: 1 },
+    container: {
+      flexGrow: 1,
+      paddingHorizontal: spacing.lg,
+      justifyContent: 'center',
+    },
+    header: {
+      alignItems: 'center',
+      marginBottom: spacing.xl,
+    },
+    logo: {
+      fontSize: 36,
+      fontWeight: '800',
+      color: colors.text,
+      letterSpacing: 4,
+    },
+    subtitle: {
+      ...typography.body,
+      color: colors.textSecondary,
+      marginTop: spacing.sm,
+    },
+    form: {
+      marginBottom: spacing.xl,
+    },
+    btn: {
+      marginTop: spacing.md,
+    },
+    error: {
+      ...typography.caption,
+      color: colors.danger,
+      marginBottom: spacing.sm,
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: spacing.xs,
+    },
+    footerText: {
+      ...typography.body,
+      color: colors.textSecondary,
+    },
+    link: {
+      ...typography.bodyMedium,
+      color: colors.primary,
+    },
+  });

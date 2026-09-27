@@ -1,5 +1,5 @@
 import React, {useState, useMemo} from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
@@ -74,39 +74,44 @@ export function MaterialFormScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScreenHeader title="Novo material" />
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.label}>Tipo</Text>
-        <View style={styles.typeRow}>
-          {TYPES.map((t) => (
-            <Button
-              key={t.value}
-              title={t.label}
-              onPress={() => setType(t.value)}
-              variant={type === t.value ? 'primary' : 'secondary'}
-              style={styles.typeBtn}
-              textStyle={{ fontSize: 13 }}
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          <Text style={styles.label}>Tipo</Text>
+          <View style={styles.typeRow}>
+            {TYPES.map((t) => (
+              <Button
+                key={t.value}
+                title={t.label}
+                onPress={() => setType(t.value)}
+                variant={type === t.value ? 'primary' : 'secondary'}
+                style={styles.typeBtn}
+                textStyle={{ fontSize: 13 }}
+              />
+            ))}
+          </View>
+
+          <Input label="Título" value={title} onChangeText={setTitle} placeholder="Ex: Cifra original" />
+          {needsUrl && (
+            <Input label="URL" value={url} onChangeText={setUrl} placeholder="https://..." autoCapitalize="none" />
+          )}
+          {needsContent && (
+            <Input
+              label="Conteúdo"
+              value={content}
+              onChangeText={setContent}
+              placeholder={type === 'chord' ? 'Cole a cifra aqui...' : 'Texto...'}
+              multiline
+              style={{ height: 200, textAlignVertical: 'top' }}
             />
-          ))}
-        </View>
+          )}
 
-        <Input label="Título" value={title} onChangeText={setTitle} placeholder="Ex: Cifra original" />
-        {needsUrl && (
-          <Input label="URL" value={url} onChangeText={setUrl} placeholder="https://..." autoCapitalize="none" />
-        )}
-        {needsContent && (
-          <Input
-            label="Conteúdo"
-            value={content}
-            onChangeText={setContent}
-            placeholder={type === 'chord' ? 'Cole a cifra aqui...' : 'Texto...'}
-            multiline
-            style={{ height: 200, textAlignVertical: 'top' }}
-          />
-        )}
-
-        <Button title="Salvar" onPress={handleSave} loading={loading} style={styles.btn} />
-        <Button title="Cancelar" onPress={() => navigation.goBack()} variant="ghost" />
-      </ScrollView>
+          <Button title="Salvar" onPress={handleSave} loading={loading} style={styles.btn} />
+          <Button title="Cancelar" onPress={() => navigation.goBack()} variant="ghost" />
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -114,11 +119,11 @@ export function MaterialFormScreen() {
 function createStyles(colors: ColorTokens) {
   return StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
+  flex: { flex: 1 },
   container: { padding: spacing.lg },
-  title: { ...typography.h2, color: colors.text, marginBottom: spacing.lg },
   label: { ...typography.caption, color: colors.textSecondary, marginBottom: spacing.xs },
   typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.md },
-  typeBtn: { height: 36, paddingHorizontal: spacing.sm, marginBottom: spacing.xs },
+  typeBtn: { height: 40, paddingHorizontal: spacing.sm, marginBottom: spacing.xs },
   btn: { marginTop: spacing.md },
 })
 }

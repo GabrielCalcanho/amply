@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   Linking,
   Alert,
@@ -14,17 +14,21 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
-import { Song, SongMaterial, UserSongNote } from '../types';
+import { Song, SongMaterial } from '../types';
 import { ScreenHeader } from '../components/layout/ScreenHeader';
-import { colors, spacing, typography, radius } from '../constants/theme';
+import { spacing, typography, radius, type ThemeColors } from '../constants/theme';
 import { formatSupabaseError } from '../utils/payload';
 import { Button } from '../components/Button';
 import { IconButton } from '../components/IconButton';
 import { ActionMenu, ActionMenuItem } from '../components/ActionMenu';
+import { EmptyState } from '../components/EmptyState';
 
 export function SongDetailScreen() {
   const { user, membership } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const songId = route.params?.songId as string;
@@ -34,6 +38,7 @@ export function SongDetailScreen() {
   const [note, setNote] = useState('');
   const [noteId, setNoteId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [savingNote, setSavingNote] = useState(false);
 
@@ -41,13 +46,15 @@ export function SongDetailScreen() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: s }, { data: mats }, { data: notes }] = await Promise.all([
+    setError(null);
+    const [{ data: s, error: songError }, { data: mats }, { data: notes }] = await Promise.all([
       supabase.from('songs').select('*').eq('id', songId).single(),
       supabase.from('song_materials').select('*').eq('song_id', songId).order('created_at'),
       user
         ? supabase.from('user_song_notes').select('*').eq('song_id', songId).eq('user_id', user.id).maybeSingle()
         : Promise.resolve({ data: null }),
     ]);
+    if (songError) setError(formatSupabaseError(songError));
     setSong(s);
     setMaterials(mats ?? []);
     if (notes) {
@@ -84,25 +91,45 @@ export function SongDetailScreen() {
   const saveNote = async () => {
     if (!user) return;
     setSavingNote(true);
+    let noteError: { message: string; details?: string; hint?: string; code?: string } | null = null;
     if (noteId) {
-      await supabase.from('user_song_notes').update({ content: note }).eq('id', noteId);
+      ({ error: noteError } = await supabase.from('user_song_notes').update({ content: note }).eq('id', noteId));
     } else if (note.trim()) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('user_song_notes')
         .insert({ user_id: user.id, song_id: songId, content: note })
         .select()
         .single();
+      noteError = error;
       if (data) setNoteId(data.id);
     }
+    if (noteError) Alert.alert('Erro', formatSupabaseError(noteError));
     setSavingNote(false);
   };
 
-  if (loading || !song) {
+  if (loading) {
     return (
       <SafeAreaView style={styles.safe} edges={['bottom']}>
         <ScreenHeader title="Música" />
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !song) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['bottom']}>
+        <ScreenHeader title="Música" />
+        <View style={styles.center}>
+          <EmptyState
+            icon="alert-circle-outline"
+            title="Não foi possível carregar"
+            description={error ?? 'Música não encontrada.'}
+            actionLabel="Tentar novamente"
+            onAction={load}
+          />
         </View>
       </SafeAreaView>
     );
@@ -142,9 +169,14 @@ export function SongDetailScreen() {
         {song.album ? <Text style={styles.artist}>{song.album}</Text> : null}
 
         {song.spotify_url ? (
-          <TouchableOpacity style={styles.spotifyBtn} onPress={openSpotify}>
+          <Pressable
+            style={({ pressed }) => [styles.spotifyBtn, { opacity: pressed ? 0.85 : 1 }]}
+            onPress={openSpotify}
+            accessibilityRole="button"
+            accessibilityLabel="Abrir no Spotify"
+          >
             <Text style={styles.spotifyBtnText}>Abrir no Spotify</Text>
-          </TouchableOpacity>
+          </Pressable>
         ) : null}
 
         <View style={styles.metaRow}>
@@ -166,37 +198,48 @@ export function SongDetailScreen() {
         {materials.length === 0 ? (
           <Text style={styles.empty}>Nenhum material cadastrado</Text>
         ) : (
-          materials.map((m) => (
-            <TouchableOpacity
-              key={m.id}
-              style={styles.material}
-              onPress={() => openMaterial(m)}
-              onLongPress={
-                canManage
-                  ? () => {
-                      Alert.alert('Excluir material', `Excluir "${m.title}"?`, [
-                        { text: 'Cancelar', style: 'cancel' },
-                        {
-                          text: 'Excluir',
-                          style: 'destructive',
-                          onPress: async () => {
-                            const { error } = await supabase
-                              .from('song_materials')
-                              .delete()
-                              .eq('id', m.id);
-                            if (error) Alert.alert('Erro', formatSupabaseError(error));
-                            else load();
+          <View style={styles.materialList}>
+            {materials.map((m, idx) => (
+              <Pressable
+                key={m.id}
+                style={({ pressed }) => [
+                  styles.material,
+                  pressed && styles.materialPressed,
+                  idx < materials.length - 1 && styles.materialDivider,
+                ]}
+                onPress={() => openMaterial(m)}
+                onLongPress={
+                  canManage
+                    ? () => {
+                        Alert.alert('Excluir material', `Excluir "${m.title}"?`, [
+                          { text: 'Cancelar', style: 'cancel' },
+                          {
+                            text: 'Excluir',
+                            style: 'destructive',
+                            onPress: async () => {
+                              const { error: delError } = await supabase
+                                .from('song_materials')
+                                .delete()
+                                .eq('id', m.id);
+                              if (delError) Alert.alert('Erro', formatSupabaseError(delError));
+                              else load();
+                            },
                           },
-                        },
-                      ]);
-                    }
-                  : undefined
-              }
-            >
-              <Text style={styles.materialType}>{labelType(m.type)}</Text>
-              <Text style={styles.materialTitle}>{m.title}</Text>
-            </TouchableOpacity>
-          ))
+                        ]);
+                      }
+                    : undefined
+                }
+                accessibilityRole="button"
+                accessibilityLabel={`${labelType(m.type)}: ${m.title}`}
+                accessibilityHint={canManage ? 'Toque para abrir. Toque longo para excluir.' : 'Toque para abrir.'}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.materialType}>{labelType(m.type)}</Text>
+                  <Text style={styles.materialTitle} numberOfLines={2}>{m.title}</Text>
+                </View>
+              </Pressable>
+            ))}
+          </View>
         )}
 
         <Button
@@ -234,67 +277,68 @@ function labelType(t: string) {
   return map[t] ?? t;
 }
 
-const styles = StyleSheet.create({
-  artwork: { width: 160, height: 160, borderRadius: 12, alignSelf: 'center', marginBottom: 16 },
-  spotifyBtn: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#1DB954',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  spotifyBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    artwork: { width: 160, height: 160, borderRadius: radius.md, alignSelf: 'center', marginBottom: spacing.md },
+    spotifyBtn: {
+      alignSelf: 'flex-start',
+      backgroundColor: colors.primary,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs,
+      borderRadius: radius.full,
+      marginTop: spacing.xs,
+      marginBottom: spacing.xs,
+    },
+    spotifyBtnText: { color: colors.textInverse, fontWeight: '600', fontSize: 14 },
 
-  safe: { flex: 1, backgroundColor: colors.background },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  container: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
-  },
-  back: { ...typography.body, color: colors.primary },
-  edit: { ...typography.bodyMedium, color: colors.primary },
-  title: { ...typography.h1, color: colors.text },
-  artist: { ...typography.body, color: colors.textSecondary, marginTop: spacing.xs },
-  metaRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
-  badge: {
-    backgroundColor: colors.primaryLight,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.sm,
-  },
-  badgeText: { ...typography.caption, color: colors.primaryDark, fontWeight: '600' },
-  notes: { ...typography.body, color: colors.textSecondary, marginTop: spacing.md },
-  section: {
-    ...typography.caption,
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginTop: spacing.xl,
-    marginBottom: spacing.sm,
-  },
-  empty: { ...typography.body, color: colors.textMuted },
-  material: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  materialType: { ...typography.small, color: colors.primary, fontWeight: '600' },
-  materialTitle: { ...typography.bodyMedium, color: colors.text, marginTop: 2 },
-  noteInput: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    minHeight: 100,
-    ...typography.body,
-    color: colors.text,
-  },
-});
+    safe: { flex: 1, backgroundColor: colors.background },
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+    container: { padding: spacing.lg, paddingBottom: spacing.xxl },
+    title: { ...typography.h1, color: colors.text },
+    artist: { ...typography.body, color: colors.textSecondary, marginTop: spacing.xs },
+    metaRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+    badge: {
+      backgroundColor: colors.primaryMuted,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      borderRadius: radius.sm,
+    },
+    badgeText: { ...typography.caption, color: colors.text, fontWeight: '600' },
+    notes: { ...typography.body, color: colors.textSecondary, marginTop: spacing.md },
+    section: {
+      ...typography.caption,
+      color: colors.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      marginTop: spacing.xl,
+      marginBottom: spacing.sm,
+    },
+    empty: { ...typography.body, color: colors.textMuted },
+    materialList: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+    },
+    material: {
+      padding: spacing.md,
+    },
+    materialPressed: { backgroundColor: colors.surfaceSecondary },
+    materialDivider: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    materialType: { ...typography.small, color: colors.textSecondary, fontWeight: '600' },
+    materialTitle: { ...typography.bodyMedium, color: colors.text, marginTop: 2 },
+    noteInput: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      padding: spacing.md,
+      minHeight: 100,
+      ...typography.body,
+      color: colors.text,
+    },
+  });
+}

@@ -11,15 +11,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { ScreenHeader } from '../components/layout/ScreenHeader';
-import { colors, spacing, typography } from '../constants/theme';
+import { spacing, typography, type ThemeColors } from '../constants/theme';
 import { emptyToNull, formatSupabaseError } from '../utils/payload';
 
 export function SongFormScreen() {
   const { church, user } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const navigation = useNavigation<any>();
   const toast = useToast();
   const route = useRoute<any>();
@@ -34,6 +37,7 @@ export function SongFormScreen() {
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{ title?: string; bpm?: string; capo?: string }>({});
 
   useEffect(() => {
     if (!songId) return;
@@ -66,8 +70,9 @@ export function SongFormScreen() {
 
   const handleSave = async () => {
     setError('');
+    setFieldErrors({});
     if (!title.trim()) {
-      setError('Título é obrigatório');
+      setFieldErrors({ title: 'Título é obrigatório' });
       return;
     }
     if (!church || !user) {
@@ -79,7 +84,7 @@ export function SongFormScreen() {
     if (bpm.trim()) {
       const parsed = parseInt(bpm.trim(), 10);
       if (Number.isNaN(parsed) || parsed < 1 || parsed > 400) {
-        setError('BPM deve ser um número entre 1 e 400');
+        setFieldErrors({ bpm: 'BPM deve ser um número entre 1 e 400' });
         return;
       }
       bpmValue = parsed;
@@ -89,7 +94,7 @@ export function SongFormScreen() {
     if (capo.trim()) {
       const parsed = parseInt(capo.trim(), 10);
       if (Number.isNaN(parsed) || parsed < 0 || parsed > 12) {
-        setError('Capotraste deve ser entre 0 e 12');
+        setFieldErrors({ capo: 'Capotraste deve ser entre 0 e 12' });
         return;
       }
       capoValue = parsed;
@@ -122,9 +127,7 @@ export function SongFormScreen() {
 
     setLoading(false);
     if (err) {
-      const msg = formatSupabaseError(err);
-      setError(msg);
-      Alert.alert('Erro', msg);
+      setError(formatSupabaseError(err));
       return;
     }
 
@@ -146,6 +149,7 @@ export function SongFormScreen() {
             onChangeText={setTitle}
             placeholder="Nome da música"
             autoCapitalize="words"
+            error={fieldErrors.title}
           />
           <Input
             label="Artista"
@@ -168,6 +172,7 @@ export function SongFormScreen() {
             onChangeText={setBpm}
             placeholder="Ex: 72"
             keyboardType="number-pad"
+            error={fieldErrors.bpm}
           />
           <Input
             label="Capotraste"
@@ -175,6 +180,7 @@ export function SongFormScreen() {
             onChangeText={setCapo}
             placeholder="0–12"
             keyboardType="number-pad"
+            error={fieldErrors.capo}
           />
           <Input
             label="Observações"
@@ -195,10 +201,11 @@ export function SongFormScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  flex: { flex: 1 },
-  container: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  error: { ...typography.caption, color: colors.danger, marginBottom: spacing.sm },
-  btn: { marginTop: spacing.md },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.background },
+    flex: { flex: 1 },
+    container: { padding: spacing.lg, paddingBottom: spacing.xxl },
+    error: { ...typography.caption, color: colors.danger, marginBottom: spacing.sm },
+    btn: { marginTop: spacing.md },
+  });

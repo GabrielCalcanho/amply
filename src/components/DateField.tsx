@@ -8,6 +8,7 @@ import {
   Pressable,
   ScrollView,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { radius, spacing, typography, ColorTokens } from '../constants/theme';
 import { formatDateBR, toISODate, todayISO } from '../utils/dates';
@@ -156,8 +157,12 @@ export function DateField({
                         setViewYear((y) => y - 1);
                       } else setViewMonth((m) => m - 1);
                     }}
+                    hitSlop={12}
+                    style={styles.navBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel="Mês anterior"
                   >
-                    <Text style={styles.navBtn}>‹</Text>
+                    <Ionicons name="chevron-back" size={20} color={colors.text} />
                   </TouchableOpacity>
                   <Text style={styles.monthTitle}>{monthLabel}</Text>
                   <TouchableOpacity
@@ -167,8 +172,12 @@ export function DateField({
                         setViewYear((y) => y + 1);
                       } else setViewMonth((m) => m + 1);
                     }}
+                    hitSlop={12}
+                    style={styles.navBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel="Próximo mês"
                   >
-                    <Text style={styles.navBtn}>›</Text>
+                    <Ionicons name="chevron-forward" size={20} color={colors.text} />
                   </TouchableOpacity>
                 </View>
                 <View style={styles.weekRow}>
@@ -229,9 +238,9 @@ function createStyles(colors: ColorTokens) {
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.xs,
       borderRadius: radius.full,
-      backgroundColor: colors.primaryLight,
+      backgroundColor: colors.primaryMuted,
     },
-    chipText: { ...typography.caption, color: colors.primaryDark, fontWeight: '600' },
+    chipText: { ...typography.caption, color: colors.text, fontWeight: '600' },
     backdrop: {
       flex: 1,
       backgroundColor: colors.overlay,
@@ -263,7 +272,7 @@ function createStyles(colors: ColorTokens) {
     },
     yearCellOn: { backgroundColor: colors.primary },
     yearText: { ...typography.caption, color: colors.text },
-    yearTextOn: { color: '#fff', fontWeight: '700' },
+    yearTextOn: { color: colors.textInverse, fontWeight: '700' },
     monthGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     monthCell: {
       width: '30%',
@@ -278,7 +287,12 @@ function createStyles(colors: ColorTokens) {
       justifyContent: 'space-between',
       marginBottom: spacing.md,
     },
-    navBtn: { fontSize: 28, color: colors.primary, paddingHorizontal: spacing.sm },
+    navBtn: {
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     monthTitle: { ...typography.bodyMedium, color: colors.text, textTransform: 'capitalize' },
     weekRow: { flexDirection: 'row', marginBottom: spacing.xs },
     weekDay: { flex: 1, textAlign: 'center', ...typography.caption, color: colors.textMuted },
@@ -291,7 +305,7 @@ function createStyles(colors: ColorTokens) {
     },
     daySelected: { backgroundColor: colors.primary, borderRadius: radius.full },
     dayText: { ...typography.body, color: colors.text },
-    dayTextSelected: { color: '#fff', fontWeight: '600' },
+    dayTextSelected: { color: colors.textInverse, fontWeight: '600' },
     cancel: { marginTop: spacing.md, alignItems: 'center', padding: spacing.sm },
     cancelText: { ...typography.body, color: colors.textSecondary },
   });

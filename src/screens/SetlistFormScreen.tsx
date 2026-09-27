@@ -5,7 +5,7 @@ import {
   ScrollView,
   Alert,
   View,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -18,7 +18,7 @@ import { Input } from '../components/Input';
 import { DateField } from '../components/DateField';
 import { TimeField } from '../components/TimeField';
 import { ScreenHeader } from '../components/layout/ScreenHeader';
-import { colors, spacing, typography, radius } from '../constants/theme';
+import { spacing, typography, radius, type ThemeColors } from '../constants/theme';
 import { emptyToNull, formatSupabaseError } from '../utils/payload';
 import { notifyChurchMembers } from '../utils/notifications';
 import { toPostgresTime, todayISO, formatTime } from '../utils/dates';
@@ -35,6 +35,7 @@ const STATUS_OPTIONS: SetlistStatus[] = [
 export function SetlistFormScreen() {
   const { church, user, membership } = useAuth();
   const { colors: themeColors } = useTheme();
+  const styles = createStyles(themeColors);
   const navigation = useNavigation<any>();
   const toast = useToast();
   const route = useRoute<any>();
@@ -152,7 +153,7 @@ export function SetlistFormScreen() {
     return (
       <SafeAreaView style={styles.safe} edges={['bottom']}>
         <ScreenHeader title="Escala" />
-        <Text style={{ padding: spacing.lg, ...typography.body, color: colors.textMuted }}>Carregando…</Text>
+        <Text style={{ padding: spacing.lg, ...typography.body, color: themeColors.textMuted }}>Carregando…</Text>
       </SafeAreaView>
     );
   }
@@ -195,16 +196,20 @@ export function SetlistFormScreen() {
         <Text style={styles.section}>Status</Text>
         <View style={styles.statusRow}>
           {STATUS_OPTIONS.map((s) => (
-            <TouchableOpacity
+            <Pressable
               key={s}
-              style={[
+              style={({ pressed }) => [
                 styles.chip,
                 {
                   backgroundColor: status === s ? themeColors.surfaceInverse : themeColors.surface,
                   borderColor: status === s ? themeColors.surfaceInverse : themeColors.border,
+                  opacity: pressed ? 0.85 : 1,
                 },
               ]}
               onPress={() => setStatus(s)}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: status === s }}
+              accessibilityLabel={SETLIST_STATUS_LABELS[s]}
             >
               <Text
                 style={[
@@ -214,7 +219,7 @@ export function SetlistFormScreen() {
               >
                 {SETLIST_STATUS_LABELS[s]}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </View>
 
@@ -230,28 +235,28 @@ export function SetlistFormScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  container: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  section: {
-    ...typography.caption,
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  statusRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-    backgroundColor: colors.surfaceSecondary,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  chipOn: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
-  chipText: { ...typography.caption, color: colors.textSecondary },
-  chipTextOn: { color: colors.primaryDark, fontWeight: '600' },
-  btn: { marginTop: spacing.md },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.background },
+    container: { padding: spacing.lg, paddingBottom: spacing.xxl },
+    section: {
+      ...typography.caption,
+      color: colors.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      marginBottom: spacing.sm,
+      marginTop: spacing.sm,
+    },
+    statusRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
+    chip: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs,
+      borderRadius: radius.full,
+      borderWidth: StyleSheet.hairlineWidth,
+      minHeight: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    chipText: { ...typography.caption, fontWeight: '500' },
+    btn: { marginTop: spacing.md },
+  });

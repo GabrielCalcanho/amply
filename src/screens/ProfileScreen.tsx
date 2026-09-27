@@ -17,7 +17,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
 import { Song } from '../types';
 import { Avatar } from '../components/Avatar';
-import { spacing, radius, shadow } from '../constants/theme';
+import { spacing, radius } from '../constants/theme';
 import { isBirthdayToday } from '../utils/dates';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -161,12 +161,43 @@ export function ProfileScreen() {
           </View>
 
           <Pressable
+            onPress={() => navigation.canGoBack() && navigation.goBack()}
+            hitSlop={12}
+            style={[styles.backFab, { top: Math.max(insets.top, 12) }]}
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
+          >
+            <View
+              style={[
+                styles.fabCircle,
+                {
+                  backgroundColor: colors.surface,
+                  borderWidth: StyleSheet.hairlineWidth,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              <Ionicons name="chevron-back" size={20} color={colors.text} />
+            </View>
+          </Pressable>
+          <Pressable
             onPress={() => navigation.navigate('Settings')}
             hitSlop={12}
             style={[styles.settingsFab, { top: Math.max(insets.top, 12) }]}
+            accessibilityRole="button"
+            accessibilityLabel="Configurações"
           >
-            <View style={[styles.fabCircle, { backgroundColor: 'rgba(255,255,255,0.92)' }]}>
-              <Ionicons name="settings-outline" size={20} color="#111" />
+            <View
+              style={[
+                styles.fabCircle,
+                {
+                  backgroundColor: colors.surface,
+                  borderWidth: StyleSheet.hairlineWidth,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              <Ionicons name="settings-outline" size={20} color={colors.text} />
             </View>
           </Pressable>
         </View>
@@ -184,7 +215,9 @@ export function ProfileScreen() {
         </View>
 
         <View style={styles.identity}>
-          <Text style={[styles.name, { color: colors.text }]}>{displayName}</Text>
+          <Text style={[styles.name, { color: colors.text }]} numberOfLines={2}>
+            {displayName}
+          </Text>
           {birthdayToday ? (
             <Text style={[styles.bday, { color: colors.textSecondary }]}>
               Hoje é o seu aniversário!
@@ -200,14 +233,14 @@ export function ProfileScreen() {
             <View style={styles.metaItem}>
               <Ionicons name="musical-notes-outline" size={16} color={colors.textSecondary} />
               <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                {songs.length} {songs.length === 1 ? 'música' : 'músicas'}
+                {songs.length >= 12 ? '12+' : songs.length} {songs.length === 1 ? 'música' : 'músicas'}
               </Text>
             </View>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Músicas que toca</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Repertório do ministério</Text>
           {loadingSongs ? (
             <ActivityIndicator color={colors.primary} style={{ marginTop: 12 }} />
           ) : songs.length === 0 ? (
@@ -215,48 +248,55 @@ export function ProfileScreen() {
               Nenhuma música adicionada ainda.
             </Text>
           ) : (
-            songs.map((s) => (
-              <Pressable
-                key={s.id}
-                onPress={() => navigation.navigate('SongDetail', { songId: s.id })}
-                style={({ pressed }) => [
-                  styles.songRow,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    borderRadius: radius.xl,
-                    opacity: pressed ? 0.92 : 1,
-                    ...shadow.sm,
-                  },
-                ]}
-              >
-                {s.artwork_url ? (
-                  <Image source={{ uri: s.artwork_url }} style={styles.songCoverImg} />
-                ) : (
-                  <View
-                    style={[
-                      styles.songCoverImg,
-                      {
-                        backgroundColor: colors.surfaceSecondary,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      },
-                    ]}
-                  >
-                    <Ionicons name="musical-note" size={18} color={colors.textMuted} />
+            <View
+              style={[
+                styles.songList,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
+            >
+              {songs.map((s, i) => (
+                <Pressable
+                  key={s.id}
+                  onPress={() => navigation.navigate('SongDetail', { songId: s.id })}
+                  accessibilityRole="button"
+                  accessibilityLabel={s.title}
+                  style={({ pressed }) => [
+                    styles.songRow,
+                    i < songs.length - 1 && {
+                      borderBottomWidth: StyleSheet.hairlineWidth,
+                      borderBottomColor: colors.border,
+                    },
+                    pressed && { backgroundColor: colors.surfaceSecondary },
+                  ]}
+                >
+                  {s.artwork_url ? (
+                    <Image source={{ uri: s.artwork_url }} style={styles.songCoverImg} />
+                  ) : (
+                    <View
+                      style={[
+                        styles.songCoverImg,
+                        {
+                          backgroundColor: colors.surfaceSecondary,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        },
+                      ]}
+                    >
+                      <Ionicons name="musical-note" size={18} color={colors.textMuted} />
+                    </View>
+                  )}
+                  <View style={styles.songInfo}>
+                    <Text style={[styles.songTitle, { color: colors.text }]} numberOfLines={1}>
+                      {s.title}
+                    </Text>
+                    <Text style={[styles.songKey, { color: colors.textSecondary }]} numberOfLines={1}>
+                      {s.key ? `Tonalidade: ${s.key}` : s.artist || '—'}
+                    </Text>
                   </View>
-                )}
-                <View style={styles.songInfo}>
-                  <Text style={[styles.songTitle, { color: colors.text }]} numberOfLines={1}>
-                    {s.title}
-                  </Text>
-                  <Text style={[styles.songKey, { color: colors.textSecondary }]}>
-                    {s.key ? `Tonalidade: ${s.key}` : s.artist || '—'}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-              </Pressable>
-            ))
+                  <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+                </Pressable>
+              ))}
+            </View>
           )}
         </View>
       </ScrollView>
@@ -283,6 +323,11 @@ const styles = StyleSheet.create({
   settingsFab: {
     position: 'absolute',
     right: 12,
+    zIndex: 10,
+  },
+  backFab: {
+    position: 'absolute',
+    left: 12,
     zIndex: 10,
   },
   fabCircle: {
@@ -342,12 +387,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
   },
+  songList: {
+    borderRadius: radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+  },
   songRow: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 10,
   },
   songCoverImg: {
     width: 48,

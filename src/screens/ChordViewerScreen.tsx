@@ -4,54 +4,67 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenHeader } from '../components/layout/ScreenHeader';
-import { spacing, typography, ColorTokens } from '../constants/theme';
+import { spacing, typography, ColorTokens, getColors } from '../constants/theme';
 import { useTheme } from '../contexts/ThemeContext';
 
 export function ChordViewerScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation();
   const route = useRoute<any>();
   const { title, content } = route.params ?? {};
 
   const [fontSize, setFontSize] = useState(17);
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(isDark);
 
-  const bg = dark ? '#1A1C19' : colors.background;
-  const fg = dark ? '#EDECE8' : colors.text;
-  const accent = dark ? '#A3B38F' : colors.primary;
+  // Manual reading mode — neutral palette only, independent of the app theme.
+  const reading = getColors(dark ? 'dark' : 'light');
+  const bg = reading.background;
+  const fg = reading.text;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: bg }]} edges={['bottom']}>
       <ScreenHeader
         title={title || 'Cifra'}
+        transparent
+        titleColor={fg}
+        iconColor={fg}
         right={
           <View style={styles.tools}>
-            <TouchableOpacity
+            <Pressable
               onPress={() => setFontSize((s) => Math.max(13, s - 1))}
               hitSlop={8}
+              accessibilityLabel="Diminuir fonte"
+              style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
             >
               <Text style={[styles.toolBtn, { color: fg }]}>A−</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               onPress={() => setFontSize((s) => Math.min(28, s + 1))}
               hitSlop={8}
+              accessibilityLabel="Aumentar fonte"
+              style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
             >
               <Text style={[styles.toolBtn, { color: fg }]}>A+</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setDark((d) => !d)} hitSlop={8}>
+            </Pressable>
+            <Pressable
+              onPress={() => setDark((d) => !d)}
+              hitSlop={8}
+              accessibilityLabel={dark ? 'Modo claro' : 'Modo escuro'}
+              style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+            >
               <Ionicons
                 name={dark ? 'sunny-outline' : 'moon-outline'}
                 size={20}
                 color={fg}
               />
-            </TouchableOpacity>
+            </Pressable>
           </View>
         }
       />

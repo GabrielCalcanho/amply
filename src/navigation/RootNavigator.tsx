@@ -127,7 +127,13 @@ function MainTabs() {
         options={{
           tabBarLabel: 'Mensagens',
           tabBarBadge: unread > 0 ? (unread > 99 ? '99+' : unread) : undefined,
-          tabBarBadgeStyle: { backgroundColor: colors.danger, fontSize: 10, minWidth: 16, height: 16 },
+          tabBarBadgeStyle: {
+            backgroundColor: colors.danger,
+            color: colors.textInverse,
+            fontSize: 10,
+            minWidth: 16,
+            height: 16,
+          },
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={22} color={color} />
           ),
@@ -140,16 +146,6 @@ function MainTabs() {
           tabBarLabel: 'Equipe',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'people' : 'people-outline'} size={22} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          tabBarLabel: 'Perfil',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
           ),
         }}
       />
@@ -171,6 +167,7 @@ function MainNavigator() {
         <MainStack.Screen name="SongPicker" component={SongPickerScreen} />
         <MainStack.Screen name="Calendar" component={CalendarScreen} />
         <MainStack.Screen name="Notifications" component={NotificationsScreen} />
+        <MainStack.Screen name="Profile" component={ProfileScreen} />
         <MainStack.Screen name="MemberDetail" component={MemberDetailScreen} />
         <MainStack.Screen name="Chat" component={ChatScreen} />
         <MainStack.Screen name="Ministry" component={MinistryHomeScreen} />

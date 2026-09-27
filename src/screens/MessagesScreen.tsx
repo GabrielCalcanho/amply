@@ -216,7 +216,7 @@ export function MessagesScreen() {
                     </Text>
                     {unread ? (
                       <View style={[styles.badge, { backgroundColor: colors.danger }]}>
-                        <Text style={styles.badgeText}>
+                        <Text style={[styles.badgeText, { color: colors.textInverse }]}>
                           {item.unread_count > 99 ? '99+' : item.unread_count}
                         </Text>
                       </View>
@@ -230,7 +230,7 @@ export function MessagesScreen() {
       )}
 
       <Modal visible={pickerVisible} transparent animationType="fade" onRequestClose={() => setPickerVisible(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setPickerVisible(false)}>
+        <Pressable style={[styles.backdrop, { backgroundColor: colors.overlay }]} onPress={() => setPickerVisible(false)}>
           <Pressable
             style={[styles.sheet, { backgroundColor: colors.surface, borderRadius: radius.xl }]}
             onPress={(e) => e.stopPropagation?.()}
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.xxxl,
-    gap: 10,
+    gap: spacing.sm,
     paddingTop: spacing.xs,
   },
   row: {
@@ -319,10 +319,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 6,
   },
-  badgeText: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
+  badgeText: { fontSize: 11, fontWeight: '700' },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'flex-end',
   },
   sheet: {

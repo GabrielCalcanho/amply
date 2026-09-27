@@ -13,7 +13,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme, ThemePreference } from '../../contexts/ThemeContext';
 import { ScreenHeader } from '../../components/layout/ScreenHeader';
 import { SegmentedControl } from '../../components/SegmentedControl';
-import { spacing, radius, shadow } from '../../constants/theme';
+import { spacing, radius, shadow, typography } from '../../constants/theme';
 
 type Row = {
   key: string;
@@ -94,27 +94,25 @@ export function SettingsScreen() {
         {rows.map((r, idx) => (
           <Pressable
             key={r.key}
-            onPress={() => {
-              if (r.soon) {
-                Alert.alert(
-                  'Em breve',
-                  `"${r.label}" estará disponível em uma próxima atualização.`
-                );
-                return;
-              }
-              r.onPress?.();
-            }}
+            disabled={r.soon}
+            onPress={() => r.onPress?.()}
+            accessibilityLabel={r.label}
             style={({ pressed }) => [
               styles.row,
               {
                 borderBottomWidth: idx < rows.length - 1 ? StyleSheet.hairlineWidth : 0,
                 borderBottomColor: colors.divider,
-                opacity: pressed ? 0.7 : 1,
+                opacity: !r.soon && pressed ? 0.7 : 1,
               },
             ]}
           >
-            <Ionicons name={r.icon} size={20} color={colors.text} />
-            <Text style={[styles.rowText, { color: colors.text }]}>{r.label}</Text>
+            <Ionicons name={r.icon} size={20} color={r.soon ? colors.textMuted : colors.text} />
+            <Text
+              style={[styles.rowText, { color: r.soon ? colors.textMuted : colors.text }]}
+              numberOfLines={1}
+            >
+              {r.label}
+            </Text>
             {r.soon ? (
               <Text style={[styles.soon, { color: colors.textMuted }]}>Em breve</Text>
             ) : (
@@ -182,7 +180,8 @@ export function SettingsScreen() {
         {renderSection('Outras', other)}
 
         <Pressable
-          style={styles.logout}
+          style={({ pressed }) => [styles.logout, { opacity: pressed ? 0.7 : 1 }]}
+          accessibilityLabel="Sair da conta"
           onPress={() =>
             Alert.alert('Sair', 'Deseja sair da conta?', [
               { text: 'Cancelar', style: 'cancel' },
@@ -205,11 +204,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  identityName: { fontSize: 18, fontWeight: '700' },
-  identityChurch: { fontSize: 13, marginTop: 4 },
+  identityName: { ...typography.h2 },
+  identityChurch: { ...typography.caption, marginTop: 4 },
   section: { marginBottom: spacing.lg },
   sectionTitle: {
-    fontSize: 12,
+    ...typography.small,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
@@ -228,9 +227,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     minHeight: 52,
   },
-  rowText: { fontSize: 15, flex: 1 },
-  soon: { fontSize: 12 },
-  themeLabel: { fontSize: 13, fontWeight: '500', marginBottom: 10 },
+  rowText: { ...typography.body, flex: 1 },
+  soon: { ...typography.small },
+  themeLabel: { ...typography.caption, fontWeight: '500', marginBottom: 10 },
   logout: { marginTop: spacing.md, alignItems: 'center', padding: spacing.md },
-  logoutText: { fontSize: 15, fontWeight: '600' },
+  logoutText: { ...typography.body, fontWeight: '600' },
 });

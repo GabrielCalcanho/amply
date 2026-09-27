@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
@@ -134,10 +135,20 @@ export function SongPickerScreen() {
       <ScreenHeader
         title="Adicionar músicas"
         right={
-          <TouchableOpacity onPress={handleAdd} disabled={saving || selected.size === 0}>
-            <Text style={[styles.add, (saving || selected.size === 0) && styles.disabled]}>
-              {saving ? '...' : `Add${selected.size > 0 ? ` (${selected.size})` : ''}`}
-            </Text>
+          <TouchableOpacity
+            onPress={handleAdd}
+            disabled={saving || selected.size === 0}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel="Adicionar músicas selecionadas"
+          >
+            {saving ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <Text style={[styles.add, selected.size === 0 && styles.disabled]}>
+                {`Add${selected.size > 0 ? ` (${selected.size})` : ''}`}
+              </Text>
+            )}
           </TouchableOpacity>
         }
       />
@@ -157,7 +168,11 @@ export function SongPickerScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
-          <EmptyState title="Nenhuma música" description="Cadastre músicas primeiro" />
+          <EmptyState
+            icon="musical-notes-outline"
+            title="Nenhuma música"
+            description="Cadastre músicas primeiro"
+          />
         }
         renderItem={({ item }) => {
           const isSelected = selected.has(item.id);
@@ -168,7 +183,7 @@ export function SongPickerScreen() {
               activeOpacity={0.7}
             >
               <View style={[styles.check, isSelected && styles.checkOn]}>
-                {isSelected ? <Text style={styles.checkMark}>✓</Text> : null}
+                {isSelected ? <Ionicons name="checkmark" size={14} color={colors.textInverse} /> : null}
               </View>
               <View style={styles.itemContent}>
                 <Text style={styles.itemTitle} numberOfLines={1}>
@@ -225,7 +240,7 @@ function createStyles(colors: ColorTokens) {
   },
   itemSelected: {
     borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryMuted,
   },
   check: {
     width: 24,
@@ -241,7 +256,6 @@ function createStyles(colors: ColorTokens) {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  checkMark: { color: colors.white, fontSize: 14, fontWeight: '700' },
   itemContent: { flex: 1 },
   itemTitle: { ...typography.bodyMedium, color: colors.text },
   itemMeta: { ...typography.caption, color: colors.textSecondary, marginTop: 2 },

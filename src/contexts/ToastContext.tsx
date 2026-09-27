@@ -77,13 +77,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     [showToast]
   );
 
-  const bg =
-    toast.type === 'error'
-      ? colors.danger
-      : isDark
-        ? '#2A2A2A'
-        : '#111111';
-  const fg = '#FFFFFF';
+  const isError = toast.type === 'error';
+  const bg = isError
+    ? colors.danger
+    : isDark
+      ? colors.primaryMuted
+      : colors.surfaceInverse;
+  const fg = isError ? colors.textInverse : colors.white;
   const icon =
     toast.type === 'error'
       ? 'alert-circle'

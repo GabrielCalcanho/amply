@@ -133,6 +133,8 @@ export function EditProfileScreen() {
       }
       await refreshProfile?.();
       toast.success('Perfil atualizado');
+    } catch (e) {
+      Alert.alert('Erro', formatSupabaseError(e as { message?: string }));
     } finally {
       setSaving(false);
     }
@@ -170,8 +172,8 @@ export function EditProfileScreen() {
             </View>
           )}
           {uploadingCover ? (
-            <View style={styles.overlay}>
-              <ActivityIndicator color="#fff" />
+            <View style={[styles.overlay, { backgroundColor: colors.overlay }]}>
+              <ActivityIndicator color={colors.white} />
             </View>
           ) : null}
         </Pressable>
@@ -242,7 +244,6 @@ const styles = StyleSheet.create({
   coverEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   overlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0,0,0,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
   },

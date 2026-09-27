@@ -161,7 +161,11 @@ function createStyles(colors: ColorTokens) {
     backgroundColor: colors.border,
   },
   beatDotOn: { backgroundColor: colors.primary },
-  beatDotAccent: { backgroundColor: colors.primaryDark ?? colors.primary },
+  beatDotAccent: {
+    backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.textSecondary,
+  },
   bpm: { fontSize: 64, fontWeight: '700', color: colors.text, letterSpacing: -1 },
   label: { ...typography.caption, color: colors.textMuted, marginBottom: spacing.xl, marginTop: 4 },
   row: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md, alignItems: 'center' },
@@ -200,7 +204,7 @@ function createStyles(colors: ColorTokens) {
     paddingHorizontal: spacing.xl,
   },
   stop: { backgroundColor: colors.warning },
-  mainText: { ...typography.bodyMedium, color: colors.white },
+  mainText: { ...typography.bodyMedium, color: colors.textInverse },
   ghost: { height: 48, justifyContent: 'center', paddingHorizontal: spacing.md },
   ghostText: { ...typography.body, color: colors.textSecondary },
 })

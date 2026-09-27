@@ -3,7 +3,6 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   Alert,
   TextInput,
   Modal,
@@ -109,9 +108,14 @@ function SimpleEntityListScreen({
         title={title}
         right={
           canManage ? (
-            <TouchableOpacity onPress={() => setModal(true)} hitSlop={12}>
+            <Pressable
+              onPress={() => setModal(true)}
+              hitSlop={12}
+              accessibilityLabel="Adicionar"
+              style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+            >
               <Ionicons name="add" size={26} color={colors.primary} />
-            </TouchableOpacity>
+            </Pressable>
           ) : undefined
         }
       />
@@ -128,18 +132,25 @@ function SimpleEntityListScreen({
             <EmptyState title={emptyTitle} description={emptyDesc} />
           }
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.row}
+            <Pressable
+              style={({ pressed }) => [styles.row, canManage && pressed && { opacity: 0.7 }]}
               onLongPress={canManage ? () => remove(item) : undefined}
-              activeOpacity={canManage ? 0.7 : 1}
+              accessibilityLabel={item.name}
             >
-              <Text style={styles.rowText}>{item.name}</Text>
+              <Text style={styles.rowText} numberOfLines={1}>
+                {item.name}
+              </Text>
               {canManage ? (
-                <TouchableOpacity onPress={() => remove(item)} hitSlop={8}>
+                <Pressable
+                  onPress={() => remove(item)}
+                  hitSlop={8}
+                  accessibilityLabel={`Remover ${item.name}`}
+                  style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+                >
                   <Ionicons name="trash-outline" size={18} color={colors.danger} />
-                </TouchableOpacity>
+                </Pressable>
               ) : null}
-            </TouchableOpacity>
+            </Pressable>
           )}
           refreshing={loading}
           onRefresh={load}
@@ -170,13 +181,12 @@ function createStyles(colors: ColorTokens) {
   return StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  list: { padding: spacing.xl, flexGrow: 1 },
+  list: { padding: spacing.md, flexGrow: 1, gap: spacing.sm },
   row: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     padding: spacing.md,
-    marginBottom: 6,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
     flexDirection: 'row',
     alignItems: 'center',
@@ -209,8 +219,6 @@ function createStyles(colors: ColorTokens) {
 
 
 export function TeamsScreen() {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <SimpleEntityListScreen
       title="Equipes"
@@ -222,8 +230,6 @@ export function TeamsScreen() {
 }
 
 export function RolesScreen() {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <SimpleEntityListScreen
       title="Funções"
@@ -235,8 +241,6 @@ export function RolesScreen() {
 }
 
 export function ClassificationsScreen() {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <SimpleEntityListScreen
       title="Classificações"

@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: '500',
-    marginBottom: 6,
+    marginBottom: spacing.xs,
   },
   field: {
     flexDirection: 'row',
@@ -105,10 +105,10 @@ const styles = StyleSheet.create({
   },
   input: {
     fontSize: 15,
-    paddingVertical: 12,
+    paddingVertical: spacing.sm,
   },
   error: {
     fontSize: 12,
-    marginTop: 4,
+    marginTop: spacing.xxs,
   },
 });

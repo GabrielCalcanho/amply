@@ -18,8 +18,9 @@ import { Avatar } from '../../components/Avatar';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 import { Setlist, SETLIST_STATUS_LABELS, SetlistStatus, MemberStatus } from '../../types';
-import { spacing, radius, shadow } from '../../constants/theme';
+import { spacing, radius, shadow, typography } from '../../constants/theme';
 import { formatTime, todayISO } from '../../utils/dates';
+import { formatSupabaseError } from '../../utils/payload';
 
 type MemberPreview = {
   id: string;
@@ -64,12 +65,14 @@ export function ScaleOverviewScreen() {
   const [selectedDate, setSelectedDate] = useState(todayISO());
   const [all, setAll] = useState<SetlistWithMeta[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!church) return;
     setLoading(true);
+    setError(null);
     const today = todayISO();
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('setlists')
       .select(
         '*, setlist_songs(count), setlist_members(id, user_id, status, profile:profiles(name, avatar_url))'
@@ -80,6 +83,11 @@ export function ScaleOverviewScreen() {
       .order('date', { ascending: true })
       .limit(40);
 
+    if (error) {
+      setError(formatSupabaseError(error));
+      setLoading(false);
+      return;
+    }
     const mapped: SetlistWithMeta[] = (data ?? []).map((s: any) => {
       const members: MemberPreview[] = (s.setlist_members ?? []).map((m: any) => ({
         id: m.id,
@@ -131,6 +139,7 @@ export function ScaleOverviewScreen() {
         <Pressable
           onPress={() => setSelectedDate((d) => shiftDate(d, -1))}
           hitSlop={10}
+          accessibilityLabel="Dia anterior"
           style={({ pressed }) => [{ opacity: pressed ? 0.5 : 1, padding: 8 }]}
         >
           <Ionicons name="chevron-back" size={22} color={colors.text} />
@@ -144,6 +153,7 @@ export function ScaleOverviewScreen() {
         <Pressable
           onPress={() => setSelectedDate((d) => shiftDate(d, 1))}
           hitSlop={10}
+          accessibilityLabel="Próximo dia"
           style={({ pressed }) => [{ opacity: pressed ? 0.5 : 1, padding: 8 }]}
         >
           <Ionicons name="chevron-forward" size={22} color={colors.text} />
@@ -154,6 +164,14 @@ export function ScaleOverviewScreen() {
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
+      ) : error ? (
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Não foi possível carregar"
+          description={error}
+          actionLabel="Tentar novamente"
+          onAction={load}
+        />
       ) : (
         <ScrollView
           contentContainerStyle={styles.content}
@@ -344,8 +362,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   dateText: {
-    fontSize: 15,
-    fontWeight: '600',
+    ...typography.cardTitle,
   },
   content: {
     paddingHorizontal: spacing.md,
@@ -357,7 +374,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   cardDay: {
-    fontSize: 11,
+    ...typography.tiny,
     fontWeight: '700',
     letterSpacing: 0.8,
     marginBottom: 8,
@@ -368,18 +385,14 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   cardTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: -0.2,
+    ...typography.h2,
   },
   cardTime: {
-    fontSize: 20,
-    fontWeight: '700',
+    ...typography.number,
     marginTop: 6,
-    letterSpacing: -0.3,
   },
   cardLoc: {
-    fontSize: 13,
+    ...typography.caption,
     marginTop: 4,
   },
   avatars: {
@@ -400,12 +413,11 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   avatarHint: {
-    fontSize: 12,
+    ...typography.small,
     marginLeft: 12,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    ...typography.section,
     marginBottom: spacing.sm,
   },
   otherCard: {
@@ -413,19 +425,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.md,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 10,
+    marginBottom: spacing.sm,
     gap: 12,
   },
   otherTitle: {
-    fontSize: 15,
-    fontWeight: '600',
+    ...typography.cardTitle,
   },
   otherMeta: {
-    fontSize: 13,
+    ...typography.caption,
     marginTop: 2,
   },
   otherLoc: {
-    fontSize: 13,
+    ...typography.caption,
     marginTop: 2,
   },
 });

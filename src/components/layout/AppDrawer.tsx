@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Modal,
   Pressable,
-  TouchableOpacity,
   ScrollView,
   Platform,
 } from 'react-native';
@@ -13,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
-import { colors, spacing, radius, typography } from '../../constants/theme';
+import { spacing, radius, typography, type ThemeColors } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 
 type DrawerItem = { label: string; icon: keyof typeof Ionicons.glyphMap; route: string };
@@ -39,6 +38,7 @@ export function AppDrawer({ visible, onClose }: { visible: boolean; onClose: () 
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { church, profile } = useAuth();
+  const styles = createStyles(colors);
 
   const go = (route: string) => {
     onClose();
@@ -65,17 +65,29 @@ export function AppDrawer({ visible, onClose }: { visible: boolean; onClose: () 
           </View>
           <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
             {ITEMS.map((item) => (
-              <TouchableOpacity key={item.route} style={styles.item} onPress={() => go(item.route)}>
+              <Pressable
+                key={item.route}
+                style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+                onPress={() => go(item.route)}
+                accessibilityRole="button"
+                accessibilityLabel={item.label}
+              >
                 <Ionicons name={item.icon} size={20} color={colors.textSecondary} />
                 <Text style={styles.itemLabel}>{item.label}</Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
             <View style={styles.divider} />
             {FOOTER_ITEMS.map((item) => (
-              <TouchableOpacity key={item.route} style={styles.item} onPress={() => go(item.route)}>
+              <Pressable
+                key={item.route}
+                style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+                onPress={() => go(item.route)}
+                accessibilityRole="button"
+                accessibilityLabel={item.label}
+              >
                 <Ionicons name={item.icon} size={20} color={colors.textSecondary} />
                 <Text style={styles.itemLabel}>{item.label}</Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </ScrollView>
         </Pressable>
@@ -84,40 +96,43 @@ export function AppDrawer({ visible, onClose }: { visible: boolean; onClose: () 
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: colors.overlay, flexDirection: 'row' },
-  panel: {
-    width: Platform.OS === 'web' ? 300 : '78%',
-    maxWidth: 320,
-    backgroundColor: colors.surface,
-    height: '100%',
-    paddingHorizontal: spacing.md,
-  },
-  header: {
-    paddingHorizontal: spacing.sm,
-    paddingBottom: spacing.lg,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-    marginBottom: spacing.sm,
-  },
-  brand: { fontSize: 18, fontWeight: '800', color: colors.primary, letterSpacing: 2 },
-  church: { ...typography.body, color: colors.primary, marginTop: 4 },
-  user: { ...typography.caption, color: colors.textMuted, marginTop: 2 },
-  list: { flex: 1 },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: 14,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.md,
-    minHeight: 48,
-  },
-  itemLabel: { ...typography.body, color: colors.text },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
-    marginVertical: spacing.sm,
-    marginHorizontal: spacing.sm,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    backdrop: { flex: 1, backgroundColor: colors.overlay, flexDirection: 'row' },
+    panel: {
+      width: Platform.OS === 'web' ? 300 : '78%',
+      maxWidth: 320,
+      backgroundColor: colors.surface,
+      height: '100%',
+      paddingHorizontal: spacing.md,
+    },
+    header: {
+      paddingHorizontal: spacing.sm,
+      paddingBottom: spacing.lg,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+      marginBottom: spacing.sm,
+    },
+    brand: { fontSize: 18, fontWeight: '700', color: colors.text, letterSpacing: 2 },
+    church: { ...typography.body, color: colors.text, marginTop: 4 },
+    user: { ...typography.caption, color: colors.textSecondary, marginTop: 2 },
+    list: { flex: 1 },
+    item: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      paddingVertical: 12,
+      paddingHorizontal: spacing.sm,
+      borderRadius: radius.md,
+      minHeight: 48,
+    },
+    itemPressed: { backgroundColor: colors.surfaceSecondary },
+    itemLabel: { ...typography.body, color: colors.text },
+    divider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.border,
+      marginVertical: spacing.sm,
+      marginHorizontal: spacing.sm,
+    },
+  });
+}

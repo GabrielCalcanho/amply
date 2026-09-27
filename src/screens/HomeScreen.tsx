@@ -15,11 +15,13 @@ import { TabScreenShell } from '../components/layout/TabScreenShell';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Avatar } from '../components/Avatar';
 import { Card } from '../components/Card';
+import { EmptyState } from '../components/EmptyState';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
 import { Setlist, Profile, SETLIST_STATUS_LABELS, SetlistStatus } from '../types';
-import { spacing, radius, shadow } from '../constants/theme';
+import { spacing, radius, shadow, typography } from '../constants/theme';
+import { formatSupabaseError } from '../utils/payload';
 import {
   formatDateLongBR,
   formatTime,
@@ -38,28 +40,30 @@ type Bday = {
   instrument?: string | null;
 };
 
+// Duplicated destinations (Ministérios = ministry card, Aniversariantes = section
+// below) were removed; only distinct quick actions remain.
 const SHORTCUTS = [
-  { key: 'ministry', label: 'Ministérios', icon: 'business-outline' as const, route: 'Ministry' },
   { key: 'announcements', label: 'Avisos', icon: 'megaphone-outline' as const, route: 'Announcements' },
   { key: 'scales', label: 'Minhas escalas', icon: 'calendar-outline' as const, route: 'ScaleOverview' },
-  { key: 'birthdays', label: 'Aniversariantes', icon: 'gift-outline' as const, route: 'Birthdays' },
 ];
 
 export function HomeScreen() {
-  const { profile, church, membership } = useAuth();
+  const { profile, church } = useAuth();
   const { colors } = useTheme();
   const navigation = useNavigation<any>();
   const [nextSetlist, setNextSetlist] = useState<Setlist | null>(null);
   const [birthdays, setBirthdays] = useState<Bday[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!church) return;
+    setError(null);
     try {
       const today = todayISO();
 
-      const { data: setlists } = await supabase
+      const { data: setlists, error: sErr } = await supabase
         .from('setlists')
         .select('*, setlist_songs(count)')
         .eq('church_id', church.id)
@@ -68,7 +72,9 @@ export function HomeScreen() {
         .order('date', { ascending: true })
         .limit(1);
 
-      if (setlists && setlists.length > 0) {
+      if (sErr) {
+        setError(formatSupabaseError(sErr));
+      } else if (setlists && setlists.length > 0) {
         const s = setlists[0] as any;
         setNextSetlist({
           ...s,
@@ -101,7 +107,7 @@ export function HomeScreen() {
       list.sort((a, b) => a.next.localeCompare(b.next));
       setBirthdays(list.slice(0, 8));
     } catch (e) {
-      console.warn('Home load', e);
+      setError(formatSupabaseError(e as { message?: string }));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -118,6 +124,8 @@ export function HomeScreen() {
   const firstName = profile?.name?.split(' ')[0] ?? 'Músico';
   const todayBdays = birthdays.filter((b) => isBirthdayToday(b.birth_date));
   const upcomingBdays = birthdays.filter((b) => !isBirthdayToday(b.birth_date)).slice(0, 4);
+  const todayLabelRaw = formatDateLongBR(todayISO());
+  const todayLabel = todayLabelRaw.charAt(0).toUpperCase() + todayLabelRaw.slice(1);
 
   if (loading) {
     return (
@@ -126,6 +134,24 @@ export function HomeScreen() {
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
+      </TabScreenShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <TabScreenShell>
+        <AppHeader brand showNotifications showAvatar />
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Não foi possível carregar"
+          description={error}
+          actionLabel="Tentar novamente"
+          onAction={() => {
+            setLoading(true);
+            loadData();
+          }}
+        />
       </TabScreenShell>
     );
   }
@@ -150,10 +176,85 @@ export function HomeScreen() {
         {/* Greeting */}
         <View style={styles.greeting}>
           <Text style={[styles.hello, { color: colors.text }]}>Olá, {firstName}!</Text>
-          <Text style={[styles.subHello, { color: colors.textSecondary }]}>
-            Que bom te ver por aqui!
-          </Text>
+          <Text style={[styles.subHello, { color: colors.textSecondary }]}>{todayLabel}</Text>
         </View>
+
+        {/* Next setlist — the primary question, right under the greeting */}
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Próxima escala</Text>
+        {nextSetlist ? (
+          <Card
+            inverse
+            style={{ marginBottom: spacing.xl }}
+            onPress={() =>
+              navigation.navigate('SetlistDetail', { setlistId: nextSetlist.id })
+            }
+          >
+            <Text style={[styles.cardTitle, { color: colors.textInverse }]} numberOfLines={1}>
+              {nextSetlist.title}
+            </Text>
+            <Text
+              style={[styles.cardMeta, { color: colors.textInverse, opacity: 0.75 }]}
+              numberOfLines={2}
+            >
+              {formatDateLongBR(nextSetlist.date)}
+              {nextSetlist.time ? ` · ${formatTime(nextSetlist.time)}` : ''}
+              {nextSetlist.location ? ` · ${nextSetlist.location}` : ''}
+            </Text>
+            <View style={styles.cardFooter}>
+              <Text
+                style={[styles.cardStatus, { color: colors.textInverse, opacity: 0.65 }]}
+                numberOfLines={1}
+              >
+                {SETLIST_STATUS_LABELS[(nextSetlist.status as SetlistStatus) || 'scheduled']}
+                {' · '}
+                {nextSetlist.songs_count ?? 0}{' '}
+                {(nextSetlist.songs_count ?? 0) === 1 ? 'música' : 'músicas'}
+              </Text>
+              <View
+                style={[
+                  styles.detailBtn,
+                  {
+                    backgroundColor: colors.textInverse,
+                    borderRadius: radius.md,
+                  },
+                ]}
+              >
+                <Text style={[styles.detailBtnText, { color: colors.surfaceInverse }]}>
+                  Ver detalhes
+                </Text>
+              </View>
+            </View>
+          </Card>
+        ) : (
+          <Pressable
+            onPress={() => navigation.navigate('Setlists')}
+            style={({ pressed }) => [
+              styles.noScaleCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                borderRadius: radius.xl,
+                opacity: pressed ? 0.92 : 1,
+                ...shadow.sm,
+              },
+            ]}
+          >
+            <View
+              style={[styles.noScaleIcon, { backgroundColor: colors.surfaceSecondary }]}
+            >
+              <Ionicons name="calendar-outline" size={20} color={colors.textMuted} />
+            </View>
+            <View style={styles.noScaleInfo}>
+              <Text style={[styles.noScaleTitle, { color: colors.text }]}>
+                Nenhuma escala futura
+              </Text>
+              <Text style={[styles.noScaleSub, { color: colors.textSecondary }]}>
+                Toque para ver todas as escalas
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          </Pressable>
+        )}
 
         {/* Ministry / Church card */}
         <Pressable
@@ -228,55 +329,16 @@ export function HomeScreen() {
           ))}
         </View>
 
-        {/* Next setlist highlight */}
-        {nextSetlist ? (
-          <View style={{ marginBottom: spacing.xl }}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Próxima escala</Text>
-            <Card
-              inverse
-              onPress={() =>
-                navigation.navigate('SetlistDetail', { setlistId: nextSetlist.id })
-              }
-            >
-              <Text style={[styles.cardTitle, { color: colors.textInverse }]}>
-                {nextSetlist.title}
-              </Text>
-              <Text style={[styles.cardMeta, { color: colors.textInverse, opacity: 0.75 }]}>
-                {formatDateLongBR(nextSetlist.date)}
-                {nextSetlist.time ? ` · ${formatTime(nextSetlist.time)}` : ''}
-                {nextSetlist.location ? ` · ${nextSetlist.location}` : ''}
-              </Text>
-              <View style={styles.cardFooter}>
-                <Text style={[styles.cardStatus, { color: colors.textInverse, opacity: 0.65 }]}>
-                  {SETLIST_STATUS_LABELS[(nextSetlist.status as SetlistStatus) || 'scheduled']}
-                  {' · '}
-                  {nextSetlist.songs_count ?? 0}{' '}
-                  {(nextSetlist.songs_count ?? 0) === 1 ? 'música' : 'músicas'}
-                </Text>
-                <View
-                  style={[
-                    styles.detailBtn,
-                    {
-                      backgroundColor: colors.textInverse,
-                      borderRadius: radius.md,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.detailBtnText, { color: colors.surfaceInverse }]}>
-                    Ver detalhes
-                  </Text>
-                </View>
-              </View>
-            </Card>
-          </View>
-        ) : null}
-
         {/* Birthdays */}
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 0 }]}>
             Aniversariantes
           </Text>
-          <Pressable onPress={() => navigation.navigate('Birthdays')} hitSlop={8}>
+          <Pressable
+            onPress={() => navigation.navigate('Birthdays')}
+            hitSlop={8}
+            style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+          >
             <Text style={[styles.seeAll, { color: colors.textSecondary }]}>Ver todos</Text>
           </Pressable>
         </View>
@@ -286,19 +348,26 @@ export function HomeScreen() {
             Nenhum aniversário próximo cadastrado.
           </Text>
         ) : (
-          <View style={{ gap: 10 }}>
-            {[...todayBdays, ...upcomingBdays].slice(0, 5).map((b) => (
+          <View
+            style={[
+              styles.bdayList,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                borderRadius: radius.lg,
+              },
+            ]}
+          >
+            {[...todayBdays, ...upcomingBdays].slice(0, 5).map((b, i) => (
               <Pressable
                 key={b.id}
                 onPress={() => navigation.navigate('MemberDetail', { userId: b.id })}
                 style={({ pressed }) => [
                   styles.bdayRow,
                   {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    borderRadius: radius.lg,
-                    opacity: pressed ? 0.9 : 1,
-                    ...shadow.sm,
+                    backgroundColor: pressed ? colors.surfaceSecondary : 'transparent',
+                    borderTopWidth: i === 0 ? 0 : StyleSheet.hairlineWidth,
+                    borderTopColor: colors.border,
                   },
                 ]}
               >
@@ -341,23 +410,46 @@ const styles = StyleSheet.create({
   },
   greeting: {
     marginTop: spacing.sm,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   hello: {
-    fontSize: 26,
-    fontWeight: '700',
-    letterSpacing: -0.5,
+    ...typography.h1,
   },
   subHello: {
-    fontSize: 15,
-    marginTop: 4,
+    ...typography.body,
+    marginTop: 2,
+  },
+  noScaleCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginBottom: spacing.xl,
+  },
+  noScaleIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noScaleInfo: {
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  noScaleTitle: {
+    ...typography.cardTitle,
+  },
+  noScaleSub: {
+    ...typography.small,
+    marginTop: 2,
   },
   ministryCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.md,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   ministryLogo: {
     width: 48,
@@ -373,23 +465,19 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   ministryChurch: {
-    fontSize: 15,
-    fontWeight: '600',
+    ...typography.cardTitle,
   },
   ministryLabel: {
-    fontSize: 13,
+    ...typography.small,
     marginTop: 2,
   },
   shortcuts: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    gap: spacing.sm,
     marginBottom: spacing.xl,
   },
   shortcut: {
-    width: '47.5%',
-    flexGrow: 1,
-    flexBasis: '45%',
+    flex: 1,
     padding: spacing.md,
     borderWidth: StyleSheet.hairlineWidth,
     minHeight: 88,
@@ -402,7 +490,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   shortcutLabel: {
-    fontSize: 13,
+    ...typography.label,
     fontWeight: '600',
   },
   sectionHeader: {
@@ -412,21 +500,18 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    ...typography.section,
     marginBottom: spacing.sm,
-    letterSpacing: -0.2,
   },
   seeAll: {
-    fontSize: 13,
+    ...typography.caption,
     fontWeight: '500',
   },
   cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    ...typography.h3,
   },
   cardMeta: {
-    fontSize: 13,
+    ...typography.caption,
     marginTop: 6,
   },
   cardFooter: {
@@ -436,7 +521,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   cardStatus: {
-    fontSize: 12,
+    ...typography.small,
     flex: 1,
   },
   detailBtn: {
@@ -444,29 +529,31 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   detailBtnText: {
-    fontSize: 13,
+    ...typography.caption,
     fontWeight: '600',
   },
   emptyText: {
-    fontSize: 14,
+    ...typography.label,
     marginBottom: spacing.md,
+  },
+  bdayList: {
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
   },
   bdayRow: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.md,
-    borderWidth: StyleSheet.hairlineWidth,
   },
   bdayInfo: {
     flex: 1,
     marginLeft: spacing.md,
   },
   bdayName: {
-    fontSize: 15,
-    fontWeight: '600',
+    ...typography.cardTitle,
   },
   bdayMeta: {
-    fontSize: 13,
+    ...typography.small,
     marginTop: 2,
   },
 });

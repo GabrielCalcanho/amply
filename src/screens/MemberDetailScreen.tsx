@@ -19,7 +19,7 @@ import { ChurchMember, Profile, Song } from '../types';
 import { Avatar } from '../components/Avatar';
 import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
-import { spacing, radius, shadow } from '../constants/theme';
+import { spacing, radius } from '../constants/theme';
 import { isBirthdayToday } from '../utils/dates';
 import { formatSupabaseError } from '../utils/payload';
 
@@ -129,9 +129,22 @@ export function MemberDetailScreen() {
       <View style={[styles.safe, { backgroundColor: colors.background }]}>
         <Pressable
           onPress={() => navigation.goBack()}
+          hitSlop={12}
+          accessibilityLabel="Voltar"
           style={[styles.backFab, { top: insets.top + 8 }]}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.text} />
+          <View
+            style={[
+              styles.backCircle,
+              {
+                backgroundColor: colors.surface,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Ionicons name="chevron-back" size={22} color={colors.text} />
+          </View>
         </Pressable>
         <EmptyState
           icon="person-outline"
@@ -184,15 +197,20 @@ export function MemberDetailScreen() {
           <Pressable
             onPress={() => navigation.goBack()}
             hitSlop={12}
+            accessibilityLabel="Voltar"
             style={[styles.backFab, { top: insets.top + 8 }]}
           >
             <View
               style={[
                 styles.backCircle,
-                { backgroundColor: 'rgba(255,255,255,0.92)' },
+                {
+                  backgroundColor: colors.surface,
+                  borderWidth: StyleSheet.hairlineWidth,
+                  borderColor: colors.border,
+                },
               ]}
             >
-              <Ionicons name="chevron-back" size={22} color="#111" />
+              <Ionicons name="chevron-back" size={22} color={colors.text} />
             </View>
           </Pressable>
           {!isSelf ? (
@@ -202,8 +220,17 @@ export function MemberDetailScreen() {
               style={[styles.chatFab, { top: insets.top + 8 }]}
               accessibilityLabel="Conversar"
             >
-              <View style={[styles.backCircle, { backgroundColor: 'rgba(255,255,255,0.92)' }]}>
-                <Ionicons name="chatbubble-ellipses-outline" size={20} color="#111" />
+              <View
+                style={[
+                  styles.backCircle,
+                  {
+                    backgroundColor: colors.surface,
+                    borderWidth: StyleSheet.hairlineWidth,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.text} />
               </View>
             </Pressable>
           ) : null}
@@ -252,55 +279,67 @@ export function MemberDetailScreen() {
         {/* Songs section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Músicas que toca
+            Repertório do ministério
           </Text>
           {songs.length === 0 ? (
             <Text style={[styles.emptySongs, { color: colors.textMuted }]}>
               Nenhuma música no repertório ainda.
             </Text>
           ) : (
-            songs.map((s) => (
-              <Pressable
-                key={s.id}
-                onPress={() => navigation.navigate('SongDetail', { songId: s.id })}
-                style={({ pressed }) => [
-                  styles.songRow,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    borderRadius: radius.lg,
-                    opacity: pressed ? 0.92 : 1,
-                    ...shadow.sm,
-                  },
-                ]}
-              >
-                {s.artwork_url ? (
-                  <Image source={{ uri: s.artwork_url }} style={styles.songCover} />
-                ) : (
-                  <View
-                    style={[
-                      styles.songCover,
-                      {
-                        backgroundColor: colors.surfaceSecondary,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      },
-                    ]}
-                  >
-                    <Ionicons name="musical-note" size={18} color={colors.textMuted} />
+            <View
+              style={[
+                styles.songList,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  borderRadius: radius.lg,
+                },
+              ]}
+            >
+              {songs.map((s, i) => (
+                <Pressable
+                  key={s.id}
+                  onPress={() => navigation.navigate('SongDetail', { songId: s.id })}
+                  style={({ pressed }) => [
+                    styles.songRow,
+                    {
+                      backgroundColor: pressed ? colors.surfaceSecondary : 'transparent',
+                      borderTopWidth: i === 0 ? 0 : StyleSheet.hairlineWidth,
+                      borderTopColor: colors.border,
+                    },
+                  ]}
+                >
+                  {s.artwork_url ? (
+                    <Image source={{ uri: s.artwork_url }} style={styles.songCover} />
+                  ) : (
+                    <View
+                      style={[
+                        styles.songCover,
+                        {
+                          backgroundColor: colors.surfaceSecondary,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        },
+                      ]}
+                    >
+                      <Ionicons name="musical-note" size={18} color={colors.textMuted} />
+                    </View>
+                  )}
+                  <View style={styles.songInfo}>
+                    <Text style={[styles.songTitle, { color: colors.text }]} numberOfLines={1}>
+                      {s.title}
+                    </Text>
+                    <Text
+                      style={[styles.songKey, { color: colors.textSecondary }]}
+                      numberOfLines={1}
+                    >
+                      {s.key ? `Tonalidade: ${s.key}` : s.artist || '—'}
+                    </Text>
                   </View>
-                )}
-                <View style={styles.songInfo}>
-                  <Text style={[styles.songTitle, { color: colors.text }]} numberOfLines={1}>
-                    {s.title}
-                  </Text>
-                  <Text style={[styles.songKey, { color: colors.textSecondary }]}>
-                    {s.key ? `Tonalidade: ${s.key}` : s.artist || '—'}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-              </Pressable>
-            ))
+                  <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+                </Pressable>
+              ))}
+            </View>
           )}
         </View>
       </ScrollView>
@@ -382,12 +421,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
   },
+  songList: {
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+  },
   songRow: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 10,
   },
   songCover: {
     width: 48,

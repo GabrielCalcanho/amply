@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
   Image,
@@ -26,19 +25,24 @@ import {
   MEMBER_STATUS_LABELS,
   SetlistStatus,
 } from '../types';
-import { spacing, typography, radius, shadow, getColors } from '../constants/theme';
-const _c = getColors('light'); // StyleSheet static fallback only
+import { spacing, typography, radius } from '../constants/theme';
 import { ScreenHeader } from '../components/layout/ScreenHeader';
 import { notifyUsers } from '../utils/notifications';
 import { Button } from '../components/Button';
 import { Badge } from '../components/Badge';
 import { IconButton } from '../components/IconButton';
 import { Avatar } from '../components/Avatar';
+import { EmptyState } from '../components/EmptyState';
 import { ActionMenu, ActionMenuItem } from '../components/ActionMenu';
 import { formatSupabaseError } from '../utils/payload';
 import { formatDateBR, formatTime } from '../utils/dates';
 
 type SongRow = SetlistSong & { song: Song };
+type AvailableMember = {
+  user_id: string;
+  instrument: string | null;
+  profile?: { name?: string | null } | null;
+};
 
 export function SetlistDetailScreen() {
   const { membership, church, user } = useAuth();
@@ -52,7 +56,10 @@ export function SetlistDetailScreen() {
   const [songs, setSongs] = useState<SongRow[]>([]);
   const [members, setMembers] = useState<SetlistMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [available, setAvailable] = useState<AvailableMember[]>([]);
   const [busy, setBusy] = useState(false);
 
   const canManage = membership?.role === 'owner' || membership?.role === 'leader';
@@ -60,7 +67,8 @@ export function SetlistDetailScreen() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: s, error: e1 }, { data: ss, error: e2 }, { data: sm, error: e3 }] =
+    setError(null);
+    const [{ data: s, error: e1 }, { data: ss }, { data: sm }] =
       await Promise.all([
         supabase.from('setlists').select('*').eq('id', setlistId).single(),
         supabase
@@ -73,9 +81,7 @@ export function SetlistDetailScreen() {
           .select('*, profile:profiles(*)')
           .eq('setlist_id', setlistId),
       ]);
-    if (e1) console.warn('setlist load', e1.message);
-    if (e2) console.warn('setlist_songs load', e2.message);
-    if (e3) console.warn('setlist_members load', e3.message);
+    if (e1) setError(formatSupabaseError(e1));
     setSetlist(s as Setlist | null);
     setSongs((ss as SongRow[]) ?? []);
     setMembers((sm as SetlistMember[]) ?? []);
@@ -150,7 +156,7 @@ export function SetlistDetailScreen() {
     setBusy(false);
   };
 
-  const addMember = async () => {
+  const openMemberPicker = async () => {
     if (!church) return;
     const { data: team } = await supabase
       .from('church_members')
@@ -158,44 +164,40 @@ export function SetlistDetailScreen() {
       .eq('church_id', church.id);
 
     const existing = new Set(members.map((m) => m.user_id));
-    const available = (team ?? []).filter((m) => !existing.has(m.user_id));
+    const list = ((team ?? []) as AvailableMember[]).filter((m) => !existing.has(m.user_id));
 
-    if (available.length === 0) {
+    if (list.length === 0) {
       Alert.alert('Aviso', 'Todos os membros já estão nesta escala.');
       return;
     }
+    setAvailable(list);
+    setPickerOpen(true);
+  };
 
-    const choices = available.slice(0, 8);
-    Alert.alert('Adicionar músico', 'Selecione:', [
-      ...choices.map((m: any) => ({
-        text: m.profile?.name ?? 'Músico',
-        onPress: async () => {
-          setBusy(true);
-          const { error } = await supabase.from('setlist_members').insert({
-            setlist_id: setlistId,
-            user_id: m.user_id,
-            instrument: m.instrument,
-            status: 'pending',
-          });
-          setBusy(false);
-          if (error) Alert.alert('Erro', formatSupabaseError(error));
-          else {
-            if (church && setlist) {
-              await notifyUsers({
-                churchId: church.id,
-                userIds: [m.user_id],
-                type: 'presence_pending',
-                title: 'Confirme sua presença',
-                body: `Você foi escalado em "${setlist.title}".`,
-                data: { setlist_id: setlistId },
-              });
-            }
-            load();
-          }
-        },
-      })),
-      { text: 'Cancelar', style: 'cancel' },
-    ]);
+  const addMember = async (m: AvailableMember) => {
+    setBusy(true);
+    const { error } = await supabase.from('setlist_members').insert({
+      setlist_id: setlistId,
+      user_id: m.user_id,
+      instrument: m.instrument,
+      status: 'pending',
+    });
+    setBusy(false);
+    if (error) {
+      Alert.alert('Erro', formatSupabaseError(error));
+      return;
+    }
+    if (church && setlist) {
+      await notifyUsers({
+        churchId: church.id,
+        userIds: [m.user_id],
+        type: 'presence_pending',
+        title: 'Confirme sua presença',
+        body: `Você foi escalado em "${setlist.title}".`,
+        data: { setlist_id: setlistId },
+      });
+    }
+    load();
   };
 
   const removeMember = (m: SetlistMember) => {
@@ -234,7 +236,6 @@ export function SetlistDetailScreen() {
     }
   };
 
-  
   const duplicateSetlist = () => {
     Alert.alert('Duplicar escala', 'Criar uma cópia desta escala?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -307,9 +308,9 @@ export function SetlistDetailScreen() {
     ]);
   };
 
-  if (loading || !setlist) {
+  if (loading) {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={["bottom"]}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
         <ScreenHeader title="Escala" />
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
@@ -318,10 +319,25 @@ export function SetlistDetailScreen() {
     );
   }
 
+  if (error || !setlist) {
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
+        <ScreenHeader title="Escala" />
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Não foi possível carregar"
+          description={error ?? 'Escala não encontrada.'}
+          actionLabel="Tentar novamente"
+          onAction={load}
+        />
+      </SafeAreaView>
+    );
+  }
+
   const statusKey = (setlist.status as SetlistStatus) || 'scheduled';
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={["bottom"]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
       <ScreenHeader
         title="Escala"
         right={
@@ -367,8 +383,21 @@ export function SetlistDetailScreen() {
           },
         ] as ActionMenuItem[]}
       />
+      <ActionMenu
+        visible={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        title="Adicionar músico"
+        items={available.map((m) => ({
+          key: m.user_id,
+          label: m.profile?.name ?? 'Músico',
+          icon: 'person-add-outline' as const,
+          onPress: () => addMember(m),
+        }))}
+      />
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={[styles.title, { color: colors.text }]}>{setlist.title}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
+          {setlist.title}
+        </Text>
         <View style={{ marginTop: 8, marginBottom: 4 }}>
           <Badge
             label={SETLIST_STATUS_LABELS[statusKey] ?? statusKey}
@@ -387,8 +416,14 @@ export function SetlistDetailScreen() {
           {formatDateBR(setlist.date)}
           {setlist.time ? ` · ${formatTime(setlist.time)}` : ''}
         </Text>
-        {setlist.location ? <Text style={[styles.meta, { color: colors.textSecondary }]}>{setlist.location}</Text> : null}
-        {setlist.notes ? <Text style={[styles.notes, { color: colors.textSecondary }]}>{setlist.notes}</Text> : null}
+        {setlist.location ? (
+          <Text style={[styles.meta, { color: colors.textSecondary }]} numberOfLines={1}>
+            {setlist.location}
+          </Text>
+        ) : null}
+        {setlist.notes ? (
+          <Text style={[styles.notes, { color: colors.textSecondary }]}>{setlist.notes}</Text>
+        ) : null}
 
         {myMember ? (
           <View style={[styles.presenceBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -421,7 +456,7 @@ export function SetlistDetailScreen() {
           </View>
         ) : null}
 
-                <Text style={[styles.section, { color: colors.textMuted }]}>
+        <Text style={[styles.section, { color: colors.textMuted }]}>
           Repertório ({songs.length})
         </Text>
         {songs.length === 0 ? (
@@ -429,100 +464,95 @@ export function SetlistDetailScreen() {
             Nenhuma música nesta escala.
           </Text>
         ) : (
-          songs.map((ss, idx) => (
-            <Pressable
-              key={ss.id}
-              onPress={() =>
-                ss.song_id && navigation.navigate('SongDetail', { songId: ss.song_id })
-              }
-              style={({ pressed }) => [
-                styles.songCard,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  opacity: pressed ? 0.94 : 1,
-                  ...shadow.sm,
-                },
-              ]}
-            >
-              <View
-                style={[
-                  styles.posBadge,
-                  { backgroundColor: colors.surfaceSecondary },
+          <View
+            style={[
+              styles.listSurface,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            {songs.map((ss, idx) => (
+              <Pressable
+                key={ss.id}
+                onPress={() =>
+                  ss.song_id && navigation.navigate('SongDetail', { songId: ss.song_id })
+                }
+                style={({ pressed }) => [
+                  styles.songRow,
+                  {
+                    backgroundColor: pressed ? colors.surfaceSecondary : 'transparent',
+                    borderTopWidth: idx === 0 ? 0 : StyleSheet.hairlineWidth,
+                    borderTopColor: colors.border,
+                  },
                 ]}
               >
-                <Text style={[styles.posText, { color: colors.text }]}>{idx + 1}</Text>
-              </View>
-
-              {ss.song?.artwork_url ? (
-                <Image source={{ uri: ss.song.artwork_url }} style={styles.thumb} />
-              ) : (
-                <View
-                  style={[
-                    styles.thumb,
-                    {
-                      backgroundColor: colors.surfaceSecondary,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    },
-                  ]}
-                >
-                  <Text style={{ fontSize: 14, color: colors.textMuted }}>♪</Text>
+                <View style={[styles.posBadge, { backgroundColor: colors.surfaceSecondary }]}>
+                  <Text style={[styles.posText, { color: colors.text }]}>{idx + 1}</Text>
                 </View>
-              )}
 
-              <View style={styles.songInfo}>
-                <Text
-                  style={[styles.songTitle, { color: colors.text }]}
-                  numberOfLines={1}
-                >
-                  {ss.song?.title ?? '—'}
-                </Text>
-                <Text
-                  style={[styles.songKey, { color: colors.textSecondary }]}
-                  numberOfLines={1}
-                >
-                  {[ss.song?.artist, ss.song?.key ? `Tom ${ss.song.key}` : null]
-                    .filter(Boolean)
-                    .join(' · ') || '—'}
-                </Text>
-              </View>
+                {ss.song?.artwork_url ? (
+                  <Image source={{ uri: ss.song.artwork_url }} style={styles.thumb} />
+                ) : (
+                  <View
+                    style={[
+                      styles.thumb,
+                      {
+                        backgroundColor: colors.surfaceSecondary,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      },
+                    ]}
+                  >
+                    <Text style={{ fontSize: 14, color: colors.textMuted }}>♪</Text>
+                  </View>
+                )}
 
-              {canManage ? (
-                <View style={styles.songActions}>
-                  <IconButton
-                    icon="chevron-up"
-                    size={18}
-                    onPress={() => moveSong(idx, -1)}
-                    disabled={idx === 0 || busy}
-                    accessibilityLabel="Mover para cima"
-                    style={{ width: 32, height: 32, opacity: idx === 0 ? 0.28 : 1 }}
-                  />
-                  <IconButton
-                    icon="chevron-down"
-                    size={18}
-                    onPress={() => moveSong(idx, 1)}
-                    disabled={idx === songs.length - 1 || busy}
-                    accessibilityLabel="Mover para baixo"
-                    style={{
-                      width: 32,
-                      height: 32,
-                      opacity: idx === songs.length - 1 ? 0.28 : 1,
-                    }}
-                  />
-                  <IconButton
-                    icon="trash-outline"
-                    size={16}
-                    color={colors.danger}
-                    onPress={() => removeSong(ss)}
-                    disabled={busy}
-                    accessibilityLabel="Remover música"
-                    style={{ width: 32, height: 32 }}
-                  />
+                <View style={styles.songInfo}>
+                  <Text style={[styles.songTitle, { color: colors.text }]} numberOfLines={1}>
+                    {ss.song?.title ?? '—'}
+                  </Text>
+                  <Text style={[styles.songKey, { color: colors.textSecondary }]} numberOfLines={1}>
+                    {[ss.song?.artist, ss.song?.key ? `Tom ${ss.song.key}` : null]
+                      .filter(Boolean)
+                      .join(' · ') || '—'}
+                  </Text>
                 </View>
-              ) : null}
-            </Pressable>
-          ))
+
+                {canManage ? (
+                  <View style={styles.songActions}>
+                    <IconButton
+                      icon="chevron-up"
+                      size={18}
+                      onPress={() => moveSong(idx, -1)}
+                      disabled={idx === 0 || busy}
+                      accessibilityLabel="Mover para cima"
+                      style={{ width: 32, height: 32, opacity: idx === 0 ? 0.28 : 1 }}
+                    />
+                    <IconButton
+                      icon="chevron-down"
+                      size={18}
+                      onPress={() => moveSong(idx, 1)}
+                      disabled={idx === songs.length - 1 || busy}
+                      accessibilityLabel="Mover para baixo"
+                      style={{
+                        width: 32,
+                        height: 32,
+                        opacity: idx === songs.length - 1 ? 0.28 : 1,
+                      }}
+                    />
+                    <IconButton
+                      icon="trash-outline"
+                      size={16}
+                      color={colors.danger}
+                      onPress={() => removeSong(ss)}
+                      disabled={busy}
+                      accessibilityLabel="Remover música"
+                      style={{ width: 32, height: 32 }}
+                    />
+                  </View>
+                ) : null}
+              </Pressable>
+            ))}
+          </View>
         )}
         {canManage ? (
           <Pressable
@@ -550,50 +580,50 @@ export function SetlistDetailScreen() {
             Nenhum integrante nesta escala.
           </Text>
         ) : (
-          members.map((m) => (
-            <View
-              key={m.id}
-              style={[
-                styles.memberCard,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  ...shadow.sm,
-                },
-              ]}
-            >
-              <Avatar
-                uri={m.profile?.avatar_url}
-                name={m.profile?.name}
-                size={40}
-              />
-              <View style={styles.memberInfo}>
-                <Text style={[styles.memberName, { color: colors.text }]}>
-                  {m.profile?.name ?? 'Músico'}
-                </Text>
-                <Text style={[styles.memberMeta, { color: colors.textSecondary }]}>
-                  {[m.instrument, MEMBER_STATUS_LABELS[m.status]]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </Text>
+          <View
+            style={[
+              styles.listSurface,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            {members.map((m, idx) => (
+              <View
+                key={m.id}
+                style={[
+                  styles.memberRow,
+                  {
+                    borderTopWidth: idx === 0 ? 0 : StyleSheet.hairlineWidth,
+                    borderTopColor: colors.border,
+                  },
+                ]}
+              >
+                <Avatar uri={m.profile?.avatar_url} name={m.profile?.name} size={40} />
+                <View style={styles.memberInfo}>
+                  <Text style={[styles.memberName, { color: colors.text }]} numberOfLines={1}>
+                    {m.profile?.name ?? 'Músico'}
+                  </Text>
+                  <Text style={[styles.memberMeta, { color: colors.textSecondary }]} numberOfLines={1}>
+                    {[m.instrument, MEMBER_STATUS_LABELS[m.status]].filter(Boolean).join(' · ')}
+                  </Text>
+                </View>
+                {canManage ? (
+                  <IconButton
+                    icon="trash-outline"
+                    size={16}
+                    color={colors.danger}
+                    onPress={() => removeMember(m)}
+                    disabled={busy}
+                    accessibilityLabel="Remover músico"
+                    style={{ width: 36, height: 36 }}
+                  />
+                ) : null}
               </View>
-              {canManage ? (
-                <IconButton
-                  icon="trash-outline"
-                  size={16}
-                  color={colors.danger}
-                  onPress={() => removeMember(m)}
-                  disabled={busy}
-                  accessibilityLabel="Remover músico"
-                  style={{ width: 36, height: 36 }}
-                />
-              ) : null}
-            </View>
-          ))
+            ))}
+          </View>
         )}
         {canManage ? (
           <Pressable
-            onPress={addMember}
+            onPress={openMemberPicker}
             style={({ pressed }) => [
               styles.compactAdd,
               {
@@ -618,30 +648,11 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   container: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
-  },
-  topActions: { flexDirection: 'row', gap: spacing.md },
-  back: { ...typography.body, color: _c.primary },
-  edit: { ...typography.body, color: _c.primary },
-  delete: { ...typography.body, color: _c.danger },
-  title: { ...typography.h1, color: _c.text },
-  badge: {
-    alignSelf: 'flex-start',
-    backgroundColor: _c.primaryLight,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: radius.full,
-    marginTop: spacing.sm,
-  },
-  badgeText: { ...typography.caption, color: _c.primaryDark, fontWeight: '600' },
-  meta: { ...typography.body, color: _c.textSecondary, marginTop: spacing.xs },
-  notes: { ...typography.body, color: _c.textSecondary, marginTop: spacing.md },
+  title: { ...typography.h1 },
+  meta: { ...typography.body, marginTop: spacing.xs },
+  notes: { ...typography.body, marginTop: spacing.md },
   section: {
     ...typography.caption,
-    color: _c.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginTop: spacing.xl,
@@ -657,14 +668,16 @@ const styles = StyleSheet.create({
   presenceCurrent: { ...typography.body, marginBottom: spacing.sm },
   presenceRow: { gap: spacing.xs },
   presenceBtn: { marginTop: spacing.xs },
-  songCard: {
+  listSurface: {
+    borderRadius: radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+  },
+  songRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: radius.xl,
     paddingVertical: 10,
     paddingHorizontal: 10,
-    marginBottom: 10,
-    borderWidth: StyleSheet.hairlineWidth,
     gap: 10,
   },
   posBadge: {
@@ -684,8 +697,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   songInfo: { flex: 1, minWidth: 0 },
-  songTitle: { fontSize: 15, fontWeight: '600' },
-  songKey: { fontSize: 12, marginTop: 2 },
+  songTitle: { ...typography.cardTitle },
+  songKey: { ...typography.small, marginTop: 2 },
   songActions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -700,19 +713,16 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   compactAddText: {
-    fontSize: 14,
+    ...typography.label,
     fontWeight: '600',
   },
-  memberCard: {
+  memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: radius.xl,
     padding: 10,
-    marginBottom: 10,
-    borderWidth: StyleSheet.hairlineWidth,
     gap: 12,
   },
   memberInfo: { flex: 1, minWidth: 0 },
-  memberName: { fontSize: 15, fontWeight: '600' },
-  memberMeta: { fontSize: 12, marginTop: 2 },
+  memberName: { ...typography.cardTitle },
+  memberMeta: { ...typography.small, marginTop: 2 },
 });

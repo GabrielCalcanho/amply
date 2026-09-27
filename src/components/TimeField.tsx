@@ -151,7 +151,7 @@ function createStyles(colors: ColorTokens) {
     error: { ...typography.caption, color: colors.danger, marginTop: 4 },
     backdrop: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.4)',
+      backgroundColor: colors.overlay,
       justifyContent: 'center',
       padding: spacing.lg,
     },
@@ -174,9 +174,9 @@ function createStyles(colors: ColorTokens) {
       alignItems: 'center',
       borderRadius: radius.sm,
     },
-    itemOn: { backgroundColor: colors.primaryLight },
+    itemOn: { backgroundColor: colors.primaryMuted },
     itemText: { ...typography.body, color: colors.text },
-    itemTextOn: { color: colors.primaryDark, fontWeight: '600' },
+    itemTextOn: { color: colors.text, fontWeight: '600' },
     cancel: {
       marginTop: spacing.md,
       alignItems: 'center',

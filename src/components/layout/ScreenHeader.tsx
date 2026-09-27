@@ -14,6 +14,10 @@ interface ScreenHeaderProps {
   /** Large home-style title without back */
   large?: boolean;
   transparent?: boolean;
+  /** Override title color (defaults to theme text) */
+  titleColor?: string;
+  /** Override back-icon color (defaults to theme text) */
+  iconColor?: string;
 }
 
 export function ScreenHeader({
@@ -23,6 +27,8 @@ export function ScreenHeader({
   right,
   large = false,
   transparent = false,
+  titleColor,
+  iconColor,
 }: ScreenHeaderProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -55,7 +61,7 @@ export function ScreenHeader({
               { opacity: pressed ? 0.6 : 1 },
             ]}
           >
-            <Ionicons name="chevron-back" size={24} color={colors.text} />
+            <Ionicons name="chevron-back" size={24} color={iconColor ?? colors.text} />
           </Pressable>
         ) : (
           <View style={styles.iconBtn} />
@@ -64,7 +70,7 @@ export function ScreenHeader({
         <Text
           style={[
             large ? styles.largeTitle : styles.title,
-            { color: colors.text },
+            { color: titleColor ?? colors.text },
           ]}
           numberOfLines={1}
         >
@@ -99,7 +105,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '700',
     letterSpacing: -0.2,
   },
   largeTitle: {

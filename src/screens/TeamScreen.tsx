@@ -24,7 +24,7 @@ import { SearchField } from '../components/SearchField';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { EmptyState } from '../components/EmptyState';
 import { Button } from '../components/Button';
-import { spacing, radius, shadow } from '../constants/theme';
+import { spacing, radius, shadow, typography } from '../constants/theme';
 import { formatSupabaseError } from '../utils/payload';
 
 type FilterKey = 'members' | 'roles' | 'instruments';
@@ -36,6 +36,7 @@ export function TeamScreen() {
   const { colors } = useTheme();
   const [members, setMembers] = useState<ChurchMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterKey>('members');
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
@@ -58,12 +59,14 @@ export function TeamScreen() {
   const load = useCallback(async () => {
     if (!church) return;
     setLoading(true);
-    const { data } = await supabase
+    setError(null);
+    const { data, error } = await supabase
       .from('church_members')
       .select('*, profile:profiles(*)')
       .eq('church_id', church.id)
       .order('created_at');
-    setMembers((data as ChurchMember[]) ?? []);
+    if (error) setError(formatSupabaseError(error));
+    else setMembers((data as ChurchMember[]) ?? []);
     setLoading(false);
   }, [church]);
 
@@ -173,6 +176,21 @@ export function TeamScreen() {
     );
   }
 
+  if (error) {
+    return (
+      <TabScreenShell>
+        <AppHeader title="Equipe" showNotifications={false} showAvatar={false} />
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Não foi possível carregar"
+          description={error}
+          actionLabel="Tentar novamente"
+          onAction={load}
+        />
+      </TabScreenShell>
+    );
+  }
+
   return (
     <TabScreenShell>
       <AppHeader
@@ -224,21 +242,21 @@ export function TeamScreen() {
                 <Pressable
                   key={r}
                   onPress={() => setActiveRole(active ? null : r)}
-                  style={[
+                  style={({ pressed }) => [
                     styles.chip,
                     {
                       backgroundColor: active ? colors.primary : colors.surfaceSecondary,
                       borderRadius: radius.full,
                       borderColor: active ? colors.primary : colors.border,
+                      opacity: pressed ? 0.7 : 1,
                     },
                   ]}
                 >
                   <Text
-                    style={{
-                      color: active ? colors.textInverse : colors.text,
-                      fontSize: 13,
-                      fontWeight: '600',
-                    }}
+                    style={[
+                      styles.chipText,
+                      { color: active ? colors.textInverse : colors.text },
+                    ]}
                   >
                     {roleLabel(r)}
                   </Text>
@@ -255,21 +273,21 @@ export function TeamScreen() {
                 <Pressable
                   key={d.key}
                   onPress={() => setActiveGroup(active ? null : d.key)}
-                  style={[
+                  style={({ pressed }) => [
                     styles.chip,
                     {
                       backgroundColor: active ? colors.primary : colors.surfaceSecondary,
                       borderRadius: radius.full,
                       borderColor: active ? colors.primary : colors.border,
+                      opacity: pressed ? 0.7 : 1,
                     },
                   ]}
                 >
                   <Text
-                    style={{
-                      color: active ? colors.textInverse : colors.text,
-                      fontSize: 13,
-                      fontWeight: '600',
-                    }}
+                    style={[
+                      styles.chipText,
+                      { color: active ? colors.textInverse : colors.text },
+                    ]}
                   >
                     {d.name}
                   </Text>
@@ -342,21 +360,21 @@ export function TeamScreen() {
                       <Pressable
                         key={r}
                         onPress={() => setEditRole(r)}
-                        style={[
+                        style={({ pressed }) => [
                           styles.roleChip,
                           {
                             backgroundColor:
                               editRole === r ? colors.primary : colors.surfaceSecondary,
                             borderRadius: radius.full,
+                            opacity: pressed ? 0.7 : 1,
                           },
                         ]}
                       >
                         <Text
-                          style={{
-                            color: editRole === r ? colors.textInverse : colors.text,
-                            fontSize: 13,
-                            fontWeight: '600',
-                          }}
+                          style={[
+                            styles.chipText,
+                            { color: editRole === r ? colors.textInverse : colors.text },
+                          ]}
                         >
                           {roleLabel(r)}
                         </Text>
@@ -390,7 +408,7 @@ export function TeamScreen() {
                     <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>
                       {item.profile?.name ?? 'Usuário'}
                     </Text>
-                    <Text style={[styles.meta, { color: colors.textSecondary }]}>
+                    <Text style={[styles.meta, { color: colors.textSecondary }]} numberOfLines={1}>
                       {[item.instrument || '—', roleLabel(item.role)].join(' · ')}
                     </Text>
                   </View>
@@ -421,6 +439,10 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     marginRight: spacing.sm,
   },
+  chipText: {
+    ...typography.caption,
+    fontWeight: '600',
+  },
   inviteBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -429,31 +451,29 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   inviteText: {
-    fontSize: 13,
+    ...typography.caption,
     fontWeight: '600',
   },
   list: {
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.xxxl,
-    gap: 10,
+    gap: spacing.sm,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.md,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 2,
   },
   info: {
     flex: 1,
     marginLeft: spacing.md,
   },
   name: {
-    fontSize: 15,
-    fontWeight: '600',
+    ...typography.cardTitle,
   },
   meta: {
-    fontSize: 13,
+    ...typography.caption,
     marginTop: 2,
   },
   input: {

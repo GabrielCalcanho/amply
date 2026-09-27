@@ -5,7 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
-import { colors, typography, spacing } from '../../constants/theme';
+import { typography, spacing, type ThemeColors } from '../../constants/theme';
 import { useTheme } from '../../contexts/ThemeContext';
 
 type Props = {
@@ -14,6 +14,8 @@ type Props = {
 
 export function ForgotPasswordScreen({ navigation }: Props) {
   const { resetPassword } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
@@ -75,30 +77,31 @@ export function ForgotPasswordScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  flex: { flex: 1 },
-  container: {
-    flex: 1,
-    paddingHorizontal: spacing.lg,
-    justifyContent: 'center',
-  },
-  title: {
-    ...typography.h2,
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    ...typography.body,
-    color: colors.textSecondary,
-    marginBottom: spacing.xl,
-  },
-  error: {
-    ...typography.caption,
-    color: colors.danger,
-    marginBottom: spacing.sm,
-  },
-  back: {
-    marginTop: spacing.md,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.background },
+    flex: { flex: 1 },
+    container: {
+      flex: 1,
+      paddingHorizontal: spacing.lg,
+      justifyContent: 'center',
+    },
+    title: {
+      ...typography.h2,
+      color: colors.text,
+      marginBottom: spacing.sm,
+    },
+    subtitle: {
+      ...typography.body,
+      color: colors.textSecondary,
+      marginBottom: spacing.xl,
+    },
+    error: {
+      ...typography.caption,
+      color: colors.danger,
+      marginBottom: spacing.sm,
+    },
+    back: {
+      marginTop: spacing.md,
+    },
+  });

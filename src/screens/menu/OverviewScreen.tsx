@@ -308,7 +308,7 @@ export function OverviewScreen() {
                 onPress={() => setPeriod(chip.key)}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.chipText, { color: active ? c.white : c.textSecondary }]}>
+                <Text style={[styles.chipText, { color: active ? c.textInverse : c.textSecondary }]}>
                   {chip.label}
                 </Text>
               </TouchableOpacity>
@@ -433,8 +433,8 @@ export function OverviewScreen() {
                     <Text style={[styles.cardTitle, { color: c.text, flex: 1 }]} numberOfLines={2}>
                       {item.title}
                     </Text>
-                    <View style={[styles.badge, { backgroundColor: c.primaryLight }]}>
-                      <Text style={[styles.badgeText, { color: c.primary }]} numberOfLines={1}>
+                    <View style={[styles.badge, { backgroundColor: c.primaryMuted }]}>
+                      <Text style={[styles.badgeText, { color: c.text }]} numberOfLines={1}>
                         {SETLIST_STATUS_LABELS[statusKey] ?? statusKey}
                       </Text>
                     </View>
@@ -474,7 +474,7 @@ export function OverviewScreen() {
                   onPress={() => setStatusFilter(chip.key)}
                   activeOpacity={0.8}
                 >
-                  <Text style={[styles.chipText, { color: active ? c.white : c.textSecondary }]}>
+                  <Text style={[styles.chipText, { color: active ? c.textInverse : c.textSecondary }]}>
                     {chip.label}
                   </Text>
                 </TouchableOpacity>

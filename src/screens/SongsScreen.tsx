@@ -19,7 +19,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
 import { Song } from '../types';
-import { spacing, radius, shadow } from '../constants/theme';
+import { spacing, radius, shadow, typography } from '../constants/theme';
 import { formatSupabaseError } from '../utils/payload';
 
 export function SongsScreen() {
@@ -30,6 +30,7 @@ export function SongsScreen() {
   const [filtered, setFiltered] = useState<Song[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const canManage = membership?.role === 'owner' || membership?.role === 'leader';
   const canCreate = !!membership;
@@ -37,13 +38,16 @@ export function SongsScreen() {
   const loadSongs = useCallback(async () => {
     if (!church) return;
     setLoading(true);
+    setError(null);
     const { data, error } = await supabase
       .from('songs')
       .select('*')
       .eq('church_id', church.id)
       .order('is_favorite', { ascending: false })
       .order('title');
-    if (!error && data) {
+    if (error) {
+      setError(formatSupabaseError(error));
+    } else if (data) {
       setSongs(data);
       setFiltered(data);
     }
@@ -104,6 +108,21 @@ export function SongsScreen() {
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
+      </TabScreenShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <TabScreenShell>
+        <AppHeader title="Músicas" showNotifications={false} showAvatar={false} />
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Não foi possível carregar"
+          description={error}
+          actionLabel="Tentar novamente"
+          onAction={loadSongs}
+        />
       </TabScreenShell>
     );
   }
@@ -222,22 +241,21 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   addBtn: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   list: {
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.xxxl,
-    gap: 10,
+    gap: spacing.sm,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.md,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 2,
   },
   cover: {
     width: 48,
@@ -253,11 +271,10 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   title: {
-    fontSize: 15,
-    fontWeight: '600',
+    ...typography.cardTitle,
   },
   meta: {
-    fontSize: 13,
+    ...typography.caption,
     marginTop: 2,
   },
   fav: {

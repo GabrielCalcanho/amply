@@ -18,8 +18,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../services/supabase';
 import { Setlist, SETLIST_STATUS_LABELS, SetlistStatus } from '../types';
-import { spacing, radius, shadow } from '../constants/theme';
+import { spacing, radius, shadow, typography } from '../constants/theme';
 import { formatDateLongBR, formatTime, todayISO } from '../utils/dates';
+import { formatSupabaseError } from '../utils/payload';
 
 type FilterKey = 'upcoming' | 'past' | 'all';
 
@@ -30,6 +31,7 @@ export function SetlistsScreen() {
   const [setlists, setSetlists] = useState<Setlist[]>([]);
   const [filter, setFilter] = useState<FilterKey>('upcoming');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const canManage = membership?.role === 'owner' || membership?.role === 'leader';
   const today = todayISO();
@@ -37,12 +39,18 @@ export function SetlistsScreen() {
   const load = useCallback(async () => {
     if (!church) return;
     setLoading(true);
-    const { data } = await supabase
+    setError(null);
+    const { data, error } = await supabase
       .from('setlists')
       .select('*, setlist_songs(count), setlist_members(count)')
       .eq('church_id', church.id)
       .order('date', { ascending: false });
 
+    if (error) {
+      setError(formatSupabaseError(error));
+      setLoading(false);
+      return;
+    }
     const mapped = (data ?? []).map((s: any) => ({
       ...s,
       songs_count: s.setlist_songs?.[0]?.count ?? 0,
@@ -86,6 +94,21 @@ export function SetlistsScreen() {
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
+      </TabScreenShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <TabScreenShell>
+        <AppHeader title="Setlists" showNotifications={false} showAvatar={false} />
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Não foi possível carregar"
+          description={error}
+          actionLabel="Tentar novamente"
+          onAction={load}
+        />
       </TabScreenShell>
     );
   }
@@ -177,7 +200,7 @@ export function SetlistsScreen() {
               </Text>
               <Badge
                 label={SETLIST_STATUS_LABELS[(item.status as SetlistStatus) || 'scheduled']}
-                tone={highlight ? 'inverse' : statusTone((item.status as SetlistStatus) || 'scheduled')}
+                tone={highlight ? 'onInverse' : statusTone((item.status as SetlistStatus) || 'scheduled')}
               />
             </View>
             <Text style={[styles.cardMeta, { color: metaColor, opacity: highlight ? 0.8 : 1 }]}>
@@ -210,20 +233,19 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   addBtn: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   list: {
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.xxxl,
-    gap: 10,
+    gap: spacing.sm,
   },
   card: {
     padding: spacing.md,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 2,
   },
   cardTop: {
     flexDirection: 'row',
@@ -232,16 +254,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    ...typography.h3,
     flex: 1,
   },
   cardMeta: {
-    fontSize: 13,
+    ...typography.caption,
     marginTop: 6,
   },
   cardLoc: {
-    fontSize: 12,
+    ...typography.small,
     marginTop: 2,
   },
   cardFooter: {
@@ -251,6 +272,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   cardStats: {
-    fontSize: 12,
+    ...typography.small,
   },
 });

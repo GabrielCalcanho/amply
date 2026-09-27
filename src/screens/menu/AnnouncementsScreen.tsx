@@ -234,7 +234,7 @@ export function AnnouncementsScreen() {
                       styles.iconCircle,
                       {
                         backgroundColor: important
-                          ? 'rgba(255,255,255,0.15)'
+                          ? 'rgba(127,127,127,0.25)'
                           : colors.surfaceSecondary,
                       },
                     ]}
@@ -242,13 +242,14 @@ export function AnnouncementsScreen() {
                     <Ionicons
                       name="calendar-outline"
                       size={18}
-                      color={important ? colors.textInverse : colors.text}
+                      color={important ? colors.textOnInverse : colors.text}
                     />
                   </View>
                   <Text
                     style={[
                       styles.badge,
-                      { color: important ? 'rgba(255,255,255,0.7)' : colors.textSecondary },
+                      { color: important ? colors.textOnInverse : colors.textSecondary },
+                      important && { opacity: 0.75 },
                     ]}
                   >
                     {important ? 'Importante' : 'Geral'}
@@ -257,7 +258,7 @@ export function AnnouncementsScreen() {
                     <IconButton
                       icon="ellipsis-horizontal"
                       size={18}
-                      color={important ? colors.textInverse : colors.textMuted}
+                      color={important ? colors.textOnInverse : colors.textSecondary}
                       onPress={() => setMenuFor(item)}
                       style={{ width: 36, height: 36 }}
                     />
@@ -266,9 +267,10 @@ export function AnnouncementsScreen() {
                   )}
                 </View>
                 <Text
+                  numberOfLines={2}
                   style={[
                     styles.cardTitle,
-                    { color: important ? colors.textInverse : colors.text },
+                    { color: important ? colors.textOnInverse : colors.text },
                   ]}
                 >
                   {item.title}
@@ -279,9 +281,10 @@ export function AnnouncementsScreen() {
                       styles.cardBody,
                       {
                         color: important
-                          ? 'rgba(255,255,255,0.75)'
+                          ? colors.textOnInverse
                           : colors.textSecondary,
                       },
+                      important && { opacity: 0.8 },
                     ]}
                     numberOfLines={3}
                   >
@@ -293,9 +296,10 @@ export function AnnouncementsScreen() {
                     styles.cardDate,
                     {
                       color: important
-                        ? 'rgba(255,255,255,0.5)'
+                        ? colors.textOnInverse
                         : colors.textMuted,
                     },
+                    important && { opacity: 0.6 },
                   ]}
                 >
                   {formatDate(item.created_at)}
