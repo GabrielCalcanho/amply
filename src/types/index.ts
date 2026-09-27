@@ -143,19 +143,6 @@ export interface UserSongNote {
   updated_at: string;
 }
 
-
-/** Reserved for future Spotify integration */
-export interface SpotifyTrackResult {
-  id: string;
-  name: string;
-  artists: string;
-  album: string;
-  artworkUrl: string | null;
-  spotifyUrl: string;
-  durationMs?: number;
-}
-
-
 export type NotificationType =
   | 'setlist_new'
   | 'setlist_updated'
