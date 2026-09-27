@@ -31,6 +31,7 @@ export function MinistryHomeScreen() {
   const { church, membership } = useAuth();
   const { colors } = useTheme();
   const [members, setMembers] = useState<{ instrument: string | null }[]>([]);
+  const [teams, setTeams] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -48,8 +49,17 @@ export function MinistryHomeScreen() {
       .from('church_members')
       .select('instrument')
       .eq('church_id', church.id);
-    if (error) setError(formatSupabaseError(error));
-    else setMembers((data as { instrument: string | null }[]) ?? []);
+    if (error) {
+      setError(formatSupabaseError(error));
+    } else {
+      setMembers((data as { instrument: string | null }[]) ?? []);
+      const { data: teamData } = await supabase
+        .from('ministry_teams')
+        .select('id, name')
+        .eq('church_id', church.id)
+        .order('name');
+      setTeams((teamData as { id: string; name: string }[]) ?? []);
+    }
     setLoading(false);
   }, [church]);
 
@@ -98,6 +108,12 @@ export function MinistryHomeScreen() {
     return items.filter((i) => i.name.toLowerCase().includes(q));
   }, [items, search]);
 
+  const filteredTeams = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return teams;
+    return teams.filter((t) => t.name.toLowerCase().includes(q));
+  }, [teams, search]);
+
   const openMinistry = (item: MinistryItem) => {
     // 'Team' é uma aba dentro do navegador Tabs — navegar direto de uma tela do
     // stack lançaria "NAVIGATE with payload was not handled". Passamos pela aba.
@@ -109,7 +125,25 @@ export function MinistryHomeScreen() {
 
   return (
     <View style={[styles.safe, { backgroundColor: colors.background }]}>
-      <ScreenHeader title="Ministérios" showBack />
+      <ScreenHeader
+        title="Ministérios"
+        showBack
+        right={
+          canManage ? (
+            <Pressable
+              onPress={() => navigation.navigate('Teams')}
+              hitSlop={12}
+              accessibilityLabel="Criar equipe"
+              style={({ pressed }) => [
+                styles.addBtn,
+                { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },
+              ]}
+            >
+              <Ionicons name="add" size={20} color={colors.textInverse} />
+            </Pressable>
+          ) : undefined
+        }
+      />
       <View style={styles.toolbar}>
         <SearchField
           value={search}
@@ -137,11 +171,82 @@ export function MinistryHomeScreen() {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
-            canManage ? (
-              <View style={styles.manageSection}>
-                <Text style={[styles.manageTitle, { color: colors.textSecondary }]}>
-                  Gerenciar estrutura
-                </Text>
+            <View>
+              {/* Equipes criadas pelo usuário */}
+              <View style={styles.sectionHead}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Suas equipes</Text>
+                {canManage ? (
+                  <Pressable
+                    onPress={() => navigation.navigate('Teams')}
+                    hitSlop={8}
+                    style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+                  >
+                    <Text style={[styles.sectionLink, { color: colors.textSecondary }]}>
+                      Gerenciar
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+              {filteredTeams.length === 0 ? (
+                <Pressable
+                  onPress={() => canManage && navigation.navigate('Teams')}
+                  disabled={!canManage}
+                  style={({ pressed }) => [
+                    styles.emptyTeams,
+                    {
+                      borderColor: colors.border,
+                      backgroundColor: colors.surface,
+                      opacity: pressed && canManage ? 0.85 : 1,
+                    },
+                  ]}
+                >
+                  <Ionicons name="people-outline" size={18} color={colors.textMuted} />
+                  <Text style={[styles.emptyTeamsText, { color: colors.textSecondary }]}>
+                    {canManage
+                      ? 'Nenhuma equipe ainda — toque para criar'
+                      : 'Nenhuma equipe cadastrada'}
+                  </Text>
+                </Pressable>
+              ) : (
+                <View
+                  style={[
+                    styles.teamList,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                  ]}
+                >
+                  {filteredTeams.map((t, idx) => (
+                    <Pressable
+                      key={t.id}
+                      onPress={() => navigation.navigate('Teams')}
+                      style={({ pressed }) => [
+                        styles.teamRow,
+                        {
+                          backgroundColor: pressed ? colors.surfaceSecondary : 'transparent',
+                          borderTopWidth: idx === 0 ? 0 : StyleSheet.hairlineWidth,
+                          borderTopColor: colors.border,
+                        },
+                      ]}
+                    >
+                      <View
+                        style={[styles.teamIcon, { backgroundColor: colors.surfaceSecondary }]}
+                      >
+                        <Ionicons name="people-outline" size={16} color={colors.text} />
+                      </View>
+                      <Text style={[styles.teamName, { color: colors.text }]} numberOfLines={1}>
+                        {t.name}
+                      </Text>
+                      <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+
+              {/* Grupos automáticos por instrumento */}
+              <Text style={[styles.groupTitle, { color: colors.text }]}>
+                Grupos por instrumento
+              </Text>
+
+              {canManage ? (
                 <View style={styles.manageRow}>
                   {(
                     [
@@ -172,8 +277,8 @@ export function MinistryHomeScreen() {
                     </Pressable>
                   ))}
                 </View>
-              </View>
-            ) : null
+              ) : null}
+            </View>
           }
           ListEmptyComponent={
             <EmptyState
@@ -225,10 +330,71 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  addBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   list: {
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.xxxl,
     gap: spacing.sm,
+  },
+  sectionHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  sectionTitle: {
+    ...typography.section,
+  },
+  sectionLink: {
+    ...typography.caption,
+    fontWeight: '600',
+  },
+  emptyTeams: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  emptyTeamsText: {
+    ...typography.caption,
+    flex: 1,
+  },
+  teamList: {
+    borderRadius: radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+  },
+  teamRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
+  },
+  teamIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  teamName: {
+    ...typography.bodyMedium,
+    flex: 1,
+  },
+  groupTitle: {
+    ...typography.section,
+    marginTop: spacing.xl,
+    marginBottom: spacing.sm,
   },
   row: {
     flexDirection: 'row',
@@ -247,17 +413,10 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: spacing.md,
   },
-  manageSection: {
-    marginBottom: spacing.md,
-  },
-  manageTitle: {
-    ...typography.caption,
-    fontWeight: '600',
-    marginBottom: spacing.sm,
-  },
   manageRow: {
     flexDirection: 'row',
     gap: spacing.sm,
+    marginBottom: spacing.sm,
   },
   manageCard: {
     flex: 1,
