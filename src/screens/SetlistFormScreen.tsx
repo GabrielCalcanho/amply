@@ -3,6 +3,10 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
   Alert,
   View,
   Pressable,
@@ -161,7 +165,17 @@ export function SetlistFormScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScreenHeader title={setlistId ? 'Editar escala' : 'Nova escala'} />
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <View>
         <Text style={styles.section}>Informações</Text>
         <Input
           label="Título *"
@@ -230,7 +244,10 @@ export function SetlistFormScreen() {
           style={styles.btn}
         />
         <Button title="Cancelar" onPress={() => navigation.goBack()} variant="ghost" />
-      </ScrollView>
+            </View>
+          </TouchableWithoutFeedback>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -238,6 +255,7 @@ export function SetlistFormScreen() {
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
+    flex: { flex: 1 },
     container: { padding: spacing.lg, paddingBottom: spacing.xxl },
     section: {
       ...typography.caption,

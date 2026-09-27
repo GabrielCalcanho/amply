@@ -99,8 +99,12 @@ export function MinistryHomeScreen() {
   }, [items, search]);
 
   const openMinistry = (item: MinistryItem) => {
-    // Navigate to team filtered by instrument group when possible
-    navigation.navigate('Team', { filterInstrument: item.key, title: item.name });
+    // 'Team' é uma aba dentro do navegador Tabs — navegar direto de uma tela do
+    // stack lançaria "NAVIGATE with payload was not handled". Passamos pela aba.
+    navigation.navigate('Tabs', {
+      screen: 'Team',
+      params: { filterInstrument: item.key, title: item.name },
+    });
   };
 
   return (

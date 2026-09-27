@@ -408,7 +408,7 @@ export function OverviewScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: c.text }]}>Escalas no período</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Setlists')}>
+            <TouchableOpacity onPress={() => navigation.navigate('Tabs', { screen: 'Setlists' })}>
               <Text style={[styles.link, { color: c.primary }]}>Ver todas</Text>
             </TouchableOpacity>
           </View>
