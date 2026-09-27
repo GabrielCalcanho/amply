@@ -140,3 +140,37 @@ export function isBirthdayToday(birthDateISO: string | null | undefined): boolea
   const today = todayISO().split('-');
   return parts[1] === today[1] && parts[2] === today[2];
 }
+
+/** Relative label for a timestamp: "agora", "há 5 min", "há 2 h", "ontem", "há 3 d", "DD/MM/AAAA". */
+export function formatRelativeTime(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  if (diffMs < 0) return formatDateBR(d);
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return 'agora';
+  if (min < 60) return `há ${min} min`;
+  const h = Math.floor(min / 60);
+  if (d.getDate() === now.getDate() && h < 24) return `há ${h} h`;
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (d.toDateString() === yesterday.toDateString()) return 'ontem';
+  const days = Math.floor(diffMs / 86400000);
+  if (days < 7) return `há ${days} d`;
+  return formatDateBR(d);
+}
+
+/** Day bucket label for grouping: "Hoje", "Ontem" or "DD/MM/AAAA". */
+export function dayBucketLabel(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const now = new Date();
+  if (d.toDateString() === now.toDateString()) return 'Hoje';
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (d.toDateString() === yesterday.toDateString()) return 'Ontem';
+  return formatDateBR(d);
+}
