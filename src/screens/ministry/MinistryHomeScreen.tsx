@@ -15,7 +15,7 @@ import { supabase } from '../../services/supabase';
 import { ScreenHeader } from '../../components/layout/ScreenHeader';
 import { SearchField } from '../../components/SearchField';
 import { EmptyState } from '../../components/EmptyState';
-import { spacing, radius, shadow, typography } from '../../constants/theme';
+import { spacing, radius, typography } from '../../constants/theme';
 import { MINISTRY_DEFS } from '../../constants/ministries';
 import { formatSupabaseError } from '../../utils/payload';
 
@@ -164,7 +164,6 @@ export function MinistryHomeScreen() {
                           borderColor: colors.border,
                           borderRadius: radius.lg,
                           opacity: pressed ? 0.9 : 1,
-                          ...shadow.sm,
                         },
                       ]}
                     >
@@ -193,7 +192,6 @@ export function MinistryHomeScreen() {
                   borderColor: colors.border,
                   borderRadius: radius.xl,
                   opacity: pressed ? 0.92 : 1,
-                  ...shadow.sm,
                 },
               ]}
             >
